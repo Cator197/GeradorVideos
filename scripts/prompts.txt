@@ -1,61 +1,35 @@
 Prompt1:
-Imagem: "anime style, vertical composition, back view of Apostle John standing on desert ground, staring at the sky splitting open with divine light, celestial gate, glowing particles floating, dramatic clouds, awe and reverence, high-detail, vibrant lighting, heaven realm background"
-Animação: "slow zoom-in toward John, subtle movement of glowing lights in the sky, particles drifting gently around the scene"
-Narração: [João olhou para o alto... e o céu se abriu diante dele.]
-Falas:
-  - Personagem: João
-    Texto: Eu vi... um trono... e alguém sentado sobre ele.
-    Voz: masculina serena e inspirada (voz sugerida: Mateus - tom calmo e reverente)
-Efeitos Sonoros:
-  - "soft sacred wind blowing"
-  - "gentle sparkle chimes"
-Trilha Sonora: orquestral celestial leve com harpas e sons etéreos
+Imagem: cinematic realistic style, young man in ancient clothing standing before a giant shadow, dramatic lighting, fear and determination in his face, battlefield background, vertical 9:16
+Narração: A oração que fez Davi vencer gigantes. Faça agora…
 ---
 Prompt2:
-Imagem: "anime style, vertical frame, throne of God glowing with radiant light, surrounded by 24 elders in golden robes and crowns, divine atmosphere, rainbow around the throne, celestial courtroom, high contrast light, mystical aura"
-Animação: "slow camera orbit around the throne, highlighting crowns and shimmering light pulses"
-Narração: [E havia ao redor do trono vinte e quatro anciãos... com coroas de ouro.]
-Falas:
-  - Personagem: João
-    Texto: Eles se curvavam e lançavam suas coroas diante d’Ele.
-    Voz: masculina serena e inspirada (Mateus)
-Efeitos Sonoros:
-  - "subtle bell-like chime sounds"
-  - "soft angelic choir pad"
-Trilha Sonora: mesma trilha anterior, com adição de coral sutil
+Imagem: realistic cinematic style, close-up of David kneeling with eyes closed, hands tightly clasped in prayer, golden morning light hitting his face, emotional expression, vertical 9:16
+Narração: Me segue pra receber orações como essa todos os dias…
 ---
 Prompt3:
-Imagem: "anime style, vertical, four living creatures surrounding throne: lion, ox, man, eagle, all with six wings and eyes all over, glowing divine energy, majestic and otherworldly, detailed feathers and fur, dramatic lighting, ethereal glow"
-Animação: "creatures slightly moving, wings stretching, glowing eyes blinking, camera panning to show each one reverently watching the throne"
-Narração: [Cada uma tinha seis asas... e estavam cheias de olhos por dentro e por fora.]
-Falas:
-  - Personagem: Criaturas Celestiais
-    Texto: Santo, Santo, Santo é o Senhor DeusTodo-Poderoso.
-    Voz: vozes ecoadas em harmonia (voz sugerida: múltiplas vozes com leve eco, estilo angelical)
-Efeitos Sonoros:
-  - "light wing flaps"
-  - "soft layered angelic echo"
-Trilha Sonora: mesma trilha, com batida rítmica leve ao fundo
+Imagem: realistic style, David with his hand over his heart, soft sunlight in the background, peaceful and focused face, warm tones, vertical 9:16
+Narração: Senhor, quando eu me sentir pequeno diante dos meus problemas...
 ---
 Prompt4:
-Imagem: "anime style, vertical, close-up of John's emotional face with tears in his eyes, glowing divine light surrounding him, radiant particles, deep sky background, emotional intensity, spiritual awe"
-Animação: "slow zoom toward John’s eyes, heavenly light intensifying around his silhouette"
-Narração: [Ele viu o que nenhum homem jamais viu... e acreditou.]
-Falas:
-  - Personagem: João
-    Texto: Bendito seja o nome do Senhor para sempre.
-    Voz: masculina serena e inspirada (Mateus)
-Efeitos Sonoros:
-  - "deep emotional breath"
-  - "soft harp crescendo"
-Trilha Sonora: mesma trilha, crescendo suave e emocional
+Imagem: realistic, cinematic light rays from heaven falling on David, background blurred, symbolic moment, vertical 9:16
+Narração: Me dá a coragem que Davi teve diante de Golias.
 ---
 Prompt5:
-Imagem: "anime style, vertical, starry sky background with silhouette of John kneeling, text overlay in glowing white letters: 'Você crê no que João viu?', button style graphic: 'Comente e Siga', celestial glow, peaceful scene"
-Animação: "text slowly fades in, stars gently twinkling, slight movement of celestial light"
-Narração: [Você crê no que João viu? Comente sua opinião... e siga para mais visões incríveis.]
-Falas: []
-Efeitos Sonoros:
-  - "twinkling star chimes"
-  - "heavenly fade-out ambient"
-Trilha Sonora: finalização suave com eco de harpas
+Imagem: realistic style, stone in hand, David with determined look, slow wind blowing his hair, battlefield stillness, vertical 9:16
+Narração: Que eu não fuja dos meus gigantes, mas enfrente cada um com fé.
+---
+Prompt6:
+Imagem: realistic cinematic, David walking toward the giant, divine light behind him, confident steps, dust rising, vertical 9:16
+Narração: Porque contigo, Senhor, nenhum inimigo é grande demais.
+---
+Prompt7:
+Imagem: realistic, emotional style, giant fallen in the background, David lifting eyes to the sky with gratitude, light surrounding him, vertical 9:16
+Narração: Me dá vitória onde parece impossível vencer...
+---
+Prompt8:
+Imagem: realistic soft-focus, modern person praying inspired by David, hands to the sky, tears of fé, emotional atmosphere, vertical 9:16
+Narração: Eu confio no Teu poder, mesmo quando tudo diz que não.
+---
+Prompt9:
+Imagem: realistic style, close-up of serene face after oração, sunlight warming the skin, peace and strength visible, vertical 9:16
+Narração: Se essa oração falou com você, comenta “Amém” aqui embaixo.

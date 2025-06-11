@@ -2,37 +2,55 @@ import asyncio
 import aiohttp
 import json
 
-API_KEY = "SUA_CHAVE_PIAPI"
+API_KEY = "1014d470224d1bd03201a5e7c3641a8bfdfa5f3027451aca34b20de45d75bdc4"
 BASE_URL = "https://api.piapi.ai"
 HEADERS = {
-    "Authorization": f"Bearer {API_KEY}",
+    "x-api-key": API_KEY,
     "Content-Type": "application/json"
 }
+
 ENTRADA_JSON = "cenas_com_imagens.json"
 SAIDA_JSON = "cenas_com_videos.json"
 
-# 🔁 Cria vídeo com imagem + instrução de movimento
+# 🔁 Cria vídeo com imagem + prompt usando modelo Hailuo
 async def criar_video(session, image_url, prompt):
     payload = {
-        "image_url": image_url,
-        "prompt": prompt
+        "model": "hailuo",
+        "task_type": "video_generation",
+        "input": {
+            "prompt": prompt,
+            "model": "i2v-01",
+            "image_url": image_url,
+            "expand_prompt": True
+        },
+        "config": {
+            "service_mode": "public",
+            "webhook_config": {
+                "endpoint": "",  # deixe vazio se não usar webhook
+                "secret": ""
+            }
+        }
     }
-    async with session.post(f"{BASE_URL}/kling/create-task", json=payload) as resp:
+
+    async with session.post(f"{BASE_URL}/api/v1/task", json=payload) as resp:
         resp.raise_for_status()
-        return await resp.json()
+        data = await resp.json()
+        print("🎥 Resposta ao criar vídeo:", data)
+        return data
 
 # 🔁 Checa até o vídeo estar pronto
 async def checar_video(session, task_id):
     while True:
         await asyncio.sleep(10)
-        async with session.get(f"{BASE_URL}/kling/task/{task_id}") as resp:
+        async with session.get(f"{BASE_URL}/api/v1/task/{task_id}") as resp:
             resp.raise_for_status()
             data = await resp.json()
-            if data["status"] == "completed":
+            status = data["data"]["status"]
+            print(f"🔄 Status do vídeo {task_id}: {status}")
+            if status == "completed":
                 return data
-            elif data["status"] == "failed":
-                raise Exception(f"Vídeo {task_id} falhou.")
-            print(f"Vídeo {task_id} ainda processando...")
+            elif status == "failed":
+                raise Exception(f"❌ Vídeo {task_id} falhou.")
 
 # 🎯 Processa cada cena do JSON
 async def processar_video(session, cena):
@@ -40,16 +58,16 @@ async def processar_video(session, cena):
     image_url = cena.get("image_url", "").strip()
 
     if not prompt_animacao or not image_url:
-        print("❌ Cena incompleta. Pulando...")
+        print("⚠️ Cena incompleta (sem imagem ou prompt de animação). Pulando...")
         return cena
 
     print(f"\n🎬 Criando vídeo para imagem: {image_url}")
     criacao = await criar_video(session, image_url, prompt_animacao)
-    task_id = criacao["task_id"]
+    task_id = criacao["data"]["task_id"]
     resultado = await checar_video(session, task_id)
 
     cena["task_id_video"] = task_id
-    cena["video_url"] = resultado["video_url"]
+    cena["video_url"] = resultado["data"]["output"]["video_url"]
     print(f"✅ Vídeo pronto: {cena['video_url']}")
     return cena
 

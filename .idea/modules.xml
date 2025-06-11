@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/gerador de video automatico.iml" filepath="$PROJECT_DIR$/.idea/gerador de video automatico.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/geradorVideo.iml" filepath="$PROJECT_DIR$/.idea/geradorVideo.iml" />
     </modules>
   </component>
 </project>

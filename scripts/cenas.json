@@ -1,60 +1,38 @@
 [
     {
-        "prompt_imagem": "\"anime style, vertical composition, back view of Apostle John standing on desert ground, staring at the sky splitting open with divine light, celestial gate, glowing particles floating, dramatic clouds, awe and reverence, high-detail, vibrant lighting, heaven realm background\"",
-        "prompt_animacao": "\"slow zoom-in toward John, subtle movement of glowing lights in the sky, particles drifting gently around the scene\"",
-        "narracao": "[João olhou para o alto... e o céu se abriu diante dele.]",
-        "falas": [
-            {
-                "personagem": "João",
-                "texto": "Eu vi... um trono... e alguém sentado sobre ele.",
-                "voz": "masculina serena e inspirada (voz sugerida: Mateus - tom calmo e reverente)"
-            }
-        ],
-        "trilha_sonora": "orquestral celestial leve com harpas e sons etéreos"
+        "prompt_imagem": "cinematic realistic style, young man in ancient clothing standing before a giant shadow, dramatic lighting, fear and determination in his face, battlefield background, vertical 9:16",
+        "narracao": "A oração que fez Davi vencer gigantes. Faça agora…"
     },
     {
-        "prompt_imagem": "\"anime style, vertical frame, throne of God glowing with radiant light, surrounded by 24 elders in golden robes and crowns, divine atmosphere, rainbow around the throne, celestial courtroom, high contrast light, mystical aura\"",
-        "prompt_animacao": "\"slow camera orbit around the throne, highlighting crowns and shimmering light pulses\"",
-        "narracao": "[E havia ao redor do trono vinte e quatro anciãos... com coroas de ouro.]",
-        "falas": [
-            {
-                "personagem": "João",
-                "texto": "Eles se curvavam e lançavam suas coroas diante d’Ele.",
-                "voz": "masculina serena e inspirada (Mateus)"
-            }
-        ],
-        "trilha_sonora": "mesma trilha anterior, com adição de coral sutil"
+        "prompt_imagem": "realistic cinematic style, close-up of David kneeling with eyes closed, hands tightly clasped in prayer, golden morning light hitting his face, emotional expression, vertical 9:16",
+        "narracao": "Me segue pra receber orações como essa todos os dias…"
     },
     {
-        "prompt_imagem": "\"anime style, vertical, four living creatures surrounding throne: lion, ox, man, eagle, all with six wings and eyes all over, glowing divine energy, majestic and otherworldly, detailed feathers and fur, dramatic lighting, ethereal glow\"",
-        "prompt_animacao": "\"creatures slightly moving, wings stretching, glowing eyes blinking, camera panning to show each one reverently watching the throne\"",
-        "narracao": "[Cada uma tinha seis asas... e estavam cheias de olhos por dentro e por fora.]",
-        "falas": [
-            {
-                "personagem": "Criaturas Celestiais",
-                "texto": "Santo, Santo, Santo é o Senhor Deus Todo-Poderoso.",
-                "voz": "vozes ecoadas em harmonia (voz sugerida: múltiplas vozes com leve eco, estilo angelical)"
-            }
-        ],
-        "trilha_sonora": "mesma trilha, com batida rítmica leve ao fundo"
+        "prompt_imagem": "realistic style, David with his hand over his heart, soft sunlight in the background, peaceful and focused face, warm tones, vertical 9:16",
+        "narracao": "Senhor, quando eu me sentir pequeno diante dos meus problemas..."
     },
     {
-        "prompt_imagem": "\"anime style, vertical, close-up of John's emotional face with tears in his eyes, glowing divine light surrounding him, radiant particles, deep sky background, emotional intensity, spiritual awe\"",
-        "prompt_animacao": "\"slow zoom toward John’s eyes, heavenly light intensifying around his silhouette\"",
-        "narracao": "[Ele viu o que nenhum homem jamais viu... e acreditou.]",
-        "falas": [
-            {
-                "personagem": "João",
-                "texto": "Bendito seja o nome do Senhor para sempre.",
-                "voz": "masculina serena e inspirada (Mateus)"
-            }
-        ],
-        "trilha_sonora": "mesma trilha, crescendo suave e emocional"
+        "prompt_imagem": "realistic, cinematic light rays from heaven falling on David, background blurred, symbolic moment, vertical 9:16",
+        "narracao": "Me dá a coragem que Davi teve diante de Golias."
     },
     {
-        "prompt_imagem": "\"anime style, vertical, starry sky background with silhouette of John kneeling, text overlay in glowing white letters: 'Você crê no que João viu?', button style graphic: 'Comente e Siga', celestial glow, peaceful scene\"",
-        "prompt_animacao": "\"text slowly fades in, stars gently twinkling, slight movement of celestial light\"",
-        "narracao": "[Você crê no que João viu? Comente sua opinião... e siga para mais visões incríveis.]",
-        "trilha_sonora": "finalização suave com eco de harpas"
+        "prompt_imagem": "realistic style, stone in hand, David with determined look, slow wind blowing his hair, battlefield stillness, vertical 9:16",
+        "narracao": "Que eu não fuja dos meus gigantes, mas enfrente cada um com fé."
+    },
+    {
+        "prompt_imagem": "realistic cinematic, David walking toward the giant, divine light behind him, confident steps, dust rising, vertical 9:16",
+        "narracao": "Porque contigo, Senhor, nenhum inimigo é grande demais."
+    },
+    {
+        "prompt_imagem": "realistic, emotional style, giant fallen in the background, David lifting eyes to the sky with gratitude, light surrounding him, vertical 9:16",
+        "narracao": "Me dá vitória onde parece impossível vencer..."
+    },
+    {
+        "prompt_imagem": "realistic soft-focus, modern person praying inspired by David, hands to the sky, tears of fé, emotional atmosphere, vertical 9:16",
+        "narracao": "Eu confio no Teu poder, mesmo quando tudo diz que não."
+    },
+    {
+        "prompt_imagem": "realistic style, close-up of serene face after oração, sunlight warming the skin, peace and strength visible, vertical 9:16",
+        "narracao": "Se essa oração falou com você, comenta “Amém” aqui embaixo."
     }
 ]
