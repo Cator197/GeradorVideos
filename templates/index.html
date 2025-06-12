@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid">
+  <div class="card">
+    <button onclick="location.href='{{ url_for('complete') }}'">
+      Gerar Vídeo Completo
+    </button>
+  </div>
+  <div class="card">
+    <button onclick="location.href='{{ url_for('imagens_page') }}'">
+      Gerar Imagem
+    </button>
+  </div>
+  <div class="card">
+    <button onclick="location.href='{{ url_for('imagens_page') }}'">
+      Gerar Narração
+    </button>
+  </div>
+  <div class="card">
+    <button onclick="location.href='{{ url_for('imagens_page') }}'">
+      Gerar Legendas
+    </button>
+  </div>
+  <div class="card">
+    <button onclick="location.href='{{ url_for('imagens_page') }}'">
+      Montar Cenas
+    </button>
+  </div>
+  <div class="card">
+    <button onclick="location.href='{{ url_for('imagens_page') }}'">
+      Unir Vídeos
+    </button>
+  </div>
+  <div class="card">
+    <button onclick="location.href='{{ url_for('config_page') }}'">
+      Configurações
+    </button>
+  </div>
+</div>
+{% endblock %}

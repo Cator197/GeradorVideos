@@ -1,0 +1,5 @@
+Flask~=3.1.1
+aiohttp~=3.12.12
+moviepy~=2.2.1
+faster-whisper~=1.1.1
+selenium~=4.33.0

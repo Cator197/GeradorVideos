@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="complete-container">
+  <form id="form_generate_narracoes">
+    <div class="row-imagens">
+      <!-- Resumo das Narrações -->
+      <div class="col-list">
+        <label for="narracao_list"><strong>Resumo das Narrações</strong></label>
+        <select id="narracao_list" name="narracao_list" multiple size="10" class="form-control">
+          {% for cena in cenas %}
+            <option
+              value="{{ loop.index0 }}">
+              Narração {{ loop.index }} – {{ cena.narracao[:60] }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <!-- Preview do áudio ao dar duplo clique -->
+        <div class="audio-preview" style="margin-top:1rem; text-align:center;">
+          <audio id="preview_audio" controls style="width:100%;">
+            <source id="audio_source" src="" type="audio/mpeg">
+            Seu navegador não suporta o elemento áudio.
+          </audio>
+        </div>
+      </div>
+
+      <!-- Painel de Configurações -->
+      <div class="col-config config-panel">
+        <fieldset>
+          <legend><strong>Configurações</strong></legend>
+          <div class="form-group">
+            <label for="fonte">Fonte:</label>
+            <select id="fonte" name="fonte" class="form-control">
+              <option value="elevenlabs">Eleven Labs</option>
+              <option value="piapi">API</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><input type="radio" name="scope" value="all" checked> Todas</label>
+          </div>
+          <div class="form-group">
+            <label><input type="radio" name="scope" value="single"> Somente a</label>
+            <input type="number" name="single_index" id="single_index" min="1" placeholder="nº"
+                   class="form-control small-input" disabled>
+          </div>
+          <div class="form-group">
+            <label><input type="radio" name="scope" value="from"> A partir da</label>
+            <input type="number" name="from_index" id="from_index" min="1" placeholder="nº"
+                   class="form-control small-input" disabled>
+          </div>
+          <button id="generate_narracoes" type="button" class="btn-primary">Gerar</button>
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Barra de Progresso -->
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress_fill"></div>
+    </div>
+
+    <!-- Log de Progresso -->
+    <div class="progress-log">
+      <pre id="log"></pre>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/generate_narracao.js') }}"></script>
+{% endblock %}

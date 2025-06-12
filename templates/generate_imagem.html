@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="complete-container">
+  <form id="form_generate_images">
+    <div class="row-imagens">
+      <!-- Resumo das Imagens -->
+      <div class="col-list">
+        <label for="image_list"><strong>Resumo das Imagens</strong></label>
+        <select id="image_list" name="image_list" multiple size="10" class="form-control">
+          {% for cena in cenas %}
+            <option
+              value="{{ loop.index0 }}"
+              data-url="{{ url_for('serve_module_images', filename='imagem' ~ loop.index ~ '.jpg') }}">
+              Imagem {{ loop.index }} – {{ cena.prompt_imagem }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <!-- Preview da imagem ao dar duplo clique -->
+        <div class="image-preview" style="margin-top:1rem; text-align:center;">
+          <img id="preview_img" src="" alt="Preview" style="max-width:100%; max-height:300px; border:1px solid #ccc; border-radius:4px;">
+        </div>
+      </div>
+
+      <!-- Painel de Configurações -->
+      <div class="col-config config-panel">
+        <fieldset>
+          <legend><strong>Configurações</strong></legend>
+          <div class="form-group">
+            <label><input type="radio" name="scope" value="all" checked> Todas</label>
+          </div>
+          <div class="form-group">
+            <label><input type="radio" name="scope" value="single"> Somente a</label>
+            <input type="number" name="single_index" id="single_index" min="1" placeholder="nº"
+                   class="form-control small-input" disabled>
+          </div>
+          <div class="form-group">
+            <label><input type="radio" name="scope" value="from"> A partir da</label>
+            <input type="number" name="from_index" id="from_index" min="1" placeholder="nº"
+                   class="form-control small-input" disabled>
+          </div>
+          <button id="generate_images" type="button" class="btn-primary">Gerar</button>
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Barra de Progresso -->
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress_fill"></div>
+    </div>
+
+    <!-- Log de Progresso -->
+    <div class="progress-log">
+      <pre id="log"></pre>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/generate_imagem.js') }}"></script>
+{% endblock %}

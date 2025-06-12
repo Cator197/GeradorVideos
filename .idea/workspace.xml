@@ -4,33 +4,44 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="commit inicial com todos os modulos sem alteracoes">
-      <change afterPath="$PROJECT_DIR$/scripts/gerar_SRT.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/gerar_imagens.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/gerar_narracao.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/imagens/imagem8.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/juntar_cenas.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/marca 916.PNG" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/montar_cenas.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gerador de video automatico.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/geradorVideo.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="v1 funcionando">
+      <change afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/modules/cenas.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/modules/imagens/imagem9.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/modules/marca 916.PNG" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/modules/prompts.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/css/styles.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/js/generate_imagem.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/js/generate_narracao.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/js/toggle.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/complete.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/generate_imagem.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/generate_narracao.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/00.parser_prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/parser_prompts.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/01.gerar_imagens.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/02.gerar_animacao.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/arquivado/02.gerar_animacao.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/03.gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/arquivado/03.gerar_narracao.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/04.gerar_falas.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/arquivado/04.gerar_falas.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/05.gerar_lipsync.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/arquivado/05.gerar_lipsync.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/06.inserir_efeitos.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/arquivado/06.inserir_efeitos.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/07.gerar_trilha.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/arquivado/07.gerar_trilha.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/08.gerar_legendas.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/arquivado/08.gerar_legendas.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/09.exportar_srt.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/arquivado/09.exportar_srt.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/10.montar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/arquivado/10.montar_cenas.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/11.juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/arquivado/11.juntar_cenas.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/cenas.json" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cenas.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/prompts.txt" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/prompts.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/arquivado/02.gerar_animacao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/arquivado/02.gerar_animacao.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/arquivado/03.gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/arquivado/03.gerar_narracao.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/arquivado/04.gerar_falas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/arquivado/04.gerar_falas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/arquivado/05.gerar_lipsync.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/arquivado/05.gerar_lipsync.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/arquivado/06.inserir_efeitos.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/arquivado/06.inserir_efeitos.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/arquivado/07.gerar_trilha.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/arquivado/07.gerar_trilha.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/arquivado/08.gerar_legendas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/arquivado/08.gerar_legendas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/arquivado/09.exportar_srt.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/arquivado/09.exportar_srt.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/arquivado/10.montar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/arquivado/10.montar_cenas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/arquivado/11.juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/arquivado/11.juntar_cenas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/cenas.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/gerar_SRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_SRT.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/gerar_imagens.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_imagens.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/imagens/imagem8.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/juntar_cenas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/marca 916.PNG" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/montar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/montar_cenas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/parser_prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/parser_prompts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/prompts.txt" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,6 +52,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Python Script" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
@@ -72,39 +84,66 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
     "Python.00.parser_prompts.executor": "Run",
     "Python.01.gerar_imagens.executor": "Run",
     "Python.02.gerar_animacao.executor": "Run",
     "Python.03.gerar_narracao.executor": "Run",
     "Python.adicionar_marcadagua.executor": "Run",
+    "Python.app.executor": "Run",
     "Python.gerar_SRT.executor": "Run",
     "Python.gerar_imagens (1).executor": "Run",
     "Python.gerar_imagens.executor": "Run",
     "Python.gerar_narracao.executor": "Run",
     "Python.juntar_cenas.executor": "Run",
+    "Python.main.executor": "Run",
     "Python.montar_cenas.executor": "Run",
     "Python.parser_prompts.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/PycharmProjects/geradorVideo",
+    "last_opened_file_path": "D:/PycharmProjects/geradorVideo/scripts/imagens",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\PycharmProjects\geradorVideo\scripts\imagens" />
       <recent name="D:\PycharmProjects\gerador de video automatico\scripts\audios_narracoes" />
       <recent name="D:\PycharmProjects\gerador de video automatico" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\PycharmProjects\geradorVideo\modules" />
       <recent name="D:\PycharmProjects\geradorVideo\scripts\imagens" />
       <recent name="D:\PycharmProjects\geradorVideo\scripts" />
-      <recent name="D:\PycharmProjects\geradorVideo\scripts\arquivado" />
-      <recent name="D:\PycharmProjects\gerador de video automatico\scripts" />
+      <recent name="D:\PycharmProjects\geradorVideo\scripts\audios_narracoes" />
+      <recent name="D:\PycharmProjects\geradorVideo\scripts\legendas_srt" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.juntar_cenas">
+  <component name="RunManager" selected="Python.app">
+    <configuration name="app" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="geradorVideo" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/app.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="gerar_SRT" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="geradorVideo" />
       <option name="ENV_FILES" value="" />
@@ -149,7 +188,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="gerar_narracao" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="geradorVideo" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -158,33 +197,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scripts" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scripts/gerar_narracao.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="juntar_cenas" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="geradorVideo" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scripts" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scripts/juntar_cenas.py" />
+      <option name="SCRIPT_NAME" value="D:\PycharmProjects\geradorVideo\main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -217,10 +234,10 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.juntar_cenas" />
+        <item itemvalue="Python.app" />
+        <item itemvalue="Python.main" />
         <item itemvalue="Python.montar_cenas" />
         <item itemvalue="Python.gerar_SRT" />
-        <item itemvalue="Python.gerar_narracao" />
         <item itemvalue="Python.gerar_imagens" />
       </list>
     </recent_temporary>
@@ -265,7 +282,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749580477830</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="v1 funcionando">
+      <option name="closed" value="true" />
+      <created>1749674527183</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1749674527183</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -273,7 +298,19 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="master" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
@@ -281,6 +318,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="commit inicial com todos os modulos sem alteracoes" />
-    <option name="LAST_COMMIT_MESSAGE" value="commit inicial com todos os modulos sem alteracoes" />
+    <MESSAGE value="v1 funcionando" />
+    <option name="LAST_COMMIT_MESSAGE" value="v1 funcionando" />
   </component>
 </project>

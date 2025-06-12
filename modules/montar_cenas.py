@@ -15,43 +15,72 @@ os.makedirs(PASTA_VIDEOS, exist_ok=True)
 def criar_video_basico(imagem_path, audio_path, duracao, saida_path):
     clip_img   = ImageClip(imagem_path, duration=duracao)
     clip_audio = AudioFileClip(audio_path)
+    # redimensiona para 1080×1920 (mantendo proporção 9:16)
+    clip_img = clip_img.resized(height=1920)
     video = clip_img.with_audio(clip_audio)
     video.write_videofile(saida_path, fps=24, logger=None)
 
+
 def embutir_legenda_ffmpeg(video_entrada, legenda_srt, video_saida,
-                           cor="white", tamanho=36, posicao="bottom"):
-    # 1) gera o path absoluto com barras normais
+                           cor="white", tamanho=24, posicao="bottom"):
+    # Path absoluto e escape do “:” do drive
     legenda_path = os.path.abspath(legenda_srt).replace("\\", "/")
-    # 2) escapa o ':' do drive letter (ex: 'D:' → 'D\:')
     legenda_path = re.sub(r'^([A-Za-z]):', r'\1\\:', legenda_path)
 
-    # 3) mapeia posição para ASS alignment
-    align_map = {"bottom":2, "top":8, "center":5}
-    align = align_map.get(posicao, 2)
+    # Pega a altura do vídeo
+    height = int(subprocess.check_output([
+        "ffprobe","-v","error","-select_streams","v:0",
+        "-show_entries","stream=height","-of","csv=p=0",
+        video_entrada
+    ]).strip())
 
-    # 4) monta o filtro com o path entre aspas simples
+    # Alignment e MarginV
+    if posicao == "bottom":
+        align, marginV = 2, 20
+    elif posicao == "top":
+        align, marginV = 8, 0
+    else:  # center
+        align   = 10
+        marginV = 0
+
+    # Monta estilo sem espaços extras
+    style = (
+        f"Fontsize={tamanho},"
+        f"PrimaryColour=&Hffffff&,OutlineColour=&H000000&,"
+        f"BorderStyle=1,Outline=1,Alignment={align},MarginV={marginV}"
+    )
+
+    # Filtro com todas as partes entre aspas simples
     filtro = (
         f"subtitles='{legenda_path}':"
-        f"force_style='Fontsize={tamanho},"
-        f"PrimaryColour=&Hffffff&,OutlineColour=&H000000&,"
-        f"BorderStyle=1,Outline=1,Alignment={align}'"
+        f"force_style='{style}'"
     )
 
     comando = [
-        "ffmpeg", "-y",
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel", "error",
+        "-y",
         "-i", video_entrada,
         "-vf", filtro,
         "-c:a", "copy",
         video_saida
     ]
-    subprocess.run(comando, check=True)
+    # executa e mostra eventual erro
+    try:
+        subprocess.run(comando, check=True)
+    except subprocess.CalledProcessError as e:
+        print("❌ ffmpeg falhou. Comando executado:")
+        print(" ".join(comando))
+        raise
+
 
 def processar_video(index, usar_soft, cor, tamanho, posicao):
     img  = os.path.join(PASTA_IMAGENS,  f"imagem{index+1}.jpg")
-    aud  = os.path.join(PASTA_AUDIOS,  f"narracao{index+1}.mp3")
-    srt  = os.path.join(PASTA_SRTS,    f"legenda{index+1}.srt")
-    temp = os.path.join(PASTA_VIDEOS,  f"temp_video{index+1}.mp4")
-    out  = os.path.join(PASTA_VIDEOS,  f"video{index+1}.mp4")
+    aud  = os.path.join(PASTA_AUDIOS,    f"narracao{index+1}.mp3")
+    srt  = os.path.join(PASTA_SRTS,      f"legenda{index+1}.srt")
+    temp = os.path.join(PASTA_VIDEOS,    f"temp_video{index+1}.mp4")
+    out  = os.path.join(PASTA_VIDEOS,    f"video{index+1}.mp4")
 
     if not (os.path.exists(img) and os.path.exists(aud) and os.path.exists(srt)):
         print(f"⚠️ Arquivos faltando p/ cena {index+1}")
@@ -80,8 +109,8 @@ if __name__ == "__main__":
     usar_soft = (tipo == "s")
 
     cor     = input("🎨 Cor do texto (ex: white, yellow): ").strip() or "white"
-    tamanho = input("🔠 Tamanho da fonte (ex: 36): ").strip()
-    tamanho = int(tamanho) if tamanho.isdigit() else 36
+    tamanho = input("🔠 Tamanho da fonte (ex: 24): ").strip()
+    tamanho = int(tamanho) if tamanho.isdigit() else 24
     posicao = input("📍 Posição [bottom, top, center]: ").strip().lower() or "bottom"
 
     if modo == "u":

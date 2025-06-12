@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ page_title }} – Criador de Vídeos</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <!-- HEADER FIXO -->
+  <header>
+    <button id="btn-toggle-sidebar" aria-label="Toggle menu">☰</button>
+    <h1>{{ page_title }}</h1>
+  </header>
+
+  <div class="container">
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+      <nav>
+        <ul>
+          <li><a href="{{ url_for('index') }}">Início</a></li>
+          <li><a href="{{ url_for('complete') }}">Vídeo Completo</a></li>
+          <li><a href="{{ url_for('imagens_page') }}">Gerar Imagem</a></li>
+          <li><a href="{{ url_for('imagens_page') }}">Gerar Narração</a></li>
+          <li><a href="{{ url_for('imagens_page') }}">Gerar Legendas</a></li>
+          <li><a href="{{ url_for('imagens_page') }}">Montar Cenas</a></li>
+          <li><a href="{{ url_for('imagens_page') }}">Unir Vídeos</a></li>
+          <li><a href="{{ url_for('config_page') }}">Configurações</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/toggle.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

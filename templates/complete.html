@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="complete-container">
+  <div class="row">
+    <div class="col">
+      <label for="initial_prompt"><strong>Prompt inicial:</strong></label>
+      <textarea id="initial_prompt" placeholder="Digite seu prompt aqui..."></textarea>
+    </div>
+    <div class="col config-panel">
+      <fieldset>
+        <legend><strong>Configurações</strong></legend>
+        <label>
+          <input type="checkbox" name="gen_images" checked>
+          Gerar imagens
+          <button type="button">Upload de imagens</button>
+        </label>
+        <label>
+          <input type="checkbox" name="narracao" checked>
+          Narração
+          <select name="tts_engine">
+            <option value="eleven">Eleven Labs</option>
+            <option value="api">Outra API</option>
+          </select>
+        </label>
+        <label>
+          <input type="checkbox" name="legenda" checked>
+          Legenda (palavras por cena)
+          <input type="number" name="words_per_scene" value="1" min="1" style="width:60px;">
+        </label>
+        <button id="generate_video" type="button">Gerar Vídeo</button>
+      </fieldset>
+    </div>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress_fill"></div>
+  </div>
+  <div class="progress-log">
+    <pre id="log"></pre>
+  </div>
+</div>
+{% endblock %}
