@@ -37,10 +37,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const linhas = result.logs || [];
     const total = linhas.length;
 
-    linhas.forEach((linha, idx) => {
+    for (const [idx, linha] of linhas.entries()) {
       const pct = Math.round((idx + 1) / total * 100);
       fill.style.width = pct + "%";
       log.textContent += linha + "\n";
-    });
+      await new Promise(r => setTimeout(r, 10));
+    }
   });
 });
