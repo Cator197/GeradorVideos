@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="v2 com interface parte inicial">
-      <change afterPath="$PROJECT_DIR$/templates/generate_legenda.html" afterDir="false" />
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="commit antes de iniciar as alterações no gerador de SRT">
+      <change afterPath="$PROJECT_DIR$/static/js/generate_montagem.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/generate_montagem.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_SRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_SRT.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -265,7 +266,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749759497328</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="commit antes de iniciar as alterações no gerador de SRT">
+      <option name="closed" value="true" />
+      <created>1749818719098</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1749818719098</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -295,6 +304,7 @@
     <MESSAGE value="commit inicial com todos os modulos sem alteracoes" />
     <MESSAGE value="v1 funcionando" />
     <MESSAGE value="v2 com interface parte inicial" />
-    <option name="LAST_COMMIT_MESSAGE" value="v2 com interface parte inicial" />
+    <MESSAGE value="commit antes de iniciar as alterações no gerador de SRT" />
+    <option name="LAST_COMMIT_MESSAGE" value="commit antes de iniciar as alterações no gerador de SRT" />
   </component>
 </project>
