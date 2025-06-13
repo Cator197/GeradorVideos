@@ -37,26 +37,29 @@ def login(driver):
     except:
         pass
     time.sleep(2)
-    driver.find_element(By.XPATH, "//button[contains(., 'Voice')]").click()
+    driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/section/div/div/div/div[2]/div/div[2]/div[1]/div/button").click()
     time.sleep(3)
-    driver.find_element(By.XPATH, "//input[@placeholder='Search voice']").send_keys("Brian")
+    driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/section/div/div/div/div[2]/div/div/div[1]/input").send_keys("Brian")
     time.sleep(3)
-    driver.find_element(By.XPATH, "//li//p[text()='Brian']").click()
+    driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/section/div/div/div/div[2]/div/div/div[2]/div/div[1]/ul/li/div[2]/div[2]/div/div[1]/div[1]/p").click()
     time.sleep(2)
-    driver.find_element(By.XPATH, "//button[contains(., 'Voice Settings')]").click()
+    driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/section/div/div/div/div[2]/div/div[2]/div[2]/div/div[1]/div/button").click()
     time.sleep(2)
-    driver.find_element(By.XPATH, "//button[contains(., 'v2')]").click()
+    driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/section/div/div/div/div[2]/div[2]/div[1]/button[2]").click()
+
+
+
 
 def gerar_e_baixar(driver, texto, index):
     wait = WebDriverWait(driver, 20)
     time.sleep(3)
-    textarea = driver.find_element(By.XPATH, "//textarea")
+    textarea = driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/div/div[1]/textarea")
     textarea.clear()
     textarea.send_keys(texto)
     time.sleep(5)
-    driver.find_element(By.XPATH, "//button[contains(., 'Generate')]").click()
+    driver.find_element(By.XPATH, "/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/div/div[2]/div[2]/div/div[2]/div/button[2]").click()
     time.sleep(2)
-    download_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Download')]")))
+    download_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div[2]/div[4]/div[2]/div/div/div/div[3]/button")))
     before = set(os.listdir(PASTA_AUDIOS))
     download_btn.click()
     for _ in range(30):
@@ -71,6 +74,8 @@ def gerar_e_baixar(driver, texto, index):
     src = os.path.join(PASTA_AUDIOS, filename)
     ext = os.path.splitext(filename)[1]
     dst = os.path.join(PASTA_AUDIOS, f"narracao{index+1}{ext}")
+    if os.path.exists(dst):
+        os.remove(dst)
     os.rename(src, dst)
     return dst
 
@@ -78,19 +83,26 @@ def run_gerar_narracoes(indices):
     with open(ARQUIVO_CENAS, encoding="utf-8") as f:
         cenas = json.load(f)
 
-    logs = []
+    logs=[]
+    logs.append("🚀 Iniciando geração de narrações...")
     driver = iniciar_driver()
     try:
         login(driver)
         for i in indices:
             texto = cenas[i].get("narracao")
             if not texto:
-                logs.append(f"⚠️ Cena {i+1} sem texto de narração.")
+                log = f"⚠️ Cena {i+1} sem texto de narração."
+
+                logs.append(log)
                 continue
-            logs.append(f"🎙️ Gerando narração {i+1}: {texto[:30]}...")
+            log = f"🎙️ Gerando narração {i+1}: {texto[:30]}..."
+
+            logs.append(log)
             path = gerar_e_baixar(driver, texto, i)
             cenas[i]["audio_path"] = path
-            logs.append(f"✅ Narração {i+1} salva em {path}")
+            log = f"✅ Narração {i+1} salva em {path}"
+
+            logs.append(log)
     finally:
         driver.quit()
 
