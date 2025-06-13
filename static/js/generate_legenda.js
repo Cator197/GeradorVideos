@@ -1,57 +1,46 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const list     = document.getElementById('legenda_list');
-  const radios   = document.querySelectorAll('input[name="scope"]');
-  const singleIn = document.getElementById('single_index');
-  const fromIn   = document.getElementById('from_index');
-  const btn      = document.getElementById('generate_legendas');
-  const barFill  = document.getElementById('progress_fill');
-  const logArea  = document.getElementById('log');
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("form_generate_legendas");
+  const btn = document.getElementById("generate_legendas");
+  const fill = document.getElementById("progress_fill");
+  const log  = document.getElementById("log");
 
-  // Habilita/desabilita inputs numéricos
-  radios.forEach(radio => {
-    radio.addEventListener('change', () => {
-      const selected = document.querySelector('input[name="scope"]:checked').value;
-      singleIn.disabled = selected !== 'single';
-      fromIn.disabled   = selected !== 'from';
+  const scope_all    = document.querySelector('input[value="all"]');
+  const scope_single = document.querySelector('input[value="single"]');
+  const scope_from   = document.querySelector('input[value="from"]');
+  const input_single = document.getElementById("single_index");
+  const input_from   = document.getElementById("from_index");
+
+  // habilitar/desabilitar inputs conforme opção
+  document.querySelectorAll('input[name="scope"]').forEach(el => {
+    el.addEventListener("change", () => {
+      input_single.disabled = !scope_single.checked;
+      input_from.disabled   = !scope_from.checked;
     });
   });
 
-  btn.addEventListener('click', () => {
-    const scope = document.querySelector('input[name="scope"]:checked').value;
-    const data  = new URLSearchParams();
-    data.append('scope', scope);
-    if (scope === 'single') data.append('single_index', singleIn.value);
-    if (scope === 'from')   data.append('from_index', fromIn.value);
+  btn.addEventListener("click", async () => {
+    fill.style.width = "0%";
+    log.textContent = "⏳ Iniciando geração de legendas...\n";
 
-    barFill.style.width = '0%';
-    logArea.textContent = '';
+    const data = new FormData(form);
+    const response = await fetch("/legendas", {
+      method: "POST",
+      body: data
+    });
 
-    if (scope === 'all') {
-      logArea.textContent += '📝 Gerando todas as legendas\n';
-    } else if (scope === 'single') {
-      logArea.textContent += `📝 Gerando legenda ${singleIn.value}\n`;
-    } else if (scope === 'from') {
-      logArea.textContent += `📝 Gerando legendas a partir da ${fromIn.value}\n`;
+    if (!response.ok) {
+      log.textContent += "\n❌ Erro ao gerar legendas.";
+      return;
     }
 
-    barFill.style.width = '5%';
+    const result = await response.json();
+    const linhas = result.logs || [];
+    const total = linhas.length;
 
-    fetch('/legendas', {
-      method: 'POST',
-      body: data
-    })
-    .then(resp => resp.json())
-    .then(json => {
-      if (json.error) throw new Error(json.error);
-      const logs = json.logs || [];
-      logs.forEach((line, idx) => {
-        const pct = Math.round((idx + 1) / logs.length * 100);
-        barFill.style.width = pct + '%';
-        logArea.textContent += line + '\n';
-      });
-    })
-    .catch(err => {
-      logArea.textContent += `❌ Erro: ${err.message}`;
+    linhas.forEach((linha, idx) => {
+      const pct = Math.round((idx + 1) / total * 100);
+      fill.style.width = pct + "%";
+      log.textContent += linha + "\n";
     });
   });
 });

@@ -54,10 +54,12 @@ async def _gerar(cenas, indices, logs):
     async with aiohttp.ClientSession(headers=HEADERS) as session:
         for i in indices:
             prompt = cenas[i].get("prompt_imagem", "")
+            print(f"🎨 Gerando imagem {i+1}: {prompt[:50]}...")
             logs.append(f"🎨 Gerando imagem {i+1}: {prompt[:50]}...")
             # 1) cria tarefa
             resp = await criar_imagem(session, prompt)
             task_id = resp["data"]["task_id"]
+            print(f"⏳ Aguardando conclusão da tarefa {task_id}...")
             logs.append(f"⏳ Aguardando conclusão da tarefa {task_id}...")
             # 2) espera terminar
             resultado = await checar_status(session, task_id)
@@ -72,6 +74,7 @@ async def _gerar(cenas, indices, logs):
                 "image_url": url,
                 "arquivo_local": caminho_local
             })
+            print(f"✅ Imagem {i+1} salva em {caminho_local}")
             logs.append(f"✅ Imagem {i+1} salva em {caminho_local}")
     return cenas
 

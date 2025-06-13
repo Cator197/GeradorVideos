@@ -24,38 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-    fetch('/imagens', {
-    method: 'POST',
-    body: data
-  })
-  .then(r => r.json())
-  .then(json => {
-    if (json.error) throw new Error(json.error);
-
-    // 1) Atualiza o select com as cenas novas:
-    const list = document.getElementById('image_list');
-    list.innerHTML = '';  // limpa tudo
-    json.cenas.forEach((cena, idx) => {
-      const opt = document.createElement('option');
-      opt.value = idx;
-      opt.textContent = `Imagem ${idx+1} – ${cena.prompt_imagem}`;
-      opt.dataset.url = `/static/imgs/imagem${idx+1}.jpg`;
-      list.appendChild(opt);
-    });
-
-    // 2) Exibe o log passo a passo e atualiza progress bar:
-    const logs = json.logs || [];
-    logs.forEach((line, i) => {
-      const pct = Math.round((i + 1) / logs.length * 100);
-      barFill.style.width = pct + '%';
-      logArea.textContent += line + '\n';
-    });
-  })
-  .catch(err => {
-    logArea.textContent += `❌ Erro: ${err.message}`;
-  });
-
-
   btn.addEventListener('click', () => {
     const scope = document.querySelector('input[name="scope"]:checked').value;
     const data  = new URLSearchParams();
@@ -76,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
       logArea.textContent += `👌 Ok, vou gerar as imagens a partir da ${fromIn.value}\n`;
     }
 
-        // Preenchimento inicial para mostrar atividade
+    // Preenchimento inicial para mostrar atividade
     barFill.style.width = '5%';
 
     // Chama o endpoint POST /imagens
@@ -87,9 +55,21 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(resp => resp.json())
     .then(json => {
       if (json.error) throw new Error(json.error);
+
+      // Atualiza o select com as novas imagens
+      list.innerHTML = '';
+      json.cenas.forEach((cena, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = `Imagem ${idx + 1} – ${cena.prompt_imagem}`;
+        opt.dataset.url = `/modules/imagens/imagem${idx + 1}.jpg`;
+        list.appendChild(opt);
+      });
+
+      // Atualiza log e progresso
       const logs = json.logs || [];
-      logs.forEach((line, idx) => {
-        const pct = Math.round((idx + 1) / logs.length * 100);
+      logs.forEach((line, i) => {
+        const pct = Math.round((i + 1) / logs.length * 100);
         barFill.style.width = pct + '%';
         logArea.textContent += line + '\n';
       });

@@ -4,14 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="commit antes de iniciar as alterações no montar cenas">
-      <change afterPath="$PROJECT_DIR$/modules/exportar_para_capcut.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/js/generate_final.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/generate_final.html" afterDir="false" />
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/juntar_cenas.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/montar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/montar_cenas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_SRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_SRT.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_imagens.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_imagens.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/imagens/imagem9.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/modules/imagens/imagem9.jpg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_imagem.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_imagem.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_legenda.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_legenda.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -284,7 +283,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749820347674</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar">
+      <option name="closed" value="true" />
+      <created>1749834935559</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1749834935559</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -316,6 +323,7 @@
     <MESSAGE value="v2 com interface parte inicial" />
     <MESSAGE value="commit antes de iniciar as alterações no gerador de SRT" />
     <MESSAGE value="commit antes de iniciar as alterações no montar cenas" />
-    <option name="LAST_COMMIT_MESSAGE" value="commit antes de iniciar as alterações no montar cenas" />
+    <MESSAGE value="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar" />
   </component>
 </project>

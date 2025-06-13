@@ -44,8 +44,10 @@ def run_gerar_legendas(indices):
         srt_path = os.path.join(PASTA_SRTS, f"legenda{i + 1}.srt")
         if os.path.exists(audio_path):
             logs.append(f"📝 Gerando legenda para narração {i + 1}")
+            print(f"📝 Gerando legenda para narração {i + 1}")
             gerar_srt_por_palavra(audio_path, srt_path)
             logs.append(f"✅ Legenda {i + 1} salva em {srt_path}")
+            print(f"✅ Legenda {i + 1} salva em {srt_path}")
             cenas[i]["srt_path"] = srt_path
         else:
             logs.append(f"⚠️ Áudio não encontrado para narração {i + 1}")
