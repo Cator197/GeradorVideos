@@ -1,103 +1,119 @@
 import os
-from moviepy import (
-    VideoFileClip, CompositeVideoClip,
-    AudioFileClip, CompositeAudioClip,
-    ImageClip, vfx
-)
+import subprocess
+from moviepy import VideoFileClip, concatenate_videoclips, AudioFileClip, CompositeVideoClip, ImageClip
 
-PASTA_CENAS = "videos_cenas"
-PASTA_FINAL = "videos_final"
-os.makedirs(PASTA_FINAL, exist_ok=True)
+BASE_DIR = os.path.dirname(__file__)
+PASTA_VIDEOS = os.path.join(BASE_DIR, "videos_cenas")
+PASTA_SAIDA = os.path.join(BASE_DIR, "videos_final")
+os.makedirs(PASTA_SAIDA, exist_ok=True)
 
-# 1) Escolha de transição
-tipos = ["crossfade", "slide", "scroll", "freeze", "cut"]
-tipo_transicao = input(f"Tipo de transição {tipos}: ").strip().lower() or "crossfade"
-duracao_trans  = float(input("Duração da transição (s): ").strip() or 1.0)
+def run_juntar_cenas(tipo_transicao, usar_musica, trilha_path, volume, usar_watermark, marca_path, opacidade, posicao):
+    logs = []
+    try:
+        arquivos = sorted([
+            os.path.join(PASTA_VIDEOS, f) for f in os.listdir(PASTA_VIDEOS)
+            if f.startswith("video") and f.endswith(".mp4")
+        ])
 
-if tipo_transicao == "slide":
-    slide_side = input("Slide side [left/right/top/bottom]: ").strip().lower() or "left"
-elif tipo_transicao == "scroll":
-    x_speed = float(input("Velocidade horizontal (px/s): ").strip() or 100)
-    y_speed = float(input("Velocidade vertical   (px/s): ").strip() or 0)
+        if not arquivos:
+            return {"logs": ["❌ Nenhuma cena encontrada em videos_cenas/"]}
 
-# 2) Trilha de fundo opcional
-usar_musica = input("Adicionar trilha de fundo? (S/N): ").strip().lower() == "s"
-if usar_musica:
-    arquivo_musica = input("Caminho da música de fundo: ").strip()
-    volume_bg      = float(input("Volume da música (0.0–1.0): ").strip() or 0.2)
+        clips = [VideoFileClip(f) for f in arquivos]
 
-# 3) Marca-d’água opcional
-usar_watermark = input("Adicionar marca-d'água? (S/N): ").strip().lower() == "s"
-if usar_watermark:
-    logo_path = input("Caminho do PNG da marca-d'água: ").strip() or "marca916.PNG"
-    opacity   = float(input("Opacidade da marca-d'água (0.0–1.0): ").strip() or 0.3)
-    position  = input("Posição da marca-d'água [(0,0)/(right,bottom)/center]: ").strip() or "(0,0)"
+        if tipo_transicao == "crossfade":
+            duracao = 0.5
+            clips[0] = clips[0].fx(VideoFileClip.crossfadein, duracao)
+            final = clips[0]
+            for c in clips[1:]:
+                final = concatenate_videoclips([final, c.crossfadein(duracao)], method="compose")
+        elif tipo_transicao == "slide":
+            final = concatenate_videoclips(clips, method="compose", padding=-1, bg_color=(0,0,0))
+        elif tipo_transicao == "scroll":
+            final = concatenate_videoclips(clips, method="compose")
+        elif tipo_transicao == "freeze":
+            final = concatenate_videoclips(clips, method="compose")
+        else:  # corte seco
+            final = concatenate_videoclips(clips, method="compose")
 
-output_path = os.path.join(PASTA_FINAL, "video_final.mp4")
+        logs.append(f"🎞️ {len(clips)} cenas unidas com transição: {tipo_transicao}")
 
-# 4) Carrega cenas e aplica transições
-filenames = sorted(f for f in os.listdir(PASTA_CENAS)
-                   if f.startswith("video") and f.endswith(".mp4"))
+        if usar_musica and trilha_path:
+            trilha = AudioFileClip(trilha_path).volumex(volume)
+            final = final.set_audio(trilha)
+            logs.append("🎵 Trilha sonora aplicada")
 
-clips = []
-current_start = 0.0
-for fname in filenames:
-    path = os.path.join(PASTA_CENAS, fname)
-    clip = VideoFileClip(path)
+        if usar_watermark and marca_path:
+            marca = (ImageClip(marca_path)
+                     .with_duration(final.duration)
+                     .resized(height=100)
+                     .with_opacity(opacidade)
+                     .with_pos(eval(posicao)))
+            final = CompositeVideoClip([final, marca])
+            logs.append("🌊 Marca d'água aplicada")
 
-    if tipo_transicao == "crossfade":
-        if clips:
-            clip = clip.with_start(current_start - duracao_trans)
-            clip = vfx.CrossFadeIn(clip, duracao_trans)
-            current_start += clip.duration - duracao_trans
-        else:
-            clip = clip.with_start(current_start)
-            current_start += clip.duration
+        saida = os.path.join(PASTA_SAIDA, "video_final.mp4")
+        final.write_videofile(saida, fps=24, codec="libx264", audio_codec="aac", logger=None)
+        logs.append(f"✅ Vídeo final salvo em {saida}")
+        return {"logs": logs}
+    except Exception as e:
+        return {"logs": [f"❌ Erro: {str(e)}"]}
 
-    elif tipo_transicao == "slide":
-        clip = vfx.SlideIn(clip, duracao_trans, side=slide_side)
-        clip = clip.with_start(current_start)
-        current_start += clip.duration
 
-    elif tipo_transicao == "scroll":
-        efeito_scroll = vfx.Scroll(clip.w, clip.h, x_speed=x_speed, y_speed=y_speed)
-        clip = efeito_scroll.apply(clip)
-        clip = clip.with_start(current_start)
-        current_start += clip.duration
+import os
+import json
+import shutil
+import zipfile
 
-    elif tipo_transicao == "freeze":
-        main = clip.with_start(current_start)
-        clips.append(main)
-        current_start += main.duration
-        frame = main.get_frame(main.duration - 1/main.fps)
-        freeze = ImageClip(frame).set_duration(duracao_trans).set_start(current_start)
-        clips.append(freeze)
-        current_start += duracao_trans
-        continue
+def exportar_para_capcut(trilha_path=None, marca_path=None):
+    logs = []
+    try:
+        base_dir = os.path.join("modules", "videos_cenas")
+        temp_dir = os.path.join("modules", "projeto_capcut")
+        videos = sorted([f for f in os.listdir(base_dir) if f.startswith("video") and f.endswith(".mp4")])
 
-    else:  # cut
-        clip = clip.with_start(current_start)
-        current_start += clip.duration
+        if not videos:
+            return {"logs": ["❌ Nenhuma cena disponível para exportação."]}
 
-    clips.append(clip)
+        # Limpa pasta antiga se existir
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
+        os.makedirs(os.path.join(temp_dir, "videos"), exist_ok=True)
 
-final = CompositeVideoClip(clips, size=clips[0].size)
+        # Copiar vídeos
+        for v in videos:
+            shutil.copy(os.path.join(base_dir, v), os.path.join(temp_dir, "videos", v))
+        logs.append(f"🎞️ {len(videos)} vídeos copiados para exportação")
 
-# 5) Adiciona trilha de fundo
-if usar_musica:
-    musica = AudioFileClip(arquivo_musica).volumex(volume_bg).loop(duration=final.duration)
-    final = final.with_audio(CompositeAudioClip([final.audio, musica]))
+        # Copiar trilha se houver
+        if trilha_path:
+            shutil.copy(trilha_path, os.path.join(temp_dir, "audio.mp3"))
+            logs.append("🎵 Trilha sonora incluída")
 
-# 6) Aplica marca-d’água
-if usar_watermark:
-    wm = (
-        ImageClip(logo_path)
-        .set_duration(final.duration)
-        .set_opacity(opacity)
-        .set_pos(eval(position))  # ex: (0,0) ou ("right","bottom")
-    )
-    final = CompositeVideoClip([final, wm], size=final.size)
+        # Copiar marca d'água se houver
+        if marca_path:
+            shutil.copy(marca_path, os.path.join(temp_dir, "overlay.png"))
+            logs.append("🌊 Marca d'água incluída")
 
-# 7) Exporta
-final.write_videofile(output_path, fps=24, logger=None)
-print(f"✅ Vídeo final gerado em: {output_path}")
+        # Criar metadata.json
+        metadata = {
+            "transicao": "manual",
+            "clips": videos,
+            "trilha": bool(trilha_path),
+            "marca": bool(marca_path)
+        }
+        with open(os.path.join(temp_dir, "metadata.json"), "w", encoding="utf-8") as f:
+            json.dump(metadata, f, indent=2)
+        logs.append("📄 Arquivo de metadados criado")
+
+        # Compactar em ZIP
+        zip_path = os.path.join("modules", "videos_final", "projeto_capcut.zip")
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for root, _, files in os.walk(temp_dir):
+                for file in files:
+                    full_path = os.path.join(root, file)
+                    rel_path = os.path.relpath(full_path, temp_dir)
+                    zipf.write(full_path, rel_path)
+        logs.append(f"✅ Projeto CapCut exportado: {zip_path}")
+        return {"logs": logs, "arquivo": zip_path}
+    except Exception as e:
+        return {"logs": [f"❌ Erro ao exportar projeto: {str(e)}"]}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="complete-container">
+  <form id="form_generate_final">
+    <div class="row-imagens">
+      <!-- Resumo das Cenas Montadas -->
+      <div class="col-list">
+        <label for="final_list"><strong>Resumo das Cenas Montadas</strong></label>
+        <select id="final_list" name="final_list" multiple size="10" class="form-control">
+          {% for cena in cenas %}
+            <option value="{{ loop.index0 }}">
+              Cena {{ loop.index }} – {{ cena.narracao[:60] if cena.narracao else '[sem texto]' }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <!-- Preview do vídeo ao dar duplo clique -->
+        <div class="video-preview" style="margin-top:1rem; text-align:center;">
+          <video id="preview_video" controls style="width:100%; max-height:300px;">
+            <source id="video_source" src="" type="video/mp4">
+            Seu navegador não suporta o elemento vídeo.
+          </video>
+        </div>
+      </div>
+
+      <!-- Painel de Configurações -->
+      <div class="col-config config-panel">
+        <fieldset>
+          <legend><strong>Configurações</strong></legend>
+
+          <div class="form-group">
+            <label for="transicao">Tipo de Transição:</label>
+            <select id="transicao" name="transicao" class="form-control">
+              <option value="cut">Corte seco</option>
+              <option value="crossfade">Crossfade</option>
+              <option value="slide">Slide</option>
+              <option value="scroll">Scroll</option>
+              <option value="freeze">Freeze</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label><input type="checkbox" id="usar_trilha"> Usar trilha sonora</label>
+            <input type="file" id="input_trilha" accept="audio/*" class="form-control" disabled>
+          </div>
+
+          <div class="form-group">
+            <label><input type="checkbox" id="usar_marca"> Adicionar marca d'água</label>
+            <input type="file" id="input_marca" accept="image/*" class="form-control" disabled>
+          </div>
+
+          <div class="form-group" style="margin-top: 1rem;">
+            <button id="btn_gerar_video" type="button" class="btn-primary">Gerar Vídeo Final</button>
+            <button id="btn_gerar_capcut" type="button" class="btn-secondary">Exportar para CapCut</button>
+          </div>
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Barra de Progresso -->
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress_fill"></div>
+    </div>
+
+    <!-- Log de Progresso -->
+    <div class="progress-log">
+      <pre id="log"></pre>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/generate_final.js') }}"></script>
+{% endblock %}
