@@ -1,73 +1,82 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="complete-container">
-  <form id="form_generate_final">
-    <div class="row-imagens">
-      <!-- Resumo das Cenas Montadas -->
-      <div class="col-list">
-        <label for="final_list"><strong>Resumo das Cenas Montadas</strong></label>
-        <select id="final_list" name="final_list" multiple size="10" class="form-control">
+<div class="bg-white rounded-xl shadow p-6 space-y-6">
+  <form id="form_generate_final" class="space-y-6">
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Lista de Cenas Montadas -->
+      <div>
+        <label for="final_list" class="block font-semibold mb-2 text-slate-700">Resumo das Cenas Montadas</label>
+        <select id="final_list" name="final_list" multiple size="10" class="w-full border rounded p-2 shadow-sm">
           {% for cena in cenas %}
             <option value="{{ loop.index0 }}">
               Cena {{ loop.index }} – {{ cena.narracao[:60] if cena.narracao else '[sem texto]' }}
             </option>
           {% endfor %}
         </select>
-
-        <!-- Preview do vídeo ao dar duplo clique -->
-        <div class="video-preview" style="margin-top:1rem; text-align:center;">
-          <video id="preview_video" controls style="width:100%; max-height:300px;">
-            <source id="video_source" src="" type="video/mp4">
-            Seu navegador não suporta o elemento vídeo.
-          </video>
-        </div>
       </div>
 
       <!-- Painel de Configurações -->
-      <div class="col-config config-panel">
-        <fieldset>
-          <legend><strong>Configurações</strong></legend>
+      <div class="bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
+        <h3 class="font-semibold text-lg">⚙️ Configurações</h3>
 
-          <div class="form-group">
-            <label for="transicao">Tipo de Transição:</label>
-            <select id="transicao" name="transicao" class="form-control">
-              <option value="cut">Corte seco</option>
-              <option value="crossfade">Crossfade</option>
-              <option value="slide">Slide</option>
-              <option value="scroll">Scroll</option>
-              <option value="freeze">Freeze</option>
-            </select>
-          </div>
+        <div>
+          <label for="transicao" class="block font-medium mb-1">Tipo de Transição:</label>
+          <select id="transicao" name="transicao" class="w-full border rounded p-2">
+            <option value="cut">Corte seco</option>
+            <option value="crossfade">Crossfade</option>
+            <option value="slide">Slide</option>
+            <option value="scroll">Scroll</option>
+            <option value="freeze">Freeze</option>
+          </select>
+        </div>
 
-          <div class="form-group">
-            <label><input type="checkbox" id="usar_trilha"> Usar trilha sonora</label>
-            <input type="file" id="input_trilha" accept="audio/*" class="form-control" disabled>
-          </div>
+        <div>
+          <label class="block"><input type="checkbox" id="usar_trilha"> Usar trilha sonora</label>
+          <input type="file" id="input_trilha" accept="audio/*" class="w-full border rounded p-2 mt-2" disabled>
+        </div>
 
-          <div class="form-group">
-            <label><input type="checkbox" id="usar_marca"> Adicionar marca d'água</label>
-            <input type="file" id="input_marca" accept="image/*" class="form-control" disabled>
-          </div>
+        <div>
+          <label class="block"><input type="checkbox" id="usar_marca"> Adicionar marca d'água</label>
+          <input type="file" id="input_marca" accept="image/*" class="w-full border rounded p-2 mt-2" disabled>
+        </div>
 
-          <div class="form-group" style="margin-top: 1rem;">
-            <button id="btn_gerar_video" type="button" class="btn-primary">Gerar Vídeo Final</button>
-            <button id="btn_gerar_capcut" type="button" class="btn-secondary">Exportar para CapCut</button>
-          </div>
-        </fieldset>
+        <div class="flex flex-col gap-3 mt-4">
+          <button id="btn_gerar_video" type="button"
+                  class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow">
+            🎬 Gerar Vídeo Final
+          </button>
+          <button id="btn_gerar_capcut" type="button"
+                  class="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded shadow">
+            Exportar para CapCut
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Barra de Progresso -->
-    <div class="progress-bar">
-      <div class="progress-fill" id="progress_fill"></div>
+    <div class="w-full bg-gray-200 rounded-full h-4">
+      <div id="progress_fill" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
     </div>
 
-    <!-- Log de Progresso -->
-    <div class="progress-log">
+    <!-- Log -->
+    <div class="bg-black text-green-400 text-sm p-4 rounded-md h-40 overflow-y-auto text-left font-mono whitespace-pre">
       <pre id="log"></pre>
     </div>
   </form>
+</div>
+
+<!-- MODAL de Preview de Vídeo -->
+<div id="modal_preview_video" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+  <div class="bg-white p-4 rounded-lg shadow-xl max-w-3xl w-full relative">
+    <button id="close_modal_video" class="absolute top-2 right-2 text-xl text-gray-600 hover:text-black">&times;</button>
+    <video id="preview_video" controls class="w-full rounded-lg max-h-[80vh] object-contain mt-2">
+      <source id="video_source" src="" type="video/mp4">
+      Seu navegador não suporta o elemento vídeo.
+    </video>
+  </div>
 </div>
 {% endblock %}
 

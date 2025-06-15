@@ -3,16 +3,16 @@ import json
 import re
 import subprocess
 from moviepy import ImageClip, AudioFileClip
+from modules.config import get_config
 
-# Diretório base: sempre o diretório onde o script está
-BASE_DIR = os.path.dirname(__file__)
+# Caminho base a partir da configuração do usuário
+PASTA_BASE     = get_config("pasta_salvar") or os.getcwd()
+ARQUIVO_CENAS = os.path.join(PASTA_BASE, "cenas_com_imagens.json")
+PASTA_IMAGENS = os.path.join(PASTA_BASE, "imagens")
+PASTA_AUDIOS  = os.path.join(PASTA_BASE, "audios_narracoes")
+PASTA_SRTS    = os.path.join(PASTA_BASE, "legendas_srt")
+PASTA_VIDEOS  = os.path.join(PASTA_BASE, "videos_cenas")
 
-# Caminhos completos
-ARQUIVO_CENAS = os.path.join(BASE_DIR, "cenas_com_imagens.json")
-PASTA_IMAGENS = os.path.join(BASE_DIR, "imagens")
-PASTA_AUDIOS  = os.path.join(BASE_DIR, "audios_narracoes")
-PASTA_SRTS    = os.path.join(BASE_DIR, "legendas_srt")
-PASTA_VIDEOS  = os.path.join(BASE_DIR, "videos_cenas")
 os.makedirs(PASTA_VIDEOS, exist_ok=True)
 
 def criar_video_basico(imagem_path, audio_path, duracao, saida_path):

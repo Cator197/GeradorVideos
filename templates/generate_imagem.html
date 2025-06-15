@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="complete-container">
-  <form id="form_generate_images">
-    <div class="row-imagens">
-      <!-- Resumo das Imagens -->
-      <div class="col-list">
-        <label for="image_list"><strong>Resumo das Imagens</strong></label>
-        <select id="image_list" name="image_list" multiple size="10" class="form-control">
+<div class="bg-white rounded-xl shadow p-6 space-y-6">
+  <form id="form_generate_images" class="space-y-6">
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Lista de Imagens -->
+      <div>
+        <label for="image_list" class="block font-semibold mb-2 text-slate-700">Resumo das Imagens</label>
+        <select id="image_list" name="image_list" multiple size="10" class="w-full border rounded p-2 shadow-sm">
           {% for cena in cenas %}
             <option
               value="{{ loop.index0 }}"
@@ -16,45 +18,51 @@
             </option>
           {% endfor %}
         </select>
-
-        <!-- Preview da imagem ao dar duplo clique -->
-        <div class="image-preview" style="margin-top:1rem; text-align:center;">
-          <img id="preview_img" src="" alt="Preview" style="max-width:100%; max-height:300px; border:1px solid #ccc; border-radius:4px;">
-        </div>
       </div>
 
       <!-- Painel de Configurações -->
-      <div class="col-config config-panel">
-        <fieldset>
-          <legend><strong>Configurações</strong></legend>
-          <div class="form-group">
-            <label><input type="radio" name="scope" value="all" checked> Todas</label>
-          </div>
-          <div class="form-group">
-            <label><input type="radio" name="scope" value="single"> Somente a</label>
+      <div class="bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
+        <h3 class="font-semibold text-lg">⚙️ Configurações</h3>
+
+        <div class="space-y-2">
+          <label class="block"><input type="radio" name="scope" value="all" checked> Todas</label>
+          <label class="flex items-center gap-2">
+            <input type="radio" name="scope" value="single"> Somente a
             <input type="number" name="single_index" id="single_index" min="1" placeholder="nº"
-                   class="form-control small-input" disabled>
-          </div>
-          <div class="form-group">
-            <label><input type="radio" name="scope" value="from"> A partir da</label>
+                   class="w-20 border rounded p-1" disabled>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="radio" name="scope" value="from"> A partir da
             <input type="number" name="from_index" id="from_index" min="1" placeholder="nº"
-                   class="form-control small-input" disabled>
-          </div>
-          <button id="generate_images" type="button" class="btn-primary">Gerar</button>
-        </fieldset>
+                   class="w-20 border rounded p-1" disabled>
+          </label>
+        </div>
+
+        <button id="generate_images" type="button"
+                class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow">
+          🎨 Gerar
+        </button>
       </div>
     </div>
 
     <!-- Barra de Progresso -->
-    <div class="progress-bar">
-      <div class="progress-fill" id="progress_fill"></div>
+    <div class="w-full bg-gray-200 rounded-full h-4">
+      <div id="progress_fill" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
     </div>
 
-    <!-- Log de Progresso -->
-    <div class="progress-log">
+    <!-- Log -->
+    <div class="bg-black text-green-400 text-sm p-4 rounded-md h-40 overflow-y-auto text-left font-mono whitespace-pre">
       <pre id="log"></pre>
     </div>
   </form>
+</div>
+
+<!-- MODAL de Preview -->
+<div id="modal_preview" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+  <div class="bg-white p-4 rounded-lg shadow-xl max-w-3xl w-full relative">
+    <button id="close_modal" class="absolute top-2 right-2 text-xl text-gray-600 hover:text-black">&times;</button>
+    <img id="modal_image" src="" alt="Preview da imagem" class="w-full h-auto rounded-lg max-h-[80vh] object-contain">
+  </div>
 </div>
 {% endblock %}
 

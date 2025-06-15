@@ -2,17 +2,50 @@ import os
 import json
 import aiohttp
 import asyncio
+from modules.config import get_config
+# API_KEY = get_config("api_key")
+# ✅ Lê todas as configurações de uma vez
+CONFIG = {
+    "api_key": get_config("api_key"),
+    "pasta_salvar": get_config("pasta_salvar") or os.path.join(os.getcwd(), "output")
+}
+
+# 🔒 Verifica se API foi carregada
+if not CONFIG["api_key"]:
+    raise ValueError("API Key não está configurada. Acesse a página de configurações.")
 
 # ——— Configurações de API e caminhos ———
-API_KEY     = "1014d470224d1bd03201a5e7c3641a8bfdfa5f3027451aca34b20de45d75bdc4"  # sua chave aqui
+
+# print(f"🔐 API_KEY USADA: {API_KEY}")
 BASE_URL    = "https://api.piapi.ai"
-HEADERS     = {"x-api-key": API_KEY, "Content-Type": "application/json"}
+# HEADERS     = {"x-api-key": API_KEY, "Content-Type": "application/json"}
 
 MODULE_DIR    = os.path.dirname(__file__)
+
+
+# Caminho seguro configurado pelo usuário
+# ✅ 1. Obtém a pasta base de salvamento (padrão: ./output)
+PASTA_BASE = get_config("pasta_salvar") or os.getcwd()
+
+# ✅ 2. Define subpastas e arquivos com base na pasta configurada
+PASTA_IMAGENS = os.path.join(PASTA_BASE, "imagens")
 ENTRADA_JSON  = os.path.join(MODULE_DIR, "cenas.json")
-SAIDA_JSON    = os.path.join(MODULE_DIR, "cenas_com_imagens.json")
-PASTA_IMAGENS = os.path.join(MODULE_DIR, "imagens")
+SAIDA_JSON = os.path.join(PASTA_BASE, "cenas_com_imagens.json")
+
+# ✅ 3. Garante que a pasta exista
 os.makedirs(PASTA_IMAGENS, exist_ok=True)
+
+# ✅ 4. Confirma no console
+print(f"📁 Pasta base: {PASTA_BASE}")
+print(f"📁 Salvando imagens em: {PASTA_IMAGENS}")
+print(f"📝 JSON entrada: {ENTRADA_JSON}")
+print(f"📝 JSON saída: {SAIDA_JSON}")
+
+def get_headers():
+    return {
+        "x-api-key": get_config("api_key"),
+        "Content-Type": "application/json"
+    }
 
 # ——— Funções internas (async) ———
 async def criar_imagem(session, prompt):
@@ -51,7 +84,8 @@ async def baixar_imagem(session, url, caminho_local):
 
 # ——— Processo completo com logging ———
 async def _gerar(cenas, indices, logs):
-    async with aiohttp.ClientSession(headers=HEADERS) as session:
+    async with aiohttp.ClientSession(headers=get_headers()) as session:
+        #print(f"📤 Headers usados: {HEADERS}")  # <-- confirmar envio correto
         for i in indices:
             prompt = cenas[i].get("prompt_imagem", "")
             print(f"🎨 Gerando imagem {i+1}: {prompt[:50]}...")
@@ -85,15 +119,23 @@ def run_gerar_imagens(indices):
         cenas = json.load(f)
     # 2) gera imagens + logs
     logs = []
-    cenas_atualizadas = asyncio.run(_gerar(cenas, indices, logs))
-    # 3) salva JSON de saída
+    cenas_atualizadas=asyncio.run(_gerar(cenas, indices, logs))
+
+    # Atualiza apenas as cenas que foram geradas
+    for i in indices:
+        cenas[i]=cenas_atualizadas[i]
+
+    # Salva todas as cenas no JSON final
     with open(SAIDA_JSON, "w", encoding="utf-8") as f:
-        json.dump(cenas_atualizadas, f, ensure_ascii=False, indent=4)
-    # 4) retorna dados para o front
+        json.dump(cenas, f, ensure_ascii=False, indent=4)
+        print(f"✅ JSON atualizado salvo em {SAIDA_JSON}")
+
     return {
         "cenas": cenas_atualizadas,
         "logs": logs
     }
+
+
 
 # Quando executado diretamente, avisa para usar via Flask
 if __name__ == "__main__":

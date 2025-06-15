@@ -1,68 +1,98 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="complete-container">
-  <form id="form_generate_narracoes">
-    <div class="row-imagens">
-      <!-- Resumo das Narrações -->
-      <div class="col-list">
-        <label for="narracao_list"><strong>Resumo das Narrações</strong></label>
-        <select id="narracao_list" name="narracao_list" multiple size="10" class="form-control">
+<div class="bg-white rounded-xl shadow p-6 space-y-6">
+  <form id="form_generate_narracoes" class="space-y-6">
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Lista de Narrações -->
+      <div>
+        <label for="narracao_list" class="block font-semibold mb-2 text-slate-700">Resumo das Narrações</label>
+        <select class="w-full border rounded p-2 shadow-sm" id="narracao_list" name="narracao_list" multiple size="10">
           {% for cena in cenas %}
-            <option
-              value="{{ loop.index0 }}">
+            <option value="{{ loop.index0 }}" data-url="{{ url_for('serve_module_audio', filename='narracao' ~ loop.index ~ '.mp3') }}">
+
               Narração {{ loop.index }} – {{ cena.narracao[:60] }}
             </option>
           {% endfor %}
         </select>
 
-        <!-- Preview do áudio ao dar duplo clique -->
-        <div class="audio-preview" style="margin-top:1rem; text-align:center;">
-          <audio id="preview_audio" controls style="width:100%;">
-            <source id="audio_source" src="" type="audio/mpeg">
+        <!-- Preview de Áudio -->
+        <div class="mt-4 text-center">
+          <audio controls id="preview_audio" class="w-full rounded border shadow-sm">
+            <source id="audio_source" src="" type="audio/mpeg" />
             Seu navegador não suporta o elemento áudio.
           </audio>
         </div>
       </div>
 
       <!-- Painel de Configurações -->
-      <div class="col-config config-panel">
-        <fieldset>
-          <legend><strong>Configurações</strong></legend>
-          <div class="form-group">
-            <label for="fonte">Fonte:</label>
-            <select id="fonte" name="fonte" class="form-control">
-              <option value="elevenlabs">Eleven Labs</option>
-              <option value="piapi">API</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label><input type="radio" name="scope" value="all" checked> Todas</label>
-          </div>
-          <div class="form-group">
-            <label><input type="radio" name="scope" value="single"> Somente a</label>
+      <div class="bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
+        <h3 class="font-semibold text-lg">⚙️ Configurações</h3>
+
+        <div>
+          <label class="block font-medium mb-1">Fonte:</label>
+          <select class="w-full border rounded p-2" id="fonte" name="fonte">
+            <option value="elevenlabs">Eleven Labs</option>
+            <option value="piapi">API</option>
+          </select>
+        </div>
+
+        <div class="space-y-2 mt-2">
+          <label class="block"><input type="radio" name="scope" value="all" checked> Todas</label>
+          <label class="flex items-center gap-2">
+            <input type="radio" name="scope" value="single"> Somente a
             <input type="number" name="single_index" id="single_index" min="1" placeholder="nº"
-                   class="form-control small-input" disabled>
-          </div>
-          <div class="form-group">
-            <label><input type="radio" name="scope" value="from"> A partir da</label>
+                   class="w-20 border rounded p-1" disabled>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="radio" name="scope" value="from"> A partir da
             <input type="number" name="from_index" id="from_index" min="1" placeholder="nº"
-                   class="form-control small-input" disabled>
-          </div>
-          <button id="generate_narracoes" type="button" class="btn-primary">Gerar</button>
-        </fieldset>
+                   class="w-20 border rounded p-1" disabled>
+          </label>
+        </div>
+
+        <div class="mt-4">
+          <label class="block font-medium mb-1">Voz da Narração:</label>
+          <select class="w-full border rounded p-2" id="voz" name="voz">
+            <option value="Brian">Brian (inglês)</option>
+            <option value="Bella">Bella (inglês)</option>
+            <option value="Antoni">Antoni (espanhol)</option>
+            <option value="Elli">Elli (alemão)</option>
+            <option value="Helena">Helena (português)</option>
+            <option value="Custom">Customizado</option>
+          </select>
+        </div>
+
+        <button id="generate_narracoes" type="button"
+                class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow">
+          🎙️ Gerar Narrações
+        </button>
+
+        <hr class="my-4">
+
+        <label for="silencio_min" class="block font-semibold mb-1">🔇 Remover Silêncio</label>
+        <small class="text-sm text-slate-600">Silêncio mínimo (segundos):</small>
+        <input id="silencio_min" type="number" min="0" step="0.1" value="0.3"
+               class="mt-1 w-24 border rounded p-1 block">
+        <button id="remover_silencio" type="button"
+                class="mt-2 w-full bg-gray-700 hover:bg-gray-800 text-white py-2 rounded shadow">
+          Remover Silêncio
+        </button>
       </div>
     </div>
 
     <!-- Barra de Progresso -->
-    <div class="progress-bar">
-      <div class="progress-fill" id="progress_fill"></div>
+    <div class="w-full bg-gray-200 rounded-full h-4">
+      <div id="progress_fill" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
     </div>
 
-    <!-- Log de Progresso -->
-    <div class="progress-log">
+    <!-- Log -->
+    <div class="bg-black text-green-400 text-sm p-4 rounded-md h-40 overflow-y-auto text-left font-mono whitespace-pre">
       <pre id="log"></pre>
     </div>
+
   </form>
 </div>
 {% endblock %}

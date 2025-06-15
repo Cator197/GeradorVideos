@@ -4,39 +4,47 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>{{ page_title }} – Criador de Vídeos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body>
-  <!-- HEADER FIXO -->
-  <header>
-    <button id="btn-toggle-sidebar" aria-label="Toggle menu">☰</button>
-    <h1>{{ page_title }}</h1>
+<body id="app-body" class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
+
+  <!-- HEADER -->
+  <header class="fixed top-0 left-0 right-0 h-16 bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-white flex items-center px-6 shadow z-50">
+    <button id="btn-toggle-sidebar" aria-label="Abrir menu" class="text-2xl mr-4 hover:text-gray-600 dark:hover:text-gray-300">☰</button>
+    <h1 class="text-xl font-semibold flex-1">{{ page_title }}</h1>
+    <button id="toggle-dark" class="text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-3 py-1 rounded shadow">
+      🌙 Modo Escuro
+    </button>
   </header>
 
-  <div class="container">
+  <!-- CONTEÚDO -->
+  <div class="flex flex-1 mt-16">
+
     <!-- SIDEBAR -->
-    <aside id="sidebar">
-      <nav>
-        <ul>
-          <li><a href="{{ url_for('index') }}">Início</a></li>
-          <li><a href="{{ url_for('complete') }}">Vídeo Completo</a></li>
-          <li><a href="{{ url_for('imagens_page') }}">Gerar Imagem</a></li>
-          <li><a href="{{ url_for('imagens_page') }}">Gerar Narração</a></li>
-          <li><a href="{{ url_for('imagens_page') }}">Gerar Legendas</a></li>
-          <li><a href="{{ url_for('imagens_page') }}">Montar Cenas</a></li>
-          <li><a href="{{ url_for('imagens_page') }}">Unir Vídeos</a></li>
-          <li><a href="{{ url_for('config_page') }}">Configurações</a></li>
+    <aside id="sidebar" class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 w-64 min-h-screen border-r border-gray-300 dark:border-gray-600 transition-all">
+      <nav class="p-4">
+        <ul class="flex flex-col gap-1 text-sm">
+          <li><a href="{{ url_for('index') }}" class="block px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600">🏠 Início</a></li>
+          <li><a href="{{ url_for('complete') }}" class="block px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600">🎬 Vídeo Completo</a></li>
+          <li><a href="{{ url_for('imagens_page') }}" class="block px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600">🖼️ Gerar Imagem</a></li>
+          <li><a href="{{ url_for('generate_narracao') }}" class="block px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600">🗣️ Gerar Narração</a></li>
+          <li><a href="{{ url_for('generate_legenda') }}" class="block px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600">💬 Gerar Legendas</a></li>
+          <li><a href="{{ url_for('generate_montagem') }}" class="block px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600">🎞️ Montar Cenas</a></li>
+          <li><a href="{{ url_for('generate_final') }}" class="block px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600">🧩 Unir Vídeos</a></li>
+          <li><a href="{{ url_for('pagina_configuracoes') }}" class="block px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600">⚙️ Configurações</a></li>
         </ul>
       </nav>
     </aside>
 
-    <!-- CONTEÚDO PRINCIPAL -->
-    <main>
+    <!-- PRINCIPAL -->
+    <main class="flex-1 p-6 overflow-y-auto bg-white dark:bg-gray-800 transition-colors duration-300">
       {% block content %}{% endblock %}
     </main>
   </div>
 
   <script src="{{ url_for('static', filename='js/toggle.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

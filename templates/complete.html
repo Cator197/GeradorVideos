@@ -1,42 +1,93 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="complete-container">
-  <div class="row">
-    <div class="col">
-      <label for="initial_prompt"><strong>Prompt inicial:</strong></label>
-      <textarea id="initial_prompt" placeholder="Digite seu prompt aqui..."></textarea>
+<div class="bg-white rounded-xl shadow p-6 space-y-6">
+
+  <!-- Prompt inicial -->
+  <div>
+    <label for="initial_prompt" class="font-semibold block mb-2 text-slate-700">Prompt inicial:</label>
+    <textarea id="initial_prompt" placeholder="Digite seu prompt aqui..." class="w-full h-24 p-3 border rounded resize-none shadow-sm"></textarea>
+  </div>
+
+  <!-- Configurações em grid responsivo -->
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+    <!-- Imagens -->
+    <div class="bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
+      <h3 class="font-semibold text-lg">🖼️ Imagens</h3>
+      <label class="block"><input type="radio" name="tipo_imagem" value="ia" checked> Gerar com IA</label>
+      <label class="block"><input type="radio" name="tipo_imagem" value="upload"> Enviar imagens</label>
+      <button type="button" id="btn_upload_imagens" class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow">Upload de imagens</button>
     </div>
-    <div class="col config-panel">
-      <fieldset>
-        <legend><strong>Configurações</strong></legend>
-        <label>
-          <input type="checkbox" name="gen_images" checked>
-          Gerar imagens
-          <button type="button">Upload de imagens</button>
-        </label>
-        <label>
-          <input type="checkbox" name="narracao" checked>
-          Narração
-          <select name="tts_engine">
-            <option value="eleven">Eleven Labs</option>
-            <option value="api">Outra API</option>
-          </select>
-        </label>
-        <label>
-          <input type="checkbox" name="legenda" checked>
-          Legenda (palavras por cena)
-          <input type="number" name="words_per_scene" value="1" min="1" style="width:60px;">
-        </label>
-        <button id="generate_video" type="button">Gerar Vídeo</button>
-      </fieldset>
+
+    <!-- Narração -->
+    <div class="bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
+      <h3 class="font-semibold text-lg">🗣️ Narração</h3>
+      <label class="block"><input type="radio" name="tts_engine" value="eleven" checked> Eleven Labs</label>
+      <label class="block"><input type="radio" name="tts_engine" value="api"> Outra API</label>
+      <label class="block mt-2 font-semibold">Voz:</label>
+      <select id="voz_narracao" class="w-full border rounded p-2">
+        <option value="Brian">Brian</option>
+        <option value="Bella">Bella</option>
+        <option value="Antoni">Antoni</option>
+        <option value="Elli">Elli</option>
+        <option value="Helena">Helena</option>
+      </select>
+    </div>
+
+    <!-- Legenda -->
+    <div class="bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
+      <h3 class="font-semibold text-lg">💬 Legenda</h3>
+      <label class="block"><input type="checkbox" id="usar_legenda" checked> Gerar legenda</label>
+      <div class="flex items-center gap-4 mt-2">
+        <label><input type="radio" name="tipo_legenda" value="hard" checked> Hard</label>
+        <label><input type="radio" name="tipo_legenda" value="soft"> Soft</label>
+      </div>
+      <label class="block mt-2 font-semibold">Cor:</label>
+      <select id="cor_legenda" class="w-full border rounded p-2">
+        <option value="white">Branco</option>
+        <option value="yellow">Amarelo</option>
+        <option value="red">Vermelho</option>
+        <option value="blue">Azul</option>
+      </select>
+      <label class="block mt-2 font-semibold">Tamanho:</label>
+      <input type="number" id="tamanho_legenda" value="24" class="w-full border rounded p-2">
+      <label class="block mt-2 font-semibold">Posição:</label>
+      <select id="posicao_legenda" class="w-full border rounded p-2">
+        <option value="bottom">Inferior</option>
+        <option value="top">Superior</option>
+      </select>
+    </div>
+
+    <!-- Vídeo Final -->
+    <div class="bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
+      <h3 class="font-semibold text-lg">🎞️ Vídeo Final</h3>
+      <label class="block"><input type="checkbox" id="unir_videos" checked> Unir cenas</label>
+      <label class="block"><input type="checkbox" id="criar_capcut"> Exportar para CapCut</label>
+      <label class="block"><input type="checkbox" id="usar_trilha"> Adicionar trilha sonora</label>
+      <input type="file" id="upload_trilha" class="w-full border rounded p-2">
+      <label class="block mt-2"><input type="checkbox" id="usar_marca"> Adicionar marca d'água</label>
+      <input type="file" id="upload_marca" class="w-full border rounded p-2">
     </div>
   </div>
-  <div class="progress-bar">
-    <div class="progress-fill" id="progress_fill"></div>
-  </div>
-  <div class="progress-log">
-    <pre id="log"></pre>
+
+  <!-- Botão e progresso -->
+  <div class="mt-8 space-y-6 text-center">
+    <button id="generate_video" type="button" class="bg-green-600 hover:bg-green-700 text-white text-lg px-8 py-3 rounded-full shadow">
+      🎥 Gerar Vídeo
+    </button>
+
+    <div class="w-full bg-gray-200 rounded-full h-4">
+      <div class="bg-green-500 h-4 rounded-full transition-all duration-500" id="progress_fill" style="width: 0%"></div>
+    </div>
+
+    <div class="bg-black text-green-400 text-sm p-4 rounded-md h-40 overflow-y-auto text-left font-mono whitespace-pre">
+      <pre id="log"></pre>
+    </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/complete.js') }}"></script>
 {% endblock %}

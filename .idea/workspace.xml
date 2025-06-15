@@ -4,13 +4,38 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar">
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar ANTES DE ENVIAR O PEDIDO AO CODEX">
+      <change afterPath="$PROJECT_DIR$/modules/audios_narracoes/narracao8.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/modules/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/modules/imagens/imagem8.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/js/complete.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/js/config.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/js/theme-toggle.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/configuracoes.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/cenas.json" beforeDir="false" afterPath="$PROJECT_DIR$/modules/cenas.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/gerar_SRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_SRT.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/gerar_imagens.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_imagens.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/imagens/imagem9.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/modules/imagens/imagem9.jpg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/imagens/imagem9.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/juntar_cenas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/montar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/montar_cenas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/prompts.txt" beforeDir="false" afterPath="$PROJECT_DIR$/modules/prompts.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_final.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_final.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/js/generate_imagem.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_imagem.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/js/generate_legenda.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_legenda.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_montagem.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_montagem.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_narracao.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_narracao.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/complete.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/complete.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_final.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_final.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_imagem.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_imagem.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_legenda.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_legenda.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_montagem.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_montagem.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_narracao.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_narracao.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,46 +76,48 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "Python.00.parser_prompts.executor": "Run",
-    "Python.01.gerar_imagens.executor": "Run",
-    "Python.02.gerar_animacao.executor": "Run",
-    "Python.03.gerar_narracao.executor": "Run",
-    "Python.adicionar_marcadagua.executor": "Run",
-    "Python.app.executor": "Run",
-    "Python.gerar_SRT.executor": "Run",
-    "Python.gerar_imagens (1).executor": "Run",
-    "Python.gerar_imagens.executor": "Run",
-    "Python.gerar_narracao.executor": "Run",
-    "Python.juntar_cenas.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.montar_cenas.executor": "Run",
-    "Python.parser_prompts.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/PycharmProjects/geradorVideo/scripts/imagens",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;Python.00.parser_prompts.executor&quot;: &quot;Run&quot;,
+    &quot;Python.01.gerar_imagens.executor&quot;: &quot;Run&quot;,
+    &quot;Python.02.gerar_animacao.executor&quot;: &quot;Run&quot;,
+    &quot;Python.03.gerar_narracao.executor&quot;: &quot;Run&quot;,
+    &quot;Python.adicionar_marcadagua.executor&quot;: &quot;Run&quot;,
+    &quot;Python.app.executor&quot;: &quot;Run&quot;,
+    &quot;Python.gerar_SRT.executor&quot;: &quot;Run&quot;,
+    &quot;Python.gerar_imagens (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.gerar_imagens.executor&quot;: &quot;Run&quot;,
+    &quot;Python.gerar_narracao.executor&quot;: &quot;Run&quot;,
+    &quot;Python.juntar_cenas.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.montar_cenas.executor&quot;: &quot;Run&quot;,
+    &quot;Python.parser_prompts.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/PycharmProjects/geradorVideo/templates&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\PycharmProjects\geradorVideo\templates" />
+      <recent name="D:\PycharmProjects\geradorVideo\modules\audios_narracoes" />
       <recent name="D:\PycharmProjects\geradorVideo\scripts\imagens" />
       <recent name="D:\PycharmProjects\gerador de video automatico\scripts\audios_narracoes" />
       <recent name="D:\PycharmProjects\gerador de video automatico" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\PycharmProjects\geradorVideo\modules" />
+      <recent name="D:\PycharmProjects\geradorVideo\modules\imagens" />
       <recent name="D:\PycharmProjects\geradorVideo\scripts\imagens" />
       <recent name="D:\PycharmProjects\geradorVideo\scripts" />
       <recent name="D:\PycharmProjects\geradorVideo\scripts\audios_narracoes" />
-      <recent name="D:\PycharmProjects\geradorVideo\scripts\legendas_srt" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.app">
+  <component name="RunManager" selected="Python.parser_prompts">
     <configuration name="app" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="geradorVideo" />
       <option name="ENV_FILES" value="" />
@@ -203,8 +230,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.app" />
         <item itemvalue="Python.parser_prompts" />
+        <item itemvalue="Python.app" />
         <item itemvalue="Python.gerar_narracao" />
         <item itemvalue="Python.main" />
         <item itemvalue="Python.montar_cenas" />
@@ -291,7 +318,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749834935559</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar ANTES DE ENVIAR O PEDIDO AO CODEX">
+      <option name="closed" value="true" />
+      <created>1749837524807</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1749837524807</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -299,19 +334,7 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="FILTERS">
-                <map>
-                  <entry key="branch">
-                    <value>
-                      <list>
-                        <option value="master" />
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
-            </State>
+            <State />
           </value>
         </entry>
       </map>
@@ -324,6 +347,7 @@
     <MESSAGE value="commit antes de iniciar as alterações no gerador de SRT" />
     <MESSAGE value="commit antes de iniciar as alterações no montar cenas" />
     <MESSAGE value="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar" />
-    <option name="LAST_COMMIT_MESSAGE" value="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar" />
+    <MESSAGE value="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar ANTES DE ENVIAR O PEDIDO AO CODEX" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar ANTES DE ENVIAR O PEDIDO AO CODEX" />
   </component>
 </project>

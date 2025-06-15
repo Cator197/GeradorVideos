@@ -1,40 +1,53 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="grid">
-  <div class="card">
-    <button onclick="location.href='{{ url_for('complete') }}'">
-      Gerar Vídeo Completo
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+  <div class="bg-white rounded-xl shadow p-6 text-center hover:shadow-lg transition">
+    <button onclick="location.href='{{ url_for('complete') }}'"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-lg font-semibold">
+      🎬 Gerar Vídeo Completo
     </button>
   </div>
-  <div class="card">
-    <button onclick="location.href='{{ url_for('imagens_page') }}'">
-      Gerar Imagem
+
+  <div class="bg-white rounded-xl shadow p-6 text-center hover:shadow-lg transition">
+    <button onclick="location.href='{{ url_for('imagens_page') }}'"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-lg font-semibold">
+      🖼️ Gerar Imagem
     </button>
   </div>
-  <div class="card">
-    <button onclick="location.href='{{ url_for('imagens_page') }}'">
-      Gerar Narração
+
+  <div class="bg-white rounded-xl shadow p-6 text-center hover:shadow-lg transition">
+    <button onclick="location.href='{{ url_for('generate_narracao') }}'"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-lg font-semibold">
+      🗣️ Gerar Narração
     </button>
   </div>
-  <div class="card">
-    <button onclick="location.href='{{ url_for('imagens_page') }}'">
-      Gerar Legendas
+
+  <div class="bg-white rounded-xl shadow p-6 text-center hover:shadow-lg transition">
+    <button onclick="location.href='{{ url_for('generate_legenda') }}'"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-lg font-semibold">
+      💬 Gerar Legendas
     </button>
   </div>
-  <div class="card">
-    <button onclick="location.href='{{ url_for('imagens_page') }}'">
-      Montar Cenas
+
+  <div class="bg-white rounded-xl shadow p-6 text-center hover:shadow-lg transition">
+    <button onclick="location.href='{{ url_for('generate_montagem') }}'"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-lg font-semibold">
+      🎞️ Montar Cenas
     </button>
   </div>
-  <div class="card">
-    <button onclick="location.href='{{ url_for('imagens_page') }}'">
-      Unir Vídeos
+
+  <div class="bg-white rounded-xl shadow p-6 text-center hover:shadow-lg transition">
+    <button onclick="location.href='{{ url_for('generate_final') }}'"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-lg font-semibold">
+      🧩 Unir Vídeos
     </button>
   </div>
-  <div class="card">
-    <button onclick="location.href='{{ url_for('config_page') }}'">
-      Configurações
+
+  <div class="bg-white rounded-xl shadow p-6 text-center hover:shadow-lg transition">
+    <button onclick="location.href='{{ url_for('pagina_configuracoes') }}'"
+            class="w-full bg-gray-700 hover:bg-gray-800 text-white py-3 rounded-lg text-lg font-semibold">
+      ⚙️ Configurações
     </button>
   </div>
 </div>

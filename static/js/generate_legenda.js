@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const input_single = document.getElementById("single_index");
   const input_from   = document.getElementById("from_index");
 
-  // habilitar/desabilitar inputs conforme opção
+  // Habilita ou desabilita inputs conforme a opção selecionada
   document.querySelectorAll('input[name="scope"]').forEach(el => {
     el.addEventListener("change", () => {
       input_single.disabled = !scope_single.checked;
@@ -23,25 +23,35 @@ document.addEventListener("DOMContentLoaded", () => {
     log.textContent = "⏳ Iniciando geração de legendas...\n";
 
     const data = new FormData(form);
-    const response = await fetch("/legendas", {
-      method: "POST",
-      body: data
-    });
+    const params = new URLSearchParams(data).toString();
 
-    if (!response.ok) {
-      log.textContent += "\n❌ Erro ao gerar legendas.";
-      return;
-    }
+    const source = new EventSource("/legendas_stream?" + params);
+    let count = 0;
 
-    const result = await response.json();
-    const linhas = result.logs || [];
-    const total = linhas.length;
+    source.onmessage = (event) => {
+      const linha = event.data;
 
-    for (const [idx, linha] of linhas.entries()) {
-      const pct = Math.round((idx + 1) / total * 100);
-      fill.style.width = pct + "%";
+      // Atualiza log
       log.textContent += linha + "\n";
-      await new Promise(r => setTimeout(r, 10));
-    }
+      log.scrollTop = log.scrollHeight;
+
+      // Atualiza barra se for linha relevante
+      if (linha.includes("Gerando legenda") || linha.includes("Legenda") || linha.includes("salva")) {
+        count++;
+        const total = document.getElementById("legenda_list").length || 1;
+        const pct = Math.round((count / total) * 100);
+        fill.style.width = pct + "%";
+      }
+
+      // Finaliza SSE automaticamente
+      if (linha.includes("Fim do processo")) {
+        source.close();
+      }
+    };
+
+    source.onerror = () => {
+      log.textContent += "❌ Erro no servidor ou conexão encerrada.\n";
+      source.close();
+    };
   });
 });

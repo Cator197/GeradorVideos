@@ -1,14 +1,20 @@
 import os
 import json
 from faster_whisper import WhisperModel
+from modules.config import get_config
 
-ARQUIVO_CENAS = os.path.join(os.path.dirname(__file__), "cenas_com_imagens.json")
-PASTA_AUDIOS = os.path.join(os.path.dirname(__file__), "audios_narracoes")
-PASTA_SRTS   = os.path.join(os.path.dirname(__file__), "legendas_srt")
+# Caminho base configurado
+PASTA_BASE = get_config("pasta_salvar") or os.getcwd()
+PASTA_AUDIOS = os.path.join(PASTA_BASE, "audios_narracoes")
+PASTA_SRTS   = os.path.join(PASTA_BASE, "legendas_srt")
+ARQUIVO_CENAS = os.path.join(PASTA_BASE, "cenas_com_imagens.json")
+
+# Garantir que a pasta de legendas existe
 os.makedirs(PASTA_SRTS, exist_ok=True)
 
+# Carrega modelo Whisper uma vez
 print("🧠 Carregando modelo Whisper...")
-model = WhisperModel("medium", device="cpu", compute_type="int8")
+model = WhisperModel("small", device="cpu", compute_type="int8")
 
 def formatar_tempo(segundos):
     h = int(segundos // 3600)
@@ -36,12 +42,14 @@ def gerar_srt_por_palavra(audio_path, srt_path):
 
 def run_gerar_legendas(indices):
     logs = []
+
     with open(ARQUIVO_CENAS, "r", encoding="utf-8") as f:
         cenas = json.load(f)
 
     for i in indices:
         audio_path = os.path.join(PASTA_AUDIOS, f"narracao{i + 1}.mp3")
         srt_path = os.path.join(PASTA_SRTS, f"legenda{i + 1}.srt")
+
         if os.path.exists(audio_path):
             logs.append(f"📝 Gerando legenda para narração {i + 1}")
             print(f"📝 Gerando legenda para narração {i + 1}")
@@ -51,6 +59,7 @@ def run_gerar_legendas(indices):
             cenas[i]["srt_path"] = srt_path
         else:
             logs.append(f"⚠️ Áudio não encontrado para narração {i + 1}")
+            print(f"⚠️ Áudio não encontrado para narração {i + 1}")
 
     with open(ARQUIVO_CENAS, "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)

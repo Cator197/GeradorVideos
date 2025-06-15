@@ -1,70 +1,104 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const list     = document.getElementById('narracao_list');
-  const audio    = document.getElementById('preview_audio');
-  const audioSrc = document.getElementById('audio_source');
-  const radios   = document.querySelectorAll('input[name="scope"]');
-  const singleIn = document.getElementById('single_index');
-  const fromIn   = document.getElementById('from_index');
-  const btn      = document.getElementById('generate_narracoes');
-  const barFill  = document.getElementById('progress_fill');
-  const logArea  = document.getElementById('log');
+document.addEventListener("DOMContentLoaded", () => {
+  const lista = document.getElementById("narracao_list");
+  const audio = document.getElementById("preview_audio");
+  const source = document.getElementById("audio_source");
+  const logArea = document.getElementById("log");
+  const fill = document.getElementById("progress_fill");
+
+  const btnGerar = document.getElementById("generate_narracoes");
+  const btnRemover = document.getElementById("remover_silencio");
+  const silencioMin = document.getElementById("silencio_min");
 
   // Duplo clique para tocar narração
-  list.addEventListener('dblclick', () => {
-    const idx = list.selectedIndex;
-    if (idx < 0) return;
-    const file = `/modules/audios_narracoes/narracao${idx+1}.mp3`;
-    audioSrc.src = file;
-    audio.load();
-    audio.play();
-  });
+  if (lista && audio && source) {
+    lista.addEventListener("dblclick", () => {
+      const selected = lista.options[lista.selectedIndex];
+      const url = selected?.dataset?.url;
 
-  // Habilita/desabilita inputs numéricos
-  radios.forEach(radio => {
-    radio.addEventListener('change', () => {
-      singleIn.disabled = radio.value !== 'single';
-      fromIn.disabled   = radio.value !== 'from';
+      if (url) {
+        source.src = url;
+        audio.load();
+
+        // Timeout pequeno para evitar AbortError
+        setTimeout(() => {
+          audio.play().catch((err) =>
+            console.warn("Falha ao reproduzir:", err.message)
+          );
+        }, 100);
+      }
+    });
+  }
+
+  // Habilita e desabilita campos de índice
+  const radios = document.querySelectorAll('input[name="scope"]');
+  const singleInput = document.getElementById("single_index");
+  const fromInput = document.getElementById("from_index");
+
+  radios.forEach((radio) => {
+    radio.addEventListener("change", () => {
+      singleInput.disabled = radio.value !== "single";
+      fromInput.disabled = radio.value !== "from";
     });
   });
 
-  btn.addEventListener('click', () => {
-    const scope = document.querySelector('input[name="scope"]:checked').value;
-    const fonte = document.getElementById('fonte').value;
-    const data  = new URLSearchParams();
-    data.append('scope', scope);
-    data.append('fonte', fonte);
-    if (scope === 'single') data.append('single_index', singleIn.value);
-    if (scope === 'from')   data.append('from_index', fromIn.value);
+  // Geração de narrações
+  if (btnGerar) {
+    btnGerar.addEventListener("click", () => {
+      const scope = document.querySelector('input[name="scope"]:checked')?.value;
+      const index = singleInput.value;
+      const fromIndex = fromInput.value;
 
-    barFill.style.width = '0%';
-    logArea.textContent = '';
+      let query = `scope=${scope}`;
+      if (scope === "single" && index) query += `&index=${index}`;
+      if (scope === "from" && fromIndex) query += `&from_index=${fromIndex}`;
 
-    if (scope === 'all') {
-      logArea.textContent += '🎙️ Ok, vou gerar todas as narrações\n';
-    } else if (scope === 'single') {
-      logArea.textContent += `🎙️ Ok, vou gerar a narração ${singleIn.value}\n`;
-    } else if (scope === 'from') {
-      logArea.textContent += `🎙️ Ok, vou gerar as narrações a partir da ${fromIn.value}\n`;
-    }
+      fill.style.width = "0%";
+      logArea.textContent = "🎤 Iniciando geração de narrações...\n";
 
-    barFill.style.width = '5%';
+      const source = new EventSource("/narracao_stream?" + query);
+      let count = 0;
 
-    fetch('/narracoes', {
-      method: 'POST',
-      body: data
-    })
-    .then(resp => resp.json())
-    .then(json => {
-      if (json.error) throw new Error(json.error);
-      const logs = json.logs || [];
-      logs.forEach((line, idx) => {
-        const pct = Math.round((idx + 1) / logs.length * 100);
-        barFill.style.width = pct + '%';
-        logArea.textContent += line + '\n';
-      });
-    })
-    .catch(err => {
-      logArea.textContent += `❌ Erro: ${err.message}`;
+      source.onmessage = (event) => {
+        const linha = event.data;
+        logArea.textContent += linha + "\n";
+        logArea.scrollTop = logArea.scrollHeight;
+
+        if (linha.includes("Narração") || linha.includes("salva") || linha.includes("gerada")) {
+          count++;
+          fill.style.width = Math.min(5 + count * 10, 100) + "%";
+        }
+
+        if (linha.includes("✅ Geração de narrações finalizada")) {
+          fill.style.width = "100%";
+          source.close();
+        }
+      };
+
+      source.onerror = () => {
+        logArea.textContent += "❌ Erro no servidor ou conexão encerrada.\n";
+        source.close();
+      };
     });
-  });
+  }
+
+  // Remover silêncio dos áudios
+  if (btnRemover && silencioMin) {
+    btnRemover.addEventListener("click", () => {
+      const valor = silencioMin.value || "0.3";
+      logArea.textContent += `🧹 Removendo silêncio com mínimo de ${valor}s...\n`;
+
+      fetch(`/remover_silencio?min_silence=${valor}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.status === "ok") {
+            logArea.textContent += `✅ Silêncios removidos de ${data.arquivos} arquivos.\n`;
+          } else {
+            logArea.textContent += `❌ Erro: ${data.error}\n`;
+          }
+        })
+        .catch((err) => {
+          logArea.textContent += `❌ Erro na requisição: ${err}\n`;
+        });
+    });
+  }
 });

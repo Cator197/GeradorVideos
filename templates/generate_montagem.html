@@ -1,13 +1,16 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="complete-container">
-  <form id="form_generate_montagem">
-    <div class="row-imagens">
-      <!-- Resumo das Cenas -->
-      <div class="col-list">
-        <label for="montagem_list"><strong>Resumo das Cenas</strong></label>
-        <select id="montagem_list" name="montagem_list" multiple size="10" class="form-control">
+<div class="bg-white rounded-xl shadow p-6 space-y-6">
+  <form id="form_generate_montagem" class="space-y-6">
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Lista de Cenas -->
+      <div>
+        <label for="montagem_list" class="block font-semibold mb-2 text-slate-700">Resumo das Cenas</label>
+        <select id="montagem_list" name="montagem_list" multiple size="10"
+                class="w-full border rounded p-2 shadow-sm">
           {% for cena in cenas %}
             <option value="{{ loop.index0 }}">
               Cena {{ loop.index }} – {{ cena.narracao[:60] if cena.narracao else '[sem texto]' }}
@@ -17,35 +20,35 @@
       </div>
 
       <!-- Painel de Configurações -->
-      <div class="col-config config-panel">
-        <fieldset>
-          <legend><strong>Configurações</strong></legend>
+      <div class="bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
+        <h3 class="font-semibold text-lg">⚙️ Configurações</h3>
 
-          <div class="form-group">
-            <label><input type="radio" name="scope" value="all" checked> Todas</label>
-          </div>
-          <div class="form-group">
-            <label><input type="radio" name="scope" value="single"> Somente a</label>
+        <div class="space-y-2">
+          <label class="block"><input type="radio" name="scope" value="all" checked> Todas</label>
+          <label class="flex items-center gap-2">
+            <input type="radio" name="scope" value="single"> Somente a
             <input type="number" name="single_index" id="single_index" min="1" placeholder="nº"
-                   class="form-control small-input" disabled>
-          </div>
-          <div class="form-group">
-            <label><input type="radio" name="scope" value="from"> A partir da</label>
+                   class="w-20 border rounded p-1" disabled>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="radio" name="scope" value="from"> A partir da
             <input type="number" name="from_index" id="from_index" min="1" placeholder="nº"
-                   class="form-control small-input" disabled>
-          </div>
+                   class="w-20 border rounded p-1" disabled>
+          </label>
+        </div>
 
-          <div class="form-group">
-            <label for="tipo">Tipo:</label>
-            <select id="tipo" name="tipo" class="form-control">
+        <div class="space-y-3">
+          <div>
+            <label for="tipo" class="block font-medium mb-1">Tipo:</label>
+            <select id="tipo" name="tipo" class="w-full border rounded p-2">
               <option value="hard">Hard</option>
               <option value="soft">Soft</option>
             </select>
           </div>
 
-          <div class="form-group">
-            <label for="cor">Cor:</label>
-            <select id="cor" name="cor" class="form-control">
+          <div>
+            <label for="cor" class="block font-medium mb-1">Cor:</label>
+            <select id="cor" name="cor" class="w-full border rounded p-2">
               <option value="white">Branco</option>
               <option value="black">Preto</option>
               <option value="yellow">Amarelo</option>
@@ -55,32 +58,36 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label for="tamanho">Tamanho da fonte:</label>
-            <input type="number" id="tamanho" name="tamanho" min="10" max="100" value="32" class="form-control">
+          <div>
+            <label for="tamanho" class="block font-medium mb-1">Tamanho da fonte:</label>
+            <input type="number" id="tamanho" name="tamanho" min="10" max="100" value="32"
+                   class="w-full border rounded p-2">
           </div>
 
-          <div class="form-group">
-            <label for="posicao">Posição:</label>
-            <select id="posicao" name="posicao" class="form-control">
+          <div>
+            <label for="posicao" class="block font-medium mb-1">Posição:</label>
+            <select id="posicao" name="posicao" class="w-full border rounded p-2">
               <option value="bottom">Inferior</option>
               <option value="top">Superior</option>
               <option value="center">Centro</option>
             </select>
           </div>
+        </div>
 
-          <button id="generate_montagem" type="button" class="btn-primary">Gerar</button>
-        </fieldset>
+        <button id="generate_montagem" type="button"
+                class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow">
+          🎬 Gerar
+        </button>
       </div>
     </div>
 
     <!-- Barra de Progresso -->
-    <div class="progress-bar">
-      <div class="progress-fill" id="progress_fill"></div>
+    <div class="w-full bg-gray-200 rounded-full h-4">
+      <div id="progress_fill" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
     </div>
 
-    <!-- Log de Progresso -->
-    <div class="progress-log">
+    <!-- Log -->
+    <div class="bg-black text-green-400 text-sm p-4 rounded-md h-40 overflow-y-auto text-left font-mono whitespace-pre">
       <pre id="log"></pre>
     </div>
   </form>

@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const barFill  = document.getElementById('progress_fill');
   const logArea  = document.getElementById('log');
 
+  // Ativa/desativa inputs numéricos conforme seleção
   radios.forEach(radio => {
     radio.addEventListener('change', () => {
       const selected = document.querySelector('input[name="scope"]:checked').value;
@@ -42,24 +43,33 @@ document.addEventListener('DOMContentLoaded', () => {
       logArea.textContent += `🧩 Montando cenas a partir da ${fromIn.value}\n`;
     }
 
-    barFill.style.width = '5%';
+    const source = new EventSource('/montagem_stream?' + data.toString());
+    let count = 0;
 
-    fetch('/montagem', {
-      method: 'POST',
-      body: data
-    })
-    .then(resp => resp.json())
-    .then(json => {
-      if (json.error) throw new Error(json.error);
-      const logs = json.logs || [];
-      logs.forEach((line, idx) => {
-        const pct = Math.round((idx + 1) / logs.length * 100);
+    source.onmessage = (event) => {
+      const linha = event.data;
+      logArea.textContent += linha + '\n';
+      logArea.scrollTop = logArea.scrollHeight;
+
+      if (
+        linha.includes("Criando vídeo base") ||
+        linha.includes("gerada") ||
+        linha.includes("Embutindo")
+      ) {
+        count++;
+        const total = document.getElementById("narracao_list")?.length || 10;
+        const pct = Math.round((count / total) * 100);
         barFill.style.width = pct + '%';
-        logArea.textContent += line + '\n';
-      });
-    })
-    .catch(err => {
-      logArea.textContent += `❌ Erro: ${err.message}`;
-    });
+      }
+
+      if (linha.includes("Fim do processo")) {
+        source.close();
+      }
+    };
+
+    source.onerror = () => {
+      logArea.textContent += "❌ Erro no servidor ou conexão encerrada.\n";
+      source.close();
+    };
   });
 });
