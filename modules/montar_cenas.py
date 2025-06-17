@@ -2,7 +2,7 @@ import os
 import json
 import re
 import subprocess
-from moviepy import ImageClip, AudioFileClip
+from moviepy import ImageClip, AudioFileClip, vfx
 from modules.config import get_config
 
 # Caminho base a partir da configuração do usuário

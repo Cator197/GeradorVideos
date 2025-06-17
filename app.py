@@ -620,6 +620,7 @@ def remover_silencio():
                 novo += chunk
             novo.export(caminho, format="mp3")
             count += 1
+
         except Exception:
             continue
 

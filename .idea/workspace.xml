@@ -4,38 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar ANTES DE ENVIAR O PEDIDO AO CODEX">
-      <change afterPath="$PROJECT_DIR$/modules/audios_narracoes/narracao8.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/modules/config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/modules/imagens/imagem8.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/js/complete.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/js/config.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/js/theme-toggle.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/configuracoes.html" afterDir="false" />
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="Depois de implementar criptografia">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/cenas.json" beforeDir="false" afterPath="$PROJECT_DIR$/modules/cenas.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_SRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_SRT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_imagens.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_imagens.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/imagens/imagem9.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/juntar_cenas.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/montar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/montar_cenas.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/prompts.txt" beforeDir="false" afterPath="$PROJECT_DIR$/modules/prompts.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/styles.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_final.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_final.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_imagem.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_imagem.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_legenda.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_legenda.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_montagem.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_montagem.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_narracao.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_narracao.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/complete.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/complete.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_final.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_final.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_imagem.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_imagem.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_legenda.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_legenda.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_montagem.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_montagem.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_narracao.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_narracao.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -326,7 +299,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749837524807</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Depois de implementar criptografia">
+      <option name="closed" value="true" />
+      <created>1749988483645</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1749988483645</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -348,6 +329,7 @@
     <MESSAGE value="commit antes de iniciar as alterações no montar cenas" />
     <MESSAGE value="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar" />
     <MESSAGE value="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar ANTES DE ENVIAR O PEDIDO AO CODEX" />
-    <option name="LAST_COMMIT_MESSAGE" value="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar ANTES DE ENVIAR O PEDIDO AO CODEX" />
+    <MESSAGE value="Depois de implementar criptografia" />
+    <option name="LAST_COMMIT_MESSAGE" value="Depois de implementar criptografia" />
   </component>
 </project>
