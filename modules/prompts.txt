@@ -1,27 +1,27 @@
 Prompt1:
-Imagem: Ultra-realistic cinematic style, young man sitting alone on the edge of a high rooftop in a modern city at twilight, wearing casual clothes slightly wrinkled, head down, elbows on knees, hands loosely hanging, expression of deep sadness and inner struggle, the distant city lights glowing faintly below, overcast cloudy sky above, cool blue-gray lighting with soft shadows, atmospheric depth and emotional tone, vertical 9:16
-Narração: “Se você sente que está perdendo a fé... pare e escute isso agora.”
+Imagem: Ultra-realistic cinematic style, young woman in her early 30s, sitting on the edge of her bed in a dark room lit only by the cold glow of her phone screen, messy hair, oversized hoodie, tired eyes reflecting the screen, shadows dancing on the walls, empty coffee mug on the nightstand, atmosphere of emotional fatigue and late-night searching, vertical 9:16
+Narração: “Enquanto você assiste esse vídeo… Deus pode estar falando com você.”
 ---
 Prompt2:
-Imagem: Ultra-realistic cinematic close-up, same young man with tearful eyes looking up toward the cloudy sky, soft rain beginning to fall, small droplets on face and clothes, light stubble on chin, dim reflections in the eyes, background with blurred skyscrapers and glowing lights, a subtle divine light beam piercing through the clouds, moody and emotional lighting, high detail on facial texture and emotion, vertical 9:16
-Narração: “Você não chegou até aqui à toa. Deus ainda está com você, mesmo no silêncio. Então siga a página.”
+Imagem: Ultra-realistic close-up, slow emotional shift as her eyes widen subtly, tear beginning to form, light from the phone reflecting in her glassy pupils, rain tapping softly on the window behind her, blurry background with Bible on the shelf out of focus, divine warmth beginning to enter the frame from above, almost imperceptibly, vertical 9:16
+Narração: “Talvez essa seja a resposta que você tanto pediu em silêncio. Siga nossa página… porque Deus ainda vai falar muito com você.”
 ---
 Prompt3:
-Imagem: Ultra-realistic cinematic, flashback effect with faded warm tones, young version of the same man as a child, holding hands with an elderly woman with white hair in a long floral dress, walking through a golden field at sunset, smiling softly, warm light casting long shadows, emotional nostalgia in the air, sun flare between them, wide shot with feeling of love and security, vertical 9:16
-Narração: “Lembra quando você acreditava sem duvidar? Aquela fé ainda vive aí dentro.”
+Imagem: Ultra-realistic nostalgic dreamlike scene, same woman as a child, 7 years old, kneeling beside a small bed with stuffed animals around, tiny hands juntas em oração, olhos fechados com fé pura, mãe observando ao fundo com um sorriso calmo, luz dourada suave entrando pela janela, poeira visível flutuando no ar, vertical 9:16
+Narração: “Aquela oração que você fez anos atrás… Deus ouviu. E Ele nunca esqueceu.”
 ---
 Prompt4:
-Imagem: Ultra-realistic style, hands of an adult man holding a worn leather Bible tightly against his chest, camera focused on the hands and the texture of the Bible, surrounded by deep shadows, a single strong beam of golden light coming from above, illuminating the hands and the cover, sense of spiritual connection and reverence, particles of light floating in the air, dark spiritual background, vertical 9:16
-Narração: “Mesmo fraco, até o sussurro da sua oração é ouvido no céu.”
+Imagem: Ultra-realistic cinematic, present-day version with eyes fechados, mão sobre o peito, um feixe de luz dourada quebrando a escuridão do teto e iluminando seu rosto e corpo suavemente, partículas brilhando ao seu redor, expressão de alívio, câmera girando levemente em torno dela como num momento sagrado, vertical 9:16
+Narração: “Ele nunca desistiu de você. Ele só estava esperando o momento certo… e talvez esse momento seja agora.”
 ---
 Prompt5:
-Imagem: Ultra-realistic cinematic style, same man now standing in a wide open rooftop space, eyes closed, face relaxed with peace, arms slightly open as if receiving something, a soft golden divine light descending over him from the sky, clouds parting slightly above, warm tones replacing the gray, air filled with faint sparkles, camera angle slightly from below to emphasize spiritual awakening, vertical 9:16
-Narração: “Senhor, fortalece minha fé. Quando eu não conseguir mais, me carrega em teus braços.”
+Imagem: Ultra-realistic wide shot, a mulher agora de pé no centro do quarto, lágrimas escorrendo, mas com um leve sorriso de paz, o quarto antes escuro agora preenchido por luz quente e suave, cortina balançando com uma brisa invisível, objetos comuns ganhando brilho, atmosfera sobrenatural e reconfortante, vertical 9:16
+Narração: “Você pode não ver, mas anjos estão ao seu redor neste exato momento.”
 ---
 Prompt6:
-Imagem: Ultra-realistic wide shot, view from behind the man walking firmly down an empty urban street at dawn, posture straight and determined, wearing the same clothes but now dry and clean, sunlight breaking through buildings ahead, warm light at the horizon symbolizing hope, long shadows cast behind him, peaceful and uplifting mood, camera following him slightly elevated, vertical 9:16
-Narração: “Eu escolho confiar. Mesmo sem ver, mesmo sem entender, eu sigo crendo.”
+Imagem: Ultra-realistic, câmera por trás da mulher caminhando até a janela, abrindo as cortinas lentamente, revelando um céu dourado ao amanhecer, nuvens se abrindo, feixes de luz cruzando os prédios distantes, a cidade ainda adormecida sob um céu que parece vivo, cena simbólica de renascimento e direção divina, vertical 9:16
+Narração: “Deus não se esqueceu de você. Ele está te mostrando um novo caminho.”
 ---
 Prompt7:
-Imagem: Ultra-realistic cinematic, dramatic scene of stormy dark clouds above opening just enough to let powerful rays of sunlight burst through, illuminating a clear narrow path below surrounded by mist, glowing dust particles in the air, spiritual energy in the atmosphere, high dynamic contrast between light and dark, wide perspective with hopeful energy, vertical 9:16
-Narração: “Se você chegou até aqui, você faz parte dos 10%. Comente ‘Eu creio’ nos comentários.”
+Imagem: Ultra-realistic cinematic, visão celestial do alto, céu colossal e aberto com nuvens em espiral e um grande feixe de luz descendo do céu sobre o telhado daquela casa, como se o próprio céu respondesse, vento forte movendo as árvores, explosão de paz e glória no ar, cores douradas, azuis e brancas intensas se misturando, vertical 9:16
+Narração: “Se você chegou até aqui, é porque Deus te escolheu. Comenta: ‘Eu ouvi Tua voz’.”

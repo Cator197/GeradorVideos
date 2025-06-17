@@ -168,7 +168,7 @@ def gerar_legendas():
         return jsonify({"error": "Parâmetros inválidos"}), 400
 
     try:
-        resultado = run_gerar_legendas(indices)
+        resultado = run_gerar_legendas(indices, tipo=tipo)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

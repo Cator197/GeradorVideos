@@ -1,19 +1,15 @@
-import os
-import json
 from faster_whisper import WhisperModel
+import os, json
 from modules.config import get_config
 
-# Caminho base configurado
-PASTA_BASE = get_config("pasta_salvar") or os.getcwd()
+# Caminhos
+PASTA_BASE   = get_config("pasta_salvar") or os.getcwd()
 PASTA_AUDIOS = os.path.join(PASTA_BASE, "audios_narracoes")
 PASTA_SRTS   = os.path.join(PASTA_BASE, "legendas_srt")
 ARQUIVO_CENAS = os.path.join(PASTA_BASE, "cenas_com_imagens.json")
+ARQUIVO_SRT_GERAL = os.path.join(PASTA_SRTS, "legenda_completa.srt")
 
-# Garantir que a pasta de legendas existe
 os.makedirs(PASTA_SRTS, exist_ok=True)
-
-# Carrega modelo Whisper uma vez
-print("🧠 Carregando modelo Whisper...")
 model = WhisperModel("small", device="cpu", compute_type="int8")
 
 def formatar_tempo(segundos):
@@ -40,11 +36,47 @@ def gerar_srt_por_palavra(audio_path, srt_path):
     with open(srt_path, "w", encoding="utf-8") as f:
         f.write("\n".join(srt_linhas))
 
-def run_gerar_legendas(indices):
+def gerar_srt_soft(indices):
+    with open(ARQUIVO_CENAS, "r", encoding="utf-8") as f:
+        cenas = json.load(f)
+
+    linhas = []
+    contador = 1
+    offset = 0.0
+
+    for i in indices:
+        audio_path = os.path.join(PASTA_AUDIOS, f"narracao{i + 1}.mp3")
+        if not os.path.exists(audio_path):
+            continue
+
+        segments, _ = model.transcribe(audio_path, word_timestamps=True)
+        for segmento in segments:
+            for palavra in segmento.words:
+                inicio = palavra.start + offset
+                fim = palavra.end + offset
+                texto = palavra.word.strip()
+                linha = f"{contador}\n{formatar_tempo(inicio)} --> {formatar_tempo(fim)}\n{texto}\n"
+                linhas.append(linha)
+                contador += 1
+
+        duracao = AudioSegment.from_file(audio_path).duration_seconds
+        offset += duracao
+
+    with open(ARQUIVO_SRT_GERAL, "w", encoding="utf-8") as f:
+        f.write("\n".join(linhas))
+
+def run_gerar_legendas(indices, tipo="hard"):
+    from pydub import AudioSegment
     logs = []
 
     with open(ARQUIVO_CENAS, "r", encoding="utf-8") as f:
         cenas = json.load(f)
+
+    if tipo == "soft":
+        logs.append("📝 Gerando legenda geral (soft)...")
+        gerar_srt_soft(indices)
+        logs.append(f"✅ Legenda geral salva em {ARQUIVO_SRT_GERAL}")
+        return {"logs": logs, "cenas": cenas}
 
     for i in indices:
         audio_path = os.path.join(PASTA_AUDIOS, f"narracao{i + 1}.mp3")
@@ -52,14 +84,11 @@ def run_gerar_legendas(indices):
 
         if os.path.exists(audio_path):
             logs.append(f"📝 Gerando legenda para narração {i + 1}")
-            print(f"📝 Gerando legenda para narração {i + 1}")
             gerar_srt_por_palavra(audio_path, srt_path)
             logs.append(f"✅ Legenda {i + 1} salva em {srt_path}")
-            print(f"✅ Legenda {i + 1} salva em {srt_path}")
             cenas[i]["srt_path"] = srt_path
         else:
             logs.append(f"⚠️ Áudio não encontrado para narração {i + 1}")
-            print(f"⚠️ Áudio não encontrado para narração {i + 1}")
 
     with open(ARQUIVO_CENAS, "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)

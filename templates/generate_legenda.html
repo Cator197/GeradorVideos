@@ -37,6 +37,15 @@
           </label>
         </div>
 
+        <!-- Novo campo: Tipo de legenda -->
+        <div class="space-y-2">
+          <label for="tipo_legenda" class="block font-semibold text-slate-700">Tipo de Legenda</label>
+          <select id="tipo_legenda" name="tipo" class="w-full border rounded p-2">
+            <option value="hard" selected>Hard (uma por narração)</option>
+            <option value="soft">Soft (uma legenda contínua)</option>
+          </select>
+        </div>
+
         <button id="generate_legendas" type="button"
                 class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow">
           📝 Gerar Legendas

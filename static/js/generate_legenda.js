@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const scope_from   = document.querySelector('input[value="from"]');
   const input_single = document.getElementById("single_index");
   const input_from   = document.getElementById("from_index");
+  const tipoSelect   = document.getElementById("tipo_legenda");
 
   // Habilita ou desabilita inputs conforme a opção selecionada
   document.querySelectorAll('input[name="scope"]').forEach(el => {
@@ -23,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     log.textContent = "⏳ Iniciando geração de legendas...\n";
 
     const data = new FormData(form);
+    data.append("tipo", tipoSelect.value);  // Adiciona tipo de legenda: hard ou soft
     const params = new URLSearchParams(data).toString();
 
     const source = new EventSource("/legendas_stream?" + params);
