@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="Depois de implementar criptografia">
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="Commit antes de refator o gerar narrações para tirar o time sleep">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/cenas.json" beforeDir="false" afterPath="$PROJECT_DIR$/modules/cenas.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/montar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/montar_cenas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/prompts.txt" beforeDir="false" afterPath="$PROJECT_DIR$/modules/prompts.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -90,7 +90,7 @@
       <recent name="D:\PycharmProjects\geradorVideo\scripts\audios_narracoes" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.parser_prompts">
+  <component name="RunManager" selected="Python.app">
     <configuration name="app" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="geradorVideo" />
       <option name="ENV_FILES" value="" />
@@ -203,8 +203,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.parser_prompts" />
         <item itemvalue="Python.app" />
+        <item itemvalue="Python.parser_prompts" />
         <item itemvalue="Python.gerar_narracao" />
         <item itemvalue="Python.main" />
         <item itemvalue="Python.montar_cenas" />
@@ -307,7 +307,23 @@
       <option name="project" value="LOCAL" />
       <updated>1749988483645</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Depois de implementar criptografia">
+      <option name="closed" value="true" />
+      <created>1750158380514</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1750158380514</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Commit antes de refator o gerar narrações para tirar o time sleep">
+      <option name="closed" value="true" />
+      <created>1750162894886</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1750162894886</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -330,6 +346,8 @@
     <MESSAGE value="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar" />
     <MESSAGE value="Tudo funcionando, antes de iniciar alterações para arrumar progess log e bar ANTES DE ENVIAR O PEDIDO AO CODEX" />
     <MESSAGE value="Depois de implementar criptografia" />
-    <option name="LAST_COMMIT_MESSAGE" value="Depois de implementar criptografia" />
+    <MESSAGE value="Antes de implementar as modificações de geração de SRT" />
+    <MESSAGE value="Commit antes de refator o gerar narrações para tirar o time sleep" />
+    <option name="LAST_COMMIT_MESSAGE" value="Commit antes de refator o gerar narrações para tirar o time sleep" />
   </component>
 </project>
