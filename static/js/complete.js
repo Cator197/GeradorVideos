@@ -1,14 +1,43 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("generate_video");
+  const btnGerar = document.getElementById("generate_video");
+  const btnPrompt = document.getElementById("processar_prompt");
   const log = document.getElementById("log");
   const fill = document.getElementById("progress_fill");
 
-  btn.addEventListener("click", () => {
+  // Botão para processar prompt
+  btnPrompt.addEventListener("click", async () => {
+    const prompt = document.getElementById("initial_prompt").value.trim();
+    if (!prompt) {
+      log.textContent += "⚠️ Prompt vazio. Preencha antes de processar.\n";
+      return;
+    }
+
+    try {
+      const resp = await fetch("/processar_prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+
+      const data = await resp.json();
+
+      if (data.status === "ok") {
+        log.textContent += `✅ ${data.total_cenas} cenas processadas.\n`;
+      } else {
+        log.textContent += `❌ Erro: ${data.erro}\n`;
+      }
+    } catch (err) {
+      log.textContent += `❌ Erro ao enviar prompt: ${err.message}\n`;
+    }
+  });
+
+  // Botão para gerar vídeo completo
+  btnGerar.addEventListener("click", () => {
     fill.style.width = "0%";
     log.textContent = "🚀 Iniciando geração do vídeo completo...\n";
 
-    // Coleta de opções
     const prompt = document.getElementById("initial_prompt").value.trim();
+    const nomeVideo = document.getElementById("nome_video").value.trim() || "video_final";
 
     const tipoImagem = document.querySelector('input[name="tipo_imagem"]:checked')?.value || "ia";
     const ttsEngine = document.querySelector('input[name="tts_engine"]:checked')?.value || "eleven";
@@ -25,8 +54,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const usarTrilha = document.getElementById("usar_trilha")?.checked;
     const usarMarca = document.getElementById("usar_marca")?.checked;
 
-    // Monta query string
+    // Monta os parâmetros
     const params = new URLSearchParams({
+      nome_video: nomeVideo,
       prompt,
       tipo_imagem: tipoImagem,
       tts_engine: ttsEngine,
@@ -51,11 +81,12 @@ document.addEventListener("DOMContentLoaded", () => {
       log.scrollTop = log.scrollHeight;
 
       if (
-        linha.includes("Prompts processados") ||
         linha.includes("imagem") ||
         linha.includes("salva") ||
         linha.includes("gerada") ||
-        linha.includes("Juntando vídeo")
+        linha.includes("Juntando") ||
+        linha.includes("Narrando") ||
+        linha.includes("Legenda")
       ) {
         count++;
         const pct = Math.min(5 + count * 7, 100);
@@ -69,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     source.onerror = () => {
-      log.textContent += "❌ Erro durante o processo completo.\n";
+      log.textContent += "❌ Erro durante o processo.\n";
       source.close();
     };
   });

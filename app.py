@@ -1,28 +1,18 @@
-import os
 import json
-import asyncio
-from flask import Flask, render_template, request, redirect, url_for, jsonify
-from flask import send_from_directory, stream_with_context
-import pydub
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory, send_file, Response, stream_with_context
 from pydub import AudioSegment, silence
 from modules.config import salvar_config, carregar_config
-from flask import current_app
 import tkinter as tk
 from tkinter import filedialog
-from flask import send_from_directory
 from modules.config import get_config
 import os
-from flask import send_file
+import time
 
 # Importe sua função refatorada de geração de imagens
-from modules.gerar_imagens import run_gerar_imagens
+
 from modules.gerar_narracao import run_gerar_narracoes
 from modules.gerar_SRT import run_gerar_legendas
 
-# Importe de maneira similar suas outras etapas, por exemplo:
-# from modules.gerar_narracoes import run_gerar_narracoes
-# from modules.gerar_legendas import run_gerar_legendas
-# from modules.juntar_cenas import run_montar_videos
 
 app = Flask(__name__)
 app.config['USUARIO_CONFIG'] = carregar_config()
@@ -34,6 +24,70 @@ def index():
 def complete():
     return render_template("complete.html", page_title="Gerar Vídeo Completo")
 
+
+#----- IMAGENS --------------------------------------------------------------------------------------------------------
+from modules.gerar_imagens import run_gerar_imagens, calcular_indices, gerar_eventos_para_stream
+@app.route("/imagens", methods=["GET"])
+def imagens_page():
+    print("[ROTA] GET /imagens")
+    path = os.path.join(app.root_path, "modules", "cenas.json")
+    with open(path, encoding="utf-8") as f:
+        cenas = json.load(f)
+    return render_template("generate_imagem.html",
+                           page_title="Gerar Imagens",
+                           cenas=cenas)
+
+
+@app.route("/imagens", methods=["POST"])
+def imagens_run():
+    print("[ROTA] POST /imagens")
+    scope  = request.form.get("scope", "all")
+    single = request.form.get("single_index", type=int)
+    start  = request.form.get("from_index", type=int)
+
+    path = os.path.join(app.root_path, "modules", "cenas.json")
+    with open(path, encoding="utf-8") as f:
+        total = len(json.load(f))
+
+    try:
+        indices = calcular_indices(scope, single, start, total)
+        resultado = run_gerar_imagens(indices)
+    except Exception as e:
+        print(f"❌ Erro em /imagens: {str(e)}")
+        return jsonify({"error": str(e)}), 400
+
+    return jsonify({
+        "status": "ok",
+        "cenas": resultado["cenas"],
+        "logs": resultado["logs"]
+    })
+
+
+@app.route("/modules/imagens/<path:filename>")
+def serve_module_images(filename):
+    pasta_salvar = get_config("pasta_salvar")
+    pasta_imagens = os.path.join(pasta_salvar, "imagens")
+    return send_from_directory(pasta_imagens, filename)
+
+
+@app.route("/imagens_stream", methods=["GET"])
+def imagens_stream():
+    print("[ROTA] GET /imagens_stream")
+    scope  = request.args.get("scope", "all")
+    single = request.args.get("single_index", type=int)
+    start  = request.args.get("from_index", type=int)
+
+    return Response(
+        stream_with_context(gerar_eventos_para_stream(scope, single, start)),
+        mimetype='text/event-stream'
+    )
+
+
+#----------------------------------------------------------------------------------------------------------------------
+
+#----- NARRAÇÃO -------------------------------------------------------------------------------------------------------
+from modules.gerar_narracao import run_gerar_narracoes, iniciar_driver, login, gerar_e_baixar, get_paths
+
 @app.route("/generate_narracao")
 def generate_narracao():
     path = os.path.join(app.root_path, "modules", "cenas.json")
@@ -44,67 +98,13 @@ def generate_narracao():
     return render_template("generate_narracao.html", cenas=cenas)
 
 
-@app.route("/imagens", methods=["GET"])
-def imagens_page():
-    # Carrega cenas para popular a listbox
-    path = os.path.join(app.root_path, "modules", "cenas.json")
-    with open(path, encoding="utf-8") as f:
-        cenas = json.load(f)
-    return render_template("generate_imagem.html",
-                           page_title="Gerar Imagens",
-                           cenas=cenas)
-
-@app.route("/imagens", methods=["POST"])
-def imagens_run():
-    scope  = request.form.get("scope", "all")
-    single = request.form.get("single_index", type=int)
-    start  = request.form.get("from_index",   type=int)
-
-    # carrega total
-    path = os.path.join(app.root_path, "modules", "cenas.json")
-    with open(path, encoding="utf-8") as f:
-        total = len(json.load(f))
-
-    # monta índices
-    if scope == "all":
-        indices = list(range(total))
-    elif scope == "single" and single and 1 <= single <= total:
-        indices = [single - 1]
-    elif scope == "from" and start and 1 <= start <= total:
-        indices = list(range(start - 1, total))
-    else:
-        return jsonify({"error": "Parâmetros inválidos"}), 400
-
-    # executa e captura logs
-    try:
-        resultado = run_gerar_imagens(indices)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-    return jsonify({
-        "status": "ok",
-        "cenas":   resultado["cenas"],
-        "logs":    resultado["logs"]
-    })
-
-@app.route("/modules/imagens/<path:filename>")
-def serve_module_images(filename):
-    pasta_salvar = get_config("pasta_salvar")
-    pasta_imagens = os.path.join(pasta_salvar, "imagens")
-    return send_from_directory(pasta_imagens, filename)
-
-@app.route("/modules/audio/<path:filename>")
-def serve_module_audio(filename):
-    pasta = os.path.join(get_config("pasta_salvar") or ".", "audios_narracoes")
-    return send_from_directory(pasta, filename)
-
 @app.route("/narracoes", methods=["POST"])
 def narracoes_run():
     scope  = request.form.get("scope", "all")
     single = request.form.get("single_index", type=int)
     start  = request.form.get("from_index",   type=int)
 
-    path = caminho_cenas_final()
+    path = get_paths()["cenas"]
     with open(path, encoding="utf-8") as f:
         total = len(json.load(f))
 
@@ -128,31 +128,104 @@ def narracoes_run():
         "cenas": resultado["cenas"]
     })
 
-@app.route('/preview_video/<int:idx>')
-def preview_video(idx):
-    base_path = get_config("pasta_salvar") or "default"
-    video_path = os.path.join(base_path, "videos_cenas", f"video{idx}.mp4")
 
-    if not os.path.isfile(video_path):
-        return "Vídeo não encontrado", 404
+@app.route("/narracao_stream", methods=["GET"])
+def gerar_narracoes_stream():
+    scope  = request.args.get("scope", "all")
+    single = request.args.get("single_index", type=int)
+    start  = request.args.get("from_index", type=int)
 
-    return send_file(video_path, mimetype='video/mp4')
+    path = get_paths()["cenas"]
+    with open(path, encoding="utf-8") as f:
+        total = len(json.load(f))
+
+    if scope == "all":
+        indices = list(range(total))
+    elif scope == "single" and single and 1 <= single <= total:
+        indices = [single - 1]
+    elif scope == "from" and start and 1 <= start <= total:
+        indices = list(range(start - 1, total))
+    else:
+        return Response("data: ❌ Parâmetros inválidos\n\n", mimetype='text/event-stream')
+
+    def gerar_eventos():
+        with open(path, encoding="utf-8") as f:
+            cenas = json.load(f)
+
+        yield f"data: 🚀 Iniciando geração de narrações...\n\n"
+        driver = iniciar_driver()
+        try:
+            login(driver)
+            for i in indices:
+                texto = cenas[i].get("narracao")
+                if not texto:
+                    yield f"data: ⚠️ Cena {i+1} sem texto.\n\n"
+                    continue
+
+                yield f"data: 🎙️ Gerando narração {i+1}\n\n"
+                path_audio = gerar_e_baixar(driver, texto, i)
+                cenas[i]["audio_path"] = path_audio
+                yield f"data: ✅ Narração {i+1} salva\n\n"
+
+                with open(path, "w", encoding="utf-8") as f:
+                    json.dump(cenas, f, ensure_ascii=False, indent=2)
+
+                time.sleep(0.2)
+        finally:
+            driver.quit()
+
+        yield f"data: 🔚 Fim do processo\n\n"
+
+    return Response(stream_with_context(gerar_eventos()), mimetype='text/event-stream')
+
+
+@app.route("/modules/audio/<path:filename>")
+def serve_module_audio(filename):
+    pasta = get_paths()["audios"]
+    return send_from_directory(pasta, filename)
+
+
+
+@app.route("/remover_silencio")
+def remover_silencio_route():
+    from modules.remover_silencio import remover_silencios
+
+    try:
+        min_silence = float(request.args.get("min_silence", "0.3"))
+    except ValueError:
+        return jsonify({"status": "erro", "error": "Parâmetro min_silence inválido."}), 400
+
+    resultado = remover_silencios(min_silence=min_silence)
+
+    if resultado.get("status") == "erro":
+        return jsonify(resultado), 400
+
+    return jsonify(resultado)
+
+
+#---------------------------------------------------------------------------------------------------------------------
+
+#----- LEGENDAS ------------------------------------------------------------------------------------------------------
+
+from modules.gerar_SRT import run_gerar_legendas, gerar_srt_por_palavra, carregar_modelo
 
 @app.route("/generate_legenda")
 def generate_legenda():
     path = caminho_cenas_final()
     if not os.path.exists(path):
         return "Arquivo cenas_com_imagens.json não encontrado", 500
+
     with open(path, "r", encoding="utf-8") as f:
         cenas = json.load(f)
+
     return render_template("generate_legenda.html", cenas=cenas)
 
 @app.route("/legendas", methods=["POST"])
 def gerar_legendas():
-
     scope  = request.form.get("scope", "all")
     single = request.form.get("single_index", type=int)
     start  = request.form.get("from_index",   type=int)
+    tipo   = request.form.get("tipo", "hard")
 
     path = caminho_cenas_final()
     with open(path, encoding="utf-8") as f:
@@ -168,6 +241,7 @@ def gerar_legendas():
         return jsonify({"error": "Parâmetros inválidos"}), 400
 
     try:
+        from modules.gerar_SRT import run_gerar_legendas
         resultado = run_gerar_legendas(indices, tipo=tipo)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -178,6 +252,58 @@ def gerar_legendas():
         "cenas": resultado["cenas"]
     })
 
+@app.route("/legendas_stream", methods=["GET"])
+def gerar_legendas_stream():
+    scope  = request.args.get("scope", "all")
+    single = request.args.get("single_index", type=int)
+    start  = request.args.get("from_index", type=int)
+
+    path = caminho_cenas_final()
+    with open(path, encoding="utf-8") as f:
+        total = len(json.load(f))
+
+    if scope == "all":
+        indices = list(range(total))
+    elif scope == "single" and single and 1 <= single <= total:
+        indices = [single - 1]
+    elif scope == "from" and start and 1 <= start <= total:
+        indices = list(range(start - 1, total))
+    else:
+        return Response("data: ❌ Parâmetros inválidos\n\n", mimetype='text/event-stream')
+
+    def gerar_eventos():
+        from modules.gerar_SRT import gerar_srt_por_palavra
+        with open(path, "r", encoding="utf-8") as f:
+            cenas = json.load(f)
+
+        for idx in indices:
+            pasta_audio = os.path.join(get_config("pasta_salvar") or ".", "audios_narracoes")
+            audio_path = os.path.join(pasta_audio, f"narracao{idx + 1}.mp3")
+
+            pasta_srt = os.path.join(get_config("pasta_salvar") or ".", "legendas_srt")
+            os.makedirs(pasta_srt, exist_ok=True)
+            srt_path = os.path.join(pasta_srt, f"legenda{idx + 1}.srt")
+
+            if os.path.exists(audio_path):
+                yield f"data: 📝 Gerando legenda {idx + 1}\n\n"
+                gerar_srt_por_palavra(carregar_modelo(), audio_path, srt_path)
+                cenas[idx]["srt_path"] = srt_path
+                yield f"data: ✅ Legenda {idx + 1} salva\n\n"
+            else:
+                yield f"data: ⚠️ Áudio {idx + 1} não encontrado\n\n"
+
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(cenas, f, ensure_ascii=False, indent=2)
+
+        yield f"data: 🔚 Fim do processo\n\n"
+
+    return Response(stream_with_context(gerar_eventos()), mimetype='text/event-stream')
+
+#---------------------------------------------------------------------------------------------------------------------
+
+
+#----- MONTAR CENAS --------------------------------------------------------------------------------------------------
+
 @app.route("/generate_montagem")
 def generate_montagem():
     path = caminho_cenas_final()
@@ -186,10 +312,6 @@ def generate_montagem():
     with open(path, "r", encoding="utf-8") as f:
         cenas = json.load(f)
     return render_template("generate_montagem.html", cenas=cenas)
-
-def caminho_cenas_final():
-    from modules.config import get_config
-    return os.path.join(get_config("pasta_salvar") or ".", "cenas_com_imagens.json")
 
 @app.route("/montagem", methods=["POST"])
 def montagem_cenas():
@@ -227,175 +349,6 @@ def montagem_cenas():
         "status": "ok",
         "logs": resultado["logs"]
     })
-
-@app.route("/generate_final")
-def generate_final():
-    path = caminho_cenas_final()
-    if not os.path.exists(path):
-        return "Arquivo cenas_com_imagens.json não encontrado", 500
-    with open(path, "r", encoding="utf-8") as f:
-        cenas = json.load(f)
-    return render_template("generate_final.html", cenas=cenas)
-
-@app.route("/finalizar", methods=["POST"])
-def finalizar_video():
-    try:
-        from modules.juntar_cenas import run_juntar_cenas, exportar_para_capcut
-        tipo = request.form.get("acao", "video")
-        transicao = request.form.get("transicao", "cut")
-
-        usar_trilha = request.form.get("usar_trilha") == "true"
-        usar_marca  = request.form.get("usar_marca") == "true"
-
-        trilha_path = None
-        marca_path  = None
-
-        # Salvar arquivos enviados, se houver
-        if usar_trilha and "trilha" in request.files:
-            trilha_file = request.files["trilha"]
-            trilha_path = os.path.join("modules", "videos_final", trilha_file.filename)
-            trilha_file.save(trilha_path)
-
-        if usar_marca and "marca" in request.files:
-            marca_file = request.files["marca"]
-            marca_path = os.path.join("modules", "videos_final", marca_file.filename)
-            marca_file.save(marca_path)
-
-        if tipo == "video":
-            resultado = run_juntar_cenas(
-                tipo_transicao=transicao,
-                usar_musica=usar_trilha,
-                trilha_path=trilha_path,
-                volume=0.2,
-                usar_watermark=usar_marca,
-                marca_path=marca_path,
-                opacidade=0.3,
-                posicao="('right','bottom')"
-            )
-            return jsonify(resultado)
-        else:
-            export = exportar_para_capcut(
-                trilha_path=trilha_path if usar_trilha else None,
-                marca_path=marca_path if usar_marca else None
-            )
-            return jsonify(export)
-    except Exception as e:
-        return jsonify({"error": str(e)})
-
-@app.route('/modules/videos_cenas/<path:filename>')
-def serve_videos_cenas(filename):
-    return send_from_directory(
-        os.path.join(app.root_path, 'modules', 'videos_cenas'),
-        filename
-    )
-
-from flask import Response, stream_with_context
-import time
-
-@app.route("/legendas_stream", methods=["GET"])
-def gerar_legendas_stream():
-    scope  = request.args.get("scope", "all")
-    single = request.args.get("single_index", type=int)
-    start  = request.args.get("from_index", type=int)
-
-    path = caminho_cenas_final()
-    with open(path, encoding="utf-8") as f:
-        total = len(json.load(f))
-
-    if scope == "all":
-        indices = list(range(total))
-    elif scope == "single" and single and 1 <= single <= total:
-        indices = [single - 1]
-    elif scope == "from" and start and 1 <= start <= total:
-        indices = list(range(start - 1, total))
-    else:
-        return Response("data: ❌ Parâmetros inválidos\n\n", mimetype='text/event-stream')
-
-    def gerar_eventos():
-        from modules.gerar_SRT import gerar_srt_por_palavra
-        import time
-
-        with open(path, "r", encoding="utf-8") as f:
-            cenas = json.load(f)
-
-        for idx in indices:
-            pasta_audio=os.path.join(get_config("pasta_salvar") or ".", "audios_narracoes")
-            audio_path=os.path.join(pasta_audio, f"narracao{idx + 1}.mp3")
-            pasta_legendas=os.path.join(get_config("pasta_salvar") or ".", "legendas_srt")
-            os.makedirs(pasta_legendas, exist_ok=True)
-
-            srt_path=os.path.join(pasta_legendas, f"legenda{idx + 1}.srt")
-
-            if os.path.exists(audio_path):
-                yield f"data: 📝 Gerando legenda {idx+1}\n\n"
-                gerar_srt_por_palavra(audio_path, srt_path)
-                yield f"data: ✅ Legenda {idx+1} salva\n\n"
-                cenas[idx]["srt_path"] = srt_path
-            else:
-                yield f"data: ⚠️ Áudio {idx+1} não encontrado\n\n"
-
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(cenas, f, ensure_ascii=False, indent=2)
-
-            time.sleep(0.1)  # opcional, só para espaçar visualmente
-
-        yield f"data: 🔚 Fim do processo\n\n"
-
-    return Response(stream_with_context(gerar_eventos()), mimetype='text/event-stream')
-
-@app.route("/narracao_stream", methods=["GET"])
-def gerar_narracoes_stream():
-    scope  = request.args.get("scope", "all")
-    single = request.args.get("single_index", type=int)
-    start  = request.args.get("from_index", type=int)
-    fonte  = request.args.get("fonte", "Brian")  # se quiser usar
-
-    path = caminho_cenas_final()
-    with open(path, encoding="utf-8") as f:
-        total = len(json.load(f))
-
-    if scope == "all":
-        indices = list(range(total))
-    elif scope == "single" and single and 1 <= single <= total:
-        indices = [single - 1]
-    elif scope == "from" and start and 1 <= start <= total:
-        indices = list(range(start - 1, total))
-    else:
-        return Response("data: ❌ Parâmetros inválidos\n\n", mimetype='text/event-stream')
-
-    def gerar_eventos():
-        from modules.gerar_narracao import iniciar_driver, login, gerar_e_baixar
-        import time
-
-        with open(path, encoding="utf-8") as f:
-            cenas = json.load(f)
-
-        yield f"data: 🚀 Iniciando geração de narrações...\n\n"
-        driver = iniciar_driver()
-        try:
-            login(driver)
-            for i in indices:
-                texto = cenas[i].get("narracao")
-                if not texto:
-                    yield f"data: ⚠️ Cena {i+1} sem texto.\n\n"
-                    continue
-
-                yield f"data: 🎙️ Gerando narração {i+1}\n\n"
-                path_audio = gerar_e_baixar(driver, texto, i)
-                cenas[i]["audio_path"] = path_audio
-                yield f"data: ✅ Narração {i+1} salva\n\n"
-
-                with open(path, "w", encoding="utf-8") as f:
-                    json.dump(cenas, f, ensure_ascii=False, indent=2)
-
-                time.sleep(0.2)
-        finally:
-            driver.quit()
-
-        yield f"data: 🔚 Fim do processo\n\n"
-
-    return Response(stream_with_context(gerar_eventos()), mimetype='text/event-stream')
-
 
 @app.route("/montagem_stream", methods=["GET"])
 def montagem_stream():
@@ -438,35 +391,103 @@ def montagem_stream():
 
     return Response(stream_with_context(gerar_eventos()), mimetype='text/event-stream')
 
+
+#---------------------------------------------------------------------------------------------------------------------
+
+#----- EDIDAR UNIR ---------------------------------------------------------------------------------------------------
+from modules.juntar_cenas import run_juntar_cenas, exportar_para_capcut
+
+def caminho_cenas_final():
+    return os.path.join(get_config("pasta_salvar") or ".", "cenas_com_imagens.json")
+
+
+def salvar_arquivo_upload(request_file, destino):
+    if request_file:
+        os.makedirs(os.path.dirname(destino), exist_ok=True)
+        request_file.save(destino)
+        return destino
+    return None
+
+
+@app.route("/generate_final")
+def generate_final():
+    path = caminho_cenas_final()
+    if not os.path.exists(path):
+        return "Arquivo cenas_com_imagens.json não encontrado", 500
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            cenas = json.load(f)
+        return render_template("generate_final.html", cenas=cenas)
+    except json.JSONDecodeError:
+        return "Erro ao ler o arquivo JSON de cenas", 500
+
+
+@app.route("/finalizar", methods=["POST"])
+def finalizar_video():
+    try:
+        tipo = request.form.get("acao", "video")
+        transicao = request.form.get("transicao", "cut")
+        usar_trilha = request.form.get("usar_trilha") == "true"
+        usar_marca = request.form.get("usar_marca") == "true"
+
+        trilha_path = salvar_arquivo_upload(
+            request.files.get("trilha"),
+            os.path.join(get_config("pasta_salvar"), "videos_final", "trilha.mp3")
+        ) if usar_trilha else None
+
+        marca_path = salvar_arquivo_upload(
+            request.files.get("marca"),
+            os.path.join(get_config("pasta_salvar"), "videos_final", "marca.png")
+        ) if usar_marca else None
+
+        if tipo == "video":
+            resultado = run_juntar_cenas(
+                tipo_transicao=transicao,
+                usar_musica=usar_trilha,
+                trilha_path=trilha_path,
+                volume=0.2,
+                usar_watermark=usar_marca,
+                marca_path=marca_path,
+                opacidade=0.3,
+                posicao="('right','bottom')"
+            )
+        else:
+            resultado = exportar_para_capcut(
+                trilha_path=trilha_path,
+                marca_path=marca_path
+            )
+
+        return jsonify(resultado)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/finalizar_stream", methods=["GET"])
 def finalizar_stream():
     try:
-        from modules.juntar_cenas import run_juntar_cenas, exportar_para_capcut
-
         tipo = request.args.get("acao", "video")
         transicao = request.args.get("transicao", "cut")
         usar_trilha = request.args.get("usar_trilha") == "true"
         usar_marca = request.args.get("usar_marca") == "true"
 
         trilha_path = None
-        marca_path  = None
+        marca_path = None
 
         def gerar_eventos():
             yield f"data: 🚀 Iniciando montagem final...\n\n"
 
-            if usar_trilha:
-                trilha_path_param = request.args.get("trilha_path")
-                if trilha_path_param and os.path.exists(trilha_path_param):
-                    yield f"data: 🎵 Usando trilha: {trilha_path_param}\n\n"
-                    nonlocal trilha_path
-                    trilha_path = trilha_path_param
+            trilha_path_param = request.args.get("trilha_path")
+            if usar_trilha and trilha_path_param and os.path.isfile(trilha_path_param):
+                yield f"data: 🎵 Usando trilha: {trilha_path_param}\n\n"
+                nonlocal trilha_path
+                trilha_path = trilha_path_param
 
-            if usar_marca:
-                marca_path_param = request.args.get("marca_path")
-                if marca_path_param and os.path.exists(marca_path_param):
-                    yield f"data: 🌊 Usando marca: {marca_path_param}\n\n"
-                    nonlocal marca_path
-                    marca_path = marca_path_param
+            marca_path_param = request.args.get("marca_path")
+            if usar_marca and marca_path_param and os.path.isfile(marca_path_param):
+                yield f"data: 🌊 Usando marca: {marca_path_param}\n\n"
+                nonlocal marca_path
+                marca_path = marca_path_param
 
             if tipo == "video":
                 resultado = run_juntar_cenas(
@@ -481,8 +502,8 @@ def finalizar_stream():
                 )
             else:
                 resultado = exportar_para_capcut(
-                    trilha_path=trilha_path if usar_trilha else None,
-                    marca_path=marca_path if usar_marca else None
+                    trilha_path=trilha_path,
+                    marca_path=marca_path
                 )
 
             for linha in resultado.get("logs", []):
@@ -495,158 +516,150 @@ def finalizar_stream():
     except Exception as e:
         return Response(f"data: ❌ Erro: {str(e)}\n\n", mimetype='text/event-stream')
 
-@app.route("/imagens_stream", methods=["GET"])
-def imagens_stream():
-    scope  = request.args.get("scope", "all")
-    single = request.args.get("single_index", type=int)
-    start  = request.args.get("from_index", type=int)
 
-    path = os.path.join(app.root_path, "modules", "cenas.json")
-    with open(path, encoding="utf-8") as f:
-        total = len(json.load(f))
+@app.route('/modules/videos_cenas/<path:filename>')
+def serve_videos_cenas(filename):
+    return send_from_directory(
+        os.path.join(app.root_path, 'modules', 'videos_cenas'),
+        filename
+    )
 
-    if scope == "all":
-        indices = list(range(total))
-    elif scope == "single" and single and 1 <= single <= total:
-        indices = [single - 1]
-    elif scope == "from" and start and 1 <= start <= total:
-        indices = list(range(start - 1, total))
-    else:
-        return Response("data: ❌ Parâmetros inválidos\n\n", mimetype='text/event-stream')
 
-    def gerar_eventos():
-        from modules.gerar_imagens import _gerar
-        import asyncio
+@app.route('/preview_video/<int:idx>')
+def preview_video(idx):
+    base_path = get_config("pasta_salvar") or "default"
+    video_path = os.path.join(base_path, "videos_cenas", f"video{idx}.mp4")
 
-        with open(path, encoding="utf-8") as f:
-            cenas = json.load(f)
+    if not os.path.isfile(video_path):
+        return "Vídeo não encontrado", 404
 
-        logs = []
+    return send_file(video_path, mimetype='video/mp4')
 
-        async def gerar_async():
-            await _gerar(cenas, indices, logs)
+#--------------------------------------------------------------------------------------------------------------------
 
-        asyncio.run(gerar_async())
+#----- COMPLETE -----------------------------------------------------------------------------------------------------
+from modules.parser_prompts import  limpar_pastas_de_saida
+@app.route("/processar_prompt", methods=["POST"])
+def processar_prompt():
+    try:
+        dados=request.get_json()
+        prompt_inicial=dados.get("prompt", "").strip()
 
-        for log in logs:
-            yield f"data: {log}\n\n"
+        if not prompt_inicial:
+            return jsonify({"status": "erro", "erro": "Prompt vazio"}), 400
 
-        # Caminho correto usando a pasta configurada + cenas_com_imagens.json
-        saida_json=os.path.join(get_config("pasta_salvar") or ".", "cenas_com_imagens.json")
+        # Caminhos dos arquivos
+        BASE_DIR=os.path.dirname(os.path.abspath(__file__))
+        caminho_txt=os.path.join(BASE_DIR, "modules", "prompts.txt")
+        base=get_config("pasta_salvar") or os.getcwd()
 
-        with open(saida_json, "w", encoding="utf-8") as f:
+        caminho_json=os.path.join(base, "cenas.json")
+
+        # Salva o prompt no arquivo de texto
+        with open(caminho_txt, "w", encoding="utf-8") as f:
+            f.write(prompt_inicial.strip() + "\n")
+
+        # Executa o parser para gerar o JSON
+        from modules import parser_prompts
+        cenas=parser_prompts.parse_prompts_txt(caminho_txt)
+        limpar_pastas_de_saida()
+        with open(caminho_json, "w", encoding="utf-8") as f:
             json.dump(cenas, f, ensure_ascii=False, indent=2)
 
-        yield f"data: 🔚 Geração de imagens finalizada\n\n"
+        return jsonify({"status": "ok", "total_cenas": len(cenas)})
 
-    return Response(stream_with_context(gerar_eventos()), mimetype='text/event-stream')
+    except Exception as e:
+        return jsonify({"status": "erro", "erro": str(e)}), 500
 
-@app.route("/complete_stream", methods=["GET"])
+
+from modules import parser_prompts, gerar_imagens, gerar_narracao, gerar_SRT, juntar_cenas
+
+@app.route("/complete_stream")
 def complete_stream():
-    from modules.parser_prompts import parse_prompts_txt
-    from modules.gerar_imagens import run_gerar_imagens
-    from modules.gerar_narracao import run_gerar_narracoes
-    from modules.gerar_SRT import run_gerar_legendas
-    from modules.montar_cenas import run_montar_cenas
-    from modules.juntar_cenas import run_juntar_cenas
-
-    def gerar_tudo():
-        yield f"data: 🧠 Lendo prompts e criando cenas.json...\n\n"
-        cenas = parse_prompts_txt("modules/prompts.txt")
-        with open("modules/cenas.json", "w", encoding="utf-8") as f:
-            json.dump(cenas, f, ensure_ascii=False, indent=4)
-        yield f"data: ✅ Prompts processados: {len(cenas)} cenas\n\n"
-
-        indices = list(range(len(cenas)))
-
-        yield f"data: 🎨 Gerando imagens...\n\n"
-        imagens = run_gerar_imagens(indices)
-        for log in imagens["logs"]:
-            yield f"data: {log}\n\n"
-
-        yield f"data: 🎙️ Gerando narrações...\n\n"
-        narracoes = run_gerar_narracoes(indices)
-        for log in narracoes["logs"]:
-            yield f"data: {log}\n\n"
-
-        yield f"data: ✍️ Gerando legendas...\n\n"
-        legendas = run_gerar_legendas(indices)
-        for log in legendas["logs"]:
-            yield f"data: {log}\n\n"
-
-        yield f"data: 🧩 Montando cenas...\n\n"
-        montagem = run_montar_cenas(indices, usar_soft=False, cor="white", tamanho=24, posicao="bottom")
-        for log in montagem["logs"]:
-            yield f"data: {log}\n\n"
-
-        yield f"data: 🎞️ Juntando vídeo final...\n\n"
-        final = run_juntar_cenas(tipo_transicao="cut", usar_musica=False, trilha_path=None, volume=0.2,
-                                 usar_watermark=False, marca_path=None, opacidade=0.3, posicao="('right','bottom')")
-        for log in final["logs"]:
-            yield f"data: {log}\n\n"
-
-        yield f"data: ✅ Pipeline completa finalizada\n\n"
-
-    return Response(stream_with_context(gerar_tudo()), mimetype='text/event-stream')
-
-@app.route("/remover_silencio")
-def remover_silencio():
-    min_silence = float(request.args.get("min_silence", "0.3"))
-
-    # Usa a pasta salva nas configurações
-    base_path = get_config("pasta_salvar") or os.path.join(app.root_path, "modules")
-    pasta = os.path.join(base_path, "audios_narracoes")
-
-    if not os.path.exists(pasta):
-        return jsonify({"status": "erro", "error": f"Pasta não encontrada: {pasta}"}), 400
-
-    arquivos = [f for f in os.listdir(pasta) if f.endswith(".mp3")]
-    count = 0
-
-    for nome in arquivos:
-        caminho = os.path.join(pasta, nome)
+    def gerar_log():
         try:
-            audio = AudioSegment.from_file(caminho, format="mp3")
-            chunks = silence.split_on_silence(
-                audio,
-                min_silence_len=int(min_silence * 1000),
-                silence_thresh=-40,
-                keep_silence=100
-            )
-            if not chunks:
-                continue
-            novo = AudioSegment.silent(duration=0)
-            for chunk in chunks:
-                novo += chunk
-            novo.export(caminho, format="mp3")
-            count += 1
+            # Coleta de parâmetros
+            prompt = request.args.get("prompt", "").strip()
+            nome_video = request.args.get("nome_video", "video_final").strip()
+            tipo_imagem = request.args.get("tipo_imagem", "ia")
+            tts_engine = request.args.get("tts_engine", "eleven")
+            voz = request.args.get("voz", "Brian")
 
-        except Exception:
-            continue
+            usar_legenda = request.args.get("usar_legenda", "false") == "true"
+            tipo_legenda = request.args.get("tipo_legenda", "hard")
+            cor_legenda = request.args.get("cor_legenda", "white")
+            tamanho_legenda = int(request.args.get("tamanho_legenda", 24))
+            posicao_legenda = request.args.get("posicao_legenda", "bottom")
 
-    return jsonify({"status": "ok", "arquivos": count})
+            unir_videos = request.args.get("unir_videos", "false") == "true"
+            exportar_capcut = request.args.get("exportar_capcut", "false") == "true"
+            usar_trilha = request.args.get("usar_trilha", "false") == "true"
+            usar_marca = request.args.get("usar_marca", "false") == "true"
 
-# @app.route("/salvar_config", methods=["POST"])
-# def salvar_config():
-#     import os
-#     import json
-#     from flask import request, jsonify
-#
-#     # Caminho onde o arquivo será salvo
-#     config_path = os.path.join(app.root_path, "config.json")
-#
-#     try:
-#         # Captura os dados do corpo da requisição
-#         data = request.get_json()
-#
-#         # Salva os dados como JSON
-#         with open(config_path, "w", encoding="utf-8") as f:
-#             json.dump(data, f, indent=2, ensure_ascii=False)
-#
-#         return jsonify({"status": "ok"})
-#     except Exception as e:
-#         return jsonify({"status": "erro", "error": str(e)})
+            # 1. Salvar prompt inicial e gerar cenas
+            if not prompt:
+                yield "❌ Prompt inicial vazio.\n"
+                return
 
+            yield "🧩 Processando prompt inicial...\n"
+            parser_prompts.salvar_prompt_txt(prompt)
+            parser_prompts.limpar_pastas()
+            cenas = parser_prompts.parse_prompts_txt()
+
+            base = get_config("pasta_salvar") or os.getcwd()
+            json_path = os.path.join(base, "cenas_com_imagens.json")
+            with open(json_path, "w", encoding="utf-8") as f:
+                json.dump(cenas, f, ensure_ascii=False, indent=2)
+
+            yield f"✅ {len(cenas)} prompts processados.\n"
+
+            # 2. Gerar imagens
+            if tipo_imagem == "ia":
+                yield "🖼️ Gerando imagens com IA...\n"
+                for idx in range(len(cenas)):
+                    resultado = gerar_imagens.gerar_uma(idx)
+                    yield resultado["log"] + "\n"
+
+            # 3. Gerar narração
+            yield "🗣️ Gerando narrações...\n"
+            logs_audio = gerar_narracao.run_generate_audio(list(range(len(cenas))), engine=tts_engine, voz=voz)
+            for linha in logs_audio:
+                yield linha + "\n"
+
+            # 4. Gerar legendas
+            if usar_legenda:
+                yield f"💬 Gerando legendas ({tipo_legenda})...\n"
+                resultado = gerar_SRT.run_gerar_legendas(list(range(len(cenas))), tipo=tipo_legenda)
+                for linha in resultado["logs"]:
+                    yield linha + "\n"
+
+            # 5. Juntar cenas
+            if unir_videos:
+                yield "🎞️ Juntando vídeo final...\n"
+                juntar_cenas.juntar_todas(
+                    nome_arquivo=nome_video,
+                    usar_legenda=usar_legenda,
+                    tipo_legenda=tipo_legenda,
+                    cor=cor_legenda,
+                    tamanho=tamanho_legenda,
+                    posicao=posicao_legenda,
+                    exportar_capcut=exportar_capcut,
+                    usar_trilha=usar_trilha,
+                    usar_marca=usar_marca
+                )
+                yield f"✅ Vídeo final salvo como {nome_video}.mp4\n"
+
+            yield "🏁 Pipeline completa finalizada.\n"
+
+        except Exception as e:
+            yield f"❌ Erro durante o processo: {str(e)}\n"
+
+    return Response(gerar_log(), mimetype="text/event-stream")
+
+
+#--------------------------------------------------------------------------------------------------------------------
+
+#----- CONFIGURAÇÕES ------------------------------------------------------------------------------------------------
 
 @app.route("/configuracoes")
 def pagina_configuracoes():
@@ -695,4 +708,4 @@ def selecionar_pasta():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8080)
+    app.run(debug=True, port=5000)

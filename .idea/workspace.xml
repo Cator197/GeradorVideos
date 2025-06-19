@@ -4,11 +4,26 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="Commit antes de refator o gerar narrações para tirar o time sleep">
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT antes da revisão geral do código">
+      <change afterPath="$PROJECT_DIR$/static/img/logo.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/audios_narracoes/narracao8.mp3" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/cenas.json" beforeDir="false" afterPath="$PROJECT_DIR$/modules/cenas.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_SRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_SRT.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_imagens.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_imagens.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/prompts.txt" beforeDir="false" afterPath="$PROJECT_DIR$/modules/prompts.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/imagens/imagem8.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/juntar_cenas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/marca 916.PNG" beforeDir="false" afterPath="$PROJECT_DIR$/modules/remover_silencio.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/montar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/montar_cenas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/parser_prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/parser_prompts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/prompts.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/complete.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/complete.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/complete.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/complete.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,38 +64,38 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;Python.00.parser_prompts.executor&quot;: &quot;Run&quot;,
-    &quot;Python.01.gerar_imagens.executor&quot;: &quot;Run&quot;,
-    &quot;Python.02.gerar_animacao.executor&quot;: &quot;Run&quot;,
-    &quot;Python.03.gerar_narracao.executor&quot;: &quot;Run&quot;,
-    &quot;Python.adicionar_marcadagua.executor&quot;: &quot;Run&quot;,
-    &quot;Python.app.executor&quot;: &quot;Run&quot;,
-    &quot;Python.gerar_SRT.executor&quot;: &quot;Run&quot;,
-    &quot;Python.gerar_imagens (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.gerar_imagens.executor&quot;: &quot;Run&quot;,
-    &quot;Python.gerar_narracao.executor&quot;: &quot;Run&quot;,
-    &quot;Python.juntar_cenas.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.montar_cenas.executor&quot;: &quot;Run&quot;,
-    &quot;Python.parser_prompts.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/PycharmProjects/geradorVideo/templates&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "Python.00.parser_prompts.executor": "Run",
+    "Python.01.gerar_imagens.executor": "Run",
+    "Python.02.gerar_animacao.executor": "Run",
+    "Python.03.gerar_narracao.executor": "Run",
+    "Python.adicionar_marcadagua.executor": "Run",
+    "Python.app.executor": "Run",
+    "Python.gerar_SRT.executor": "Run",
+    "Python.gerar_imagens (1).executor": "Run",
+    "Python.gerar_imagens.executor": "Run",
+    "Python.gerar_narracao.executor": "Run",
+    "Python.juntar_cenas.executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.montar_cenas.executor": "Run",
+    "Python.parser_prompts.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "D:/PycharmProjects/geradorVideo/static/img",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\PycharmProjects\geradorVideo\static\img" />
+      <recent name="D:\PycharmProjects\geradorVideo" />
       <recent name="D:\PycharmProjects\geradorVideo\templates" />
       <recent name="D:\PycharmProjects\geradorVideo\modules\audios_narracoes" />
       <recent name="D:\PycharmProjects\geradorVideo\scripts\imagens" />
-      <recent name="D:\PycharmProjects\gerador de video automatico\scripts\audios_narracoes" />
-      <recent name="D:\PycharmProjects\gerador de video automatico" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\PycharmProjects\geradorVideo\modules" />
@@ -90,7 +105,7 @@
       <recent name="D:\PycharmProjects\geradorVideo\scripts\audios_narracoes" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.app">
+  <component name="RunManager" selected="Python.parser_prompts">
     <configuration name="app" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="geradorVideo" />
       <option name="ENV_FILES" value="" />
@@ -323,7 +338,15 @@
       <option name="project" value="LOCAL" />
       <updated>1750162894886</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="COMMIT antes da revisão geral do código">
+      <option name="closed" value="true" />
+      <created>1750337288855</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1750337288855</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -348,6 +371,7 @@
     <MESSAGE value="Depois de implementar criptografia" />
     <MESSAGE value="Antes de implementar as modificações de geração de SRT" />
     <MESSAGE value="Commit antes de refator o gerar narrações para tirar o time sleep" />
-    <option name="LAST_COMMIT_MESSAGE" value="Commit antes de refator o gerar narrações para tirar o time sleep" />
+    <MESSAGE value="COMMIT antes da revisão geral do código" />
+    <option name="LAST_COMMIT_MESSAGE" value="COMMIT antes da revisão geral do código" />
   </component>
 </project>

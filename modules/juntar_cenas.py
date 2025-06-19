@@ -2,93 +2,138 @@ import os
 import json
 import shutil
 import zipfile
-from moviepy import VideoFileClip, concatenate_videoclips, AudioFileClip, CompositeVideoClip, ImageClip
+from moviepy import (
+    VideoFileClip, concatenate_videoclips, AudioFileClip,
+    CompositeVideoClip, ImageClip
+)
 from modules.config import get_config
 
-# Carrega a pasta base do usuário
+# Caminhos principais
 PASTA_BASE = get_config("pasta_salvar") or "default"
 PASTA_VIDEOS = os.path.join(PASTA_BASE, "videos_cenas")
 PASTA_SAIDA = os.path.join(PASTA_BASE, "videos_final")
+PASTA_EXPORT = os.path.join(PASTA_BASE, "projeto_capcut")
+
 os.makedirs(PASTA_SAIDA, exist_ok=True)
 
-def run_juntar_cenas(tipo_transicao, usar_musica, trilha_path, volume, usar_watermark, marca_path, opacidade, posicao):
-    logs = []
-    try:
-        arquivos = sorted([
-            os.path.join(PASTA_VIDEOS, f) for f in os.listdir(PASTA_VIDEOS)
-            if f.startswith("video") and f.endswith(".mp4")
-        ])
 
+def obter_clips_de_video():
+    """Retorna os caminhos ordenados dos vídeos da pasta de cenas."""
+    arquivos = sorted([
+        os.path.join(PASTA_VIDEOS, f)
+        for f in os.listdir(PASTA_VIDEOS)
+        if f.startswith("video") and f.endswith(".mp4")
+    ])
+    return arquivos
+
+
+def aplicar_transicao(clips, tipo_transicao):
+    """Aplica transição entre os clipes."""
+    if not clips:
+        raise ValueError("Nenhum vídeo encontrado para juntar.")
+
+    if tipo_transicao == "crossfade":
+        duracao = 0.5
+        clips = [clips[0].fx(VideoFileClip.crossfadein, duracao)] + [
+            c.crossfadein(duracao) for c in clips[1:]
+        ]
+        return concatenate_videoclips(clips, method="compose")
+
+    elif tipo_transicao == "slide":
+        return concatenate_videoclips(clips, method="compose", padding=-1, bg_color=(0, 0, 0))
+
+    elif tipo_transicao in {"scroll", "freeze"}:
+        return concatenate_videoclips(clips, method="compose")
+
+    return concatenate_videoclips(clips, method="compose")  # Transição padrão
+
+
+def aplicar_trilha_sonora(video, trilha_path, volume):
+    trilha = AudioFileClip(trilha_path).volumex(volume)
+    return video.set_audio(trilha)
+
+
+def aplicar_marca_dagua(video, marca_path, opacidade, posicao):
+    marca = (
+        ImageClip(marca_path)
+        .with_duration(video.duration)
+        .resized(height=100)
+        .with_opacity(opacidade)
+        .with_position(eval(posicao))
+    )
+    return CompositeVideoClip([video, marca])
+
+
+def run_juntar_cenas(
+    tipo_transicao="cut",
+    usar_musica=False,
+    trilha_path=None,
+    volume=0.2,
+    usar_watermark=False,
+    marca_path=None,
+    opacidade=0.3,
+    posicao="('right','bottom')"
+):
+    logs = []
+
+    try:
+        arquivos = obter_clips_de_video()
         if not arquivos:
             return {"logs": ["❌ Nenhuma cena encontrada na pasta 'videos_cenas'"]}
 
         clips = [VideoFileClip(f) for f in arquivos]
 
-        # Tipos de transição
-        if tipo_transicao == "crossfade":
-            duracao = 0.5
-            clips[0] = clips[0].fx(VideoFileClip.crossfadein, duracao)
-            final = clips[0]
-            for c in clips[1:]:
-                final = concatenate_videoclips([final, c.crossfadein(duracao)], method="compose")
-        elif tipo_transicao == "slide":
-            final = concatenate_videoclips(clips, method="compose", padding=-1, bg_color=(0, 0, 0))
-        elif tipo_transicao in {"scroll", "freeze"}:
-            final = concatenate_videoclips(clips, method="compose")
-        else:
-            final = concatenate_videoclips(clips, method="compose")
-
+        video_final = aplicar_transicao(clips, tipo_transicao)
         logs.append(f"🎞️ {len(clips)} cenas unidas com transição: {tipo_transicao}")
 
-        # Trilha sonora
         if usar_musica and trilha_path:
-            trilha = AudioFileClip(trilha_path).volumex(volume)
-            final = final.set_audio(trilha)
+            video_final = aplicar_trilha_sonora(video_final, trilha_path, volume)
             logs.append("🎵 Trilha sonora aplicada")
 
-        # Marca d’água
         if usar_watermark and marca_path:
-            marca = (
-                ImageClip(marca_path)
-                .with_duration(final.duration)
-                .resized(height=100)
-                .with_opacity(opacidade)
-                .with_position(eval(posicao))
-            )
-            final = CompositeVideoClip([final, marca])
+            video_final = aplicar_marca_dagua(video_final, marca_path, opacidade, posicao)
             logs.append("🌊 Marca d'água aplicada")
 
         saida = os.path.join(PASTA_SAIDA, "video_final.mp4")
-        final.write_videofile(saida, fps=24, codec="libx264", audio_codec="aac", logger=None)
+        video_final.write_videofile(saida, fps=24, codec="libx264", audio_codec="aac", logger=None)
         logs.append(f"✅ Vídeo final salvo em {saida}")
+
         return {"logs": logs}
+
     except Exception as e:
-        return {"logs": [f"❌ Erro: {str(e)}"]}
+        return {"logs": [f"❌ Erro ao gerar vídeo final: {str(e)}"]}
+
 
 def exportar_para_capcut(trilha_path=None, marca_path=None):
     logs = []
+
     try:
-        base_dir = PASTA_VIDEOS
-        temp_dir = os.path.join(PASTA_BASE, "projeto_capcut")
-        videos = sorted([f for f in os.listdir(base_dir) if f.startswith("video") and f.endswith(".mp4")])
+        videos = sorted([
+            f for f in os.listdir(PASTA_VIDEOS)
+            if f.startswith("video") and f.endswith(".mp4")
+        ])
 
         if not videos:
             return {"logs": ["❌ Nenhuma cena disponível para exportação."]}
 
-        if os.path.exists(temp_dir):
-            shutil.rmtree(temp_dir)
-        os.makedirs(os.path.join(temp_dir, "videos"), exist_ok=True)
+        # Recria estrutura do projeto
+        if os.path.exists(PASTA_EXPORT):
+            shutil.rmtree(PASTA_EXPORT)
+        os.makedirs(os.path.join(PASTA_EXPORT, "videos"), exist_ok=True)
 
-        for v in videos:
-            shutil.copy(os.path.join(base_dir, v), os.path.join(temp_dir, "videos", v))
+        for video in videos:
+            shutil.copy(
+                os.path.join(PASTA_VIDEOS, video),
+                os.path.join(PASTA_EXPORT, "videos", video)
+            )
         logs.append(f"🎞️ {len(videos)} vídeos copiados")
 
         if trilha_path:
-            shutil.copy(trilha_path, os.path.join(temp_dir, "audio.mp3"))
+            shutil.copy(trilha_path, os.path.join(PASTA_EXPORT, "audio.mp3"))
             logs.append("🎵 Trilha sonora incluída")
 
         if marca_path:
-            shutil.copy(marca_path, os.path.join(temp_dir, "overlay.png"))
+            shutil.copy(marca_path, os.path.join(PASTA_EXPORT, "overlay.png"))
             logs.append("🌊 Marca d'água incluída")
 
         metadata = {
@@ -97,20 +142,23 @@ def exportar_para_capcut(trilha_path=None, marca_path=None):
             "trilha": bool(trilha_path),
             "marca": bool(marca_path)
         }
-        with open(os.path.join(temp_dir, "metadata.json"), "w", encoding="utf-8") as f:
+
+        with open(os.path.join(PASTA_EXPORT, "metadata.json"), "w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=2)
 
         logs.append("📄 Arquivo de metadados criado")
 
+        # Compacta para ZIP
         zip_path = os.path.join(PASTA_SAIDA, "projeto_capcut.zip")
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
-            for root, _, files in os.walk(temp_dir):
+            for root, _, files in os.walk(PASTA_EXPORT):
                 for file in files:
                     full_path = os.path.join(root, file)
-                    rel_path = os.path.relpath(full_path, temp_dir)
+                    rel_path = os.path.relpath(full_path, PASTA_EXPORT)
                     zipf.write(full_path, rel_path)
 
         logs.append(f"✅ Projeto CapCut exportado: {zip_path}")
         return {"logs": logs, "arquivo": zip_path}
+
     except Exception as e:
         return {"logs": [f"❌ Erro ao exportar projeto: {str(e)}"]}

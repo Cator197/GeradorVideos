@@ -9,125 +9,111 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-# Caminhos configuráveis
-PASTA_BASE = get_config("pasta_salvar") or "."
-PASTA_AUDIOS = os.path.join(PASTA_BASE, "audios_narracoes")
-ARQUIVO_CENAS = os.path.join(PASTA_BASE, "cenas_com_imagens.json")
-os.makedirs(PASTA_AUDIOS, exist_ok=True)
 
-EMAIL = get_config("eleven_email")
-PASSWORD = get_config("eleven_senha")
+def get_paths():
+    base = get_config("pasta_salvar") or "."
+    return {
+        "base": base,
+        "audios": os.path.join(base, "audios_narracoes"),
+        "cenas": os.path.join(base, "cenas_com_imagens.json")
+    }
+
 
 def iniciar_driver():
     chrome_options = Options()
-    chrome_options.add_argument("--start-maximized")  # Abre em tela cheia
-    #chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--start-maximized")
     chrome_options.add_experimental_option("prefs", {
-        "download.default_directory": os.path.abspath(PASTA_AUDIOS),
+        "download.default_directory": os.path.abspath(get_paths()["audios"]),
         "download.prompt_for_download": False,
         "download.directory_upgrade": True,
         "safebrowsing.enabled": True
     })
     return webdriver.Chrome(options=chrome_options)
 
-def esperar_elemento(driver, xpath, timeout=20, clickable=False):
+
+def esperar(driver, selector, by=By.XPATH, clickable=False, timeout=20):
     wait = WebDriverWait(driver, timeout)
     cond = EC.element_to_be_clickable if clickable else EC.visibility_of_element_located
-    return wait.until(cond((By.XPATH, xpath)))
+    return wait.until(cond((by, selector)))
 
 
 def login(driver):
-    # Abre a página de login do ElevenLabs
     driver.get("https://elevenlabs.io/app/speech-synthesis/text-to-speech")
 
-    # Cria um objeto WebDriverWait para aguardar até 20 segundos pelos elementos
-    wait=WebDriverWait(driver, 20)
-
-    # Espera o campo de email estar visível e preenche com o EMAIL da conta
-    wait.until(EC.visibility_of_element_located((By.NAME, "email"))).send_keys(EMAIL)
-
-    # Preenche o campo de senha
-    driver.find_element(By.NAME, "password").send_keys(PASSWORD)
-
-    # Envia o formulário (pressiona ENTER no campo senha)
+    wait = WebDriverWait(driver, 20)
+    wait.until(EC.visibility_of_element_located((By.NAME, "email"))).send_keys(get_config("eleven_email"))
+    driver.find_element(By.NAME, "password").send_keys(get_config("eleven_senha"))
     driver.find_element(By.NAME, "password").submit()
 
-    # Espera até que o URL da página contenha "/text-to-speech", confirmando que o login foi bem-sucedido
     wait.until(EC.url_contains("/text-to-speech"))
 
-    # Tenta clicar no botão de confirmação de um possível pop-up (ex: aviso de cookies, confirmação etc.)
     try:
-        esperar_elemento(driver, "/html/body/div[6]/div[2]/div[2]/button", timeout=5, clickable=True).click()
+        print("Clicando em: Get started")
+        esperar(driver, "//button[normalize-space()='Get started']", clickable=True, timeout=5).click()
     except:
-        # Se o botão não existir, ignora
         pass
 
-    # Clica no botão "Add voice" para adicionar uma nova voz
-    esperar_elemento(driver,"/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/section/div/div/div/div[2]/div/div[2]/div[1]/div/button",clickable=True).click()
+    print("Clicando em: Select voice")
+    esperar(driver, "//button[starts-with(@aria-label, 'Select voice')]", clickable=True).click()
 
-    # Digita "Brian" no campo de busca de vozes
-    esperar_elemento(driver,"/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/section/div/div/div/div[2]/div/div/div[1]/input").send_keys("Brian")
+    print("Escrevendo: Brian")
+    esperar(driver, '//input[@placeholder="Search voices..."]').send_keys("Brian")
+
     time.sleep(2)
-    #--------------------------
-    xpath_brian="/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/section/div/div/div/div[2]/div/div/div[2]/div/div[1]/ul/li/div[2]/div[2]/div/div[1]/div[1]/p/span"
 
     try:
-        elemento=WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((By.XPATH, xpath_brian))
-        )
-        texto=elemento.text.strip()
-
-        if texto.lower() == "brian":
-            print("✅ O elemento contém o texto 'Brian'")
-        else:
-            print(f"⚠️ O texto encontrado foi: '{texto}'")
+        print("verificando se tem Brian escrito")
+        nome_voz = esperar(driver, '//p/span[contains(text(), "Brian")]', timeout=5).text.strip()
+        if nome_voz.lower() != "brian":
+            print(f"⚠️ Voz encontrada: {nome_voz}")
     except:
-        print("❌ Elemento não encontrado")
-    #-----------------------------------
+        print("❌ Voz 'Brian' não encontrada")
 
-    # Clica no item da lista correspondente à voz "Brian"
-    esperar_elemento(driver,"/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/section/div/div/div/div[2]/div/div/div[2]/div/div[1]/ul/li/div[2]/div[2]/div/div[1]/div[1]/p",clickable=True).click()
-
-    # Clica no botão para escolher a versão da voz Brian (ex: v1, v2, etc.)
-    esperar_elemento(driver,"/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/section/div/div/div/div[2]/div/div[2]/div[2]/div/div/div/button",clickable=True).click()
-
-    # Clica no botão "Confirm" para confirmar a seleção da voz
-    esperar_elemento(driver,"/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/section/div/div/div/div[2]/div[2]/div[1]/button[2]",clickable=True ).click()
-
+    print("selecionando Brian")
+    esperar(driver, '//p/span[contains(text(), "Brian")]', clickable=True).click()
+    print("clicar no seletor de modelo")
+    esperar(driver, "//button[starts-with(@aria-label, 'Select model')]", clickable=True).click()
+    print("selecioando V2")
+    esperar(driver, '//button[@value="eleven_multilingual_v2"]', clickable=True).click()
+    time.sleep(3)
 
 def gerar_e_baixar(driver, texto, index):
+    paths = get_paths()
     wait = WebDriverWait(driver, 20)
 
-    textarea = esperar_elemento(driver, "/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/div/div[1]/textarea")
+    textarea = esperar(driver, "//textarea")
     textarea.clear()
     textarea.send_keys(texto)
 
-    esperar_elemento(driver, "/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/div/div[2]/div[2]/div/div[2]/div/button[2]", clickable=True).click()
+    esperar(driver, '//button[@aria-label="Generate speech Ctrl+Enter"]', clickable=True).click()
+    download_btn = esperar(driver, '//button[@aria-label="Download latest"]', clickable=True)
 
-    download_btn = esperar_elemento(driver, "/html/body/div[1]/div[2]/div[4]/div[3]/div/main/div/div/div/div[2]/div[2]/div/div[2]/div/button[1]", clickable=True)
-    before = set(os.listdir(PASTA_AUDIOS))
+    before = set(os.listdir(paths["audios"]))
     download_btn.click()
 
     for _ in range(30):
-        WebDriverWait(driver, 3).until(lambda d: set(os.listdir(PASTA_AUDIOS)) - before)
-        after = set(os.listdir(PASTA_AUDIOS))
+        time.sleep(1)
+        after = set(os.listdir(paths["audios"]))
         new_files = after - before
         if new_files:
             break
     else:
-        raise Exception("Download não ocorreu.")
-    time.sleep(1)
+        raise Exception("Download não detectado.")
+
     filename = new_files.pop()
-    src = os.path.join(PASTA_AUDIOS, filename)
     ext = os.path.splitext(filename)[1]
-    dst = os.path.join(PASTA_AUDIOS, f"narracao{index + 1}{ext}")
+    src = os.path.join(paths["audios"], filename)
+    dst = os.path.join(paths["audios"], f"narracao{index + 1}{ext}")
     if os.path.exists(dst):
         os.remove(dst)
     os.rename(src, dst)
     return dst
 
+
 def run_gerar_narracoes(indices):
-    with open(ARQUIVO_CENAS, encoding="utf-8") as f:
+    paths = get_paths()
+
+    with open(paths["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
     logs = ["🚀 Iniciando geração de narrações..."]
@@ -147,7 +133,7 @@ def run_gerar_narracoes(indices):
     finally:
         driver.quit()
 
-    with open(ARQUIVO_CENAS, "w", encoding="utf-8") as f:
+    with open(paths["cenas"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)
 
     return {"logs": logs, "cenas": cenas}
