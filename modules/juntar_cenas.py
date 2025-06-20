@@ -1,3 +1,5 @@
+"""Rotinas para juntar cenas individuais em um único vídeo final."""
+
 import os
 import json
 import shutil
@@ -49,11 +51,13 @@ def aplicar_transicao(clips, tipo_transicao):
 
 
 def aplicar_trilha_sonora(video, trilha_path, volume):
+    """Adiciona uma trilha sonora ao vídeo final."""
     trilha = AudioFileClip(trilha_path).volumex(volume)
     return video.set_audio(trilha)
 
 
 def aplicar_marca_dagua(video, marca_path, opacidade, posicao):
+    """Sobrepõe uma imagem de marca d'água ao vídeo."""
     marca = (
         ImageClip(marca_path)
         .with_duration(video.duration)
@@ -74,6 +78,7 @@ def run_juntar_cenas(
     opacidade=0.3,
     posicao="('right','bottom')"
 ):
+    """Une as cenas individuais e aplica efeitos opcionais."""
     logs = []
 
     try:
@@ -105,6 +110,7 @@ def run_juntar_cenas(
 
 
 def exportar_para_capcut(trilha_path=None, marca_path=None):
+    """Gera um pacote de projeto compatível com o CapCut."""
     logs = []
 
     try:
@@ -121,6 +127,7 @@ def exportar_para_capcut(trilha_path=None, marca_path=None):
             shutil.rmtree(PASTA_EXPORT)
         os.makedirs(os.path.join(PASTA_EXPORT, "videos"), exist_ok=True)
 
+        # Copia cada vídeo da cena para a estrutura do projeto
         for video in videos:
             shutil.copy(
                 os.path.join(PASTA_VIDEOS, video),

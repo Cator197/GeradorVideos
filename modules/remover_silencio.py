@@ -1,8 +1,11 @@
+"""Utilitário para remover trechos silenciosos dos áudios de narração."""
+
 import os
 from pydub import AudioSegment, silence
 from modules.config import get_config
 
 def remover_silencios(min_silence: float = 0.3):
+    """Remove trechos silenciosos de todos os áudios MP3 encontrados."""
     base_path = get_config("pasta_salvar") or os.path.join(os.getcwd(), "modules")
     pasta = os.path.join(base_path, "audios_narracoes")
 
@@ -13,6 +16,7 @@ def remover_silencios(min_silence: float = 0.3):
     count = 0
     logs = [f"🔍 Iniciando remoção de silêncio em {len(arquivos)} arquivos..."]
 
+    # Processa cada arquivo de áudio individualmente
     for nome in arquivos:
         caminho = os.path.join(pasta, nome)
         try:
