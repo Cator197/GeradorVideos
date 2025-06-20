@@ -1,3 +1,5 @@
+"""Aplicação Flask para orquestrar as etapas de geração de vídeos."""
+
 import json
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory, send_file, Response, stream_with_context
 from pydub import AudioSegment, silence
@@ -18,10 +20,12 @@ app = Flask(__name__)
 app.config['USUARIO_CONFIG'] = carregar_config()
 @app.route("/")
 def index():
+    """Página inicial da aplicação."""
     return render_template("index.html", page_title="Início")
 
 @app.route("/complete")
 def complete():
+    """Tela para executar o fluxo completo de geração."""
     return render_template("complete.html", page_title="Gerar Vídeo Completo")
 
 
@@ -29,6 +33,7 @@ def complete():
 from modules.gerar_imagens import run_gerar_imagens, calcular_indices, gerar_eventos_para_stream
 @app.route("/imagens", methods=["GET"])
 def imagens_page():
+    """Página para solicitar a geração das imagens."""
     print("[ROTA] GET /imagens")
     path = os.path.join(app.root_path, "modules", "cenas.json")
     with open(path, encoding="utf-8") as f:
@@ -40,6 +45,7 @@ def imagens_page():
 
 @app.route("/imagens", methods=["POST"])
 def imagens_run():
+    """Endpoint que inicia a geração das imagens."""
     print("[ROTA] POST /imagens")
     scope  = request.form.get("scope", "all")
     single = request.form.get("single_index", type=int)
@@ -65,6 +71,7 @@ def imagens_run():
 
 @app.route("/modules/imagens/<path:filename>")
 def serve_module_images(filename):
+    """Retorna arquivos de imagem gerados na pasta de saída."""
     pasta_salvar = get_config("pasta_salvar")
     pasta_imagens = os.path.join(pasta_salvar, "imagens")
     return send_from_directory(pasta_imagens, filename)
@@ -72,6 +79,7 @@ def serve_module_images(filename):
 
 @app.route("/imagens_stream", methods=["GET"])
 def imagens_stream():
+    """Fluxo SSE de geração de imagens."""
     print("[ROTA] GET /imagens_stream")
     scope  = request.args.get("scope", "all")
     single = request.args.get("single_index", type=int)
@@ -90,6 +98,7 @@ from modules.gerar_narracao import run_gerar_narracoes, iniciar_driver, login, g
 
 @app.route("/generate_narracao")
 def generate_narracao():
+    """Exibe a tela de geração de narrações."""
     path = os.path.join(app.root_path, "modules", "cenas.json")
     if not os.path.exists(path):
         return "Arquivo cenas.json não encontrado", 500
@@ -100,6 +109,7 @@ def generate_narracao():
 
 @app.route("/narracoes", methods=["POST"])
 def narracoes_run():
+    """Gera narrações para as cenas selecionadas."""
     scope  = request.form.get("scope", "all")
     single = request.form.get("single_index", type=int)
     start  = request.form.get("from_index",   type=int)
@@ -131,6 +141,7 @@ def narracoes_run():
 
 @app.route("/narracao_stream", methods=["GET"])
 def gerar_narracoes_stream():
+    """Versão com feedback em tempo real das narrações."""
     scope  = request.args.get("scope", "all")
     single = request.args.get("single_index", type=int)
     start  = request.args.get("from_index", type=int)
@@ -181,6 +192,7 @@ def gerar_narracoes_stream():
 
 @app.route("/modules/audio/<path:filename>")
 def serve_module_audio(filename):
+    """Fornece os arquivos de áudio gerados."""
     pasta = get_paths()["audios"]
     return send_from_directory(pasta, filename)
 
@@ -188,6 +200,7 @@ def serve_module_audio(filename):
 
 @app.route("/remover_silencio")
 def remover_silencio_route():
+    """Endpoint para remover silêncios dos áudios."""
     from modules.remover_silencio import remover_silencios
 
     try:
@@ -211,6 +224,7 @@ from modules.gerar_SRT import run_gerar_legendas, gerar_srt_por_palavra, carrega
 
 @app.route("/generate_legenda")
 def generate_legenda():
+    """Página para criar legendas das narrações."""
     path = caminho_cenas_final()
     if not os.path.exists(path):
         return "Arquivo cenas_com_imagens.json não encontrado", 500
@@ -222,6 +236,7 @@ def generate_legenda():
 
 @app.route("/legendas", methods=["POST"])
 def gerar_legendas():
+    """Gera arquivos de legenda para as cenas."""
     scope  = request.form.get("scope", "all")
     single = request.form.get("single_index", type=int)
     start  = request.form.get("from_index",   type=int)
@@ -254,6 +269,7 @@ def gerar_legendas():
 
 @app.route("/legendas_stream", methods=["GET"])
 def gerar_legendas_stream():
+    """Versão em streaming da geração de legendas."""
     scope  = request.args.get("scope", "all")
     single = request.args.get("single_index", type=int)
     start  = request.args.get("from_index", type=int)
@@ -306,6 +322,7 @@ def gerar_legendas_stream():
 
 @app.route("/generate_montagem")
 def generate_montagem():
+    """Renderiza a página para montar vídeos das cenas."""
     path = caminho_cenas_final()
     if not os.path.exists(path):
         return "Arquivo cenas_com_imagens.json não encontrado", 500
@@ -315,6 +332,7 @@ def generate_montagem():
 
 @app.route("/montagem", methods=["POST"])
 def montagem_cenas():
+    """Monta os vídeos de cada cena de acordo com as opções."""
     from modules.montar_cenas import run_montar_cenas
 
     scope   = request.form.get("scope", "all")
@@ -352,6 +370,7 @@ def montagem_cenas():
 
 @app.route("/montagem_stream", methods=["GET"])
 def montagem_stream():
+    """Streaming do progresso de montagem das cenas."""
     scope   = request.args.get("scope", "all")
     single  = request.args.get("single_index", type=int)
     start   = request.args.get("from_index", type=int)
@@ -398,10 +417,12 @@ def montagem_stream():
 from modules.juntar_cenas import run_juntar_cenas, exportar_para_capcut
 
 def caminho_cenas_final():
+    """Caminho do arquivo JSON contendo as cenas com imagens."""
     return os.path.join(get_config("pasta_salvar") or ".", "cenas_com_imagens.json")
 
 
 def salvar_arquivo_upload(request_file, destino):
+    """Persiste arquivos enviados pelo usuário em ``destino``."""
     if request_file:
         os.makedirs(os.path.dirname(destino), exist_ok=True)
         request_file.save(destino)
@@ -411,6 +432,7 @@ def salvar_arquivo_upload(request_file, destino):
 
 @app.route("/generate_final")
 def generate_final():
+    """Página para escolher a junção final dos vídeos."""
     path = caminho_cenas_final()
     if not os.path.exists(path):
         return "Arquivo cenas_com_imagens.json não encontrado", 500
@@ -424,6 +446,7 @@ def generate_final():
 
 @app.route("/finalizar", methods=["POST"])
 def finalizar_video():
+    """Une as cenas ou gera projeto para edição."""
     try:
         tipo = request.form.get("acao", "video")
         transicao = request.form.get("transicao", "cut")
@@ -465,6 +488,7 @@ def finalizar_video():
 
 @app.route("/finalizar_stream", methods=["GET"])
 def finalizar_stream():
+    """Versão em streaming da finalização do vídeo."""
     try:
         tipo = request.args.get("acao", "video")
         transicao = request.args.get("transicao", "cut")
@@ -519,6 +543,7 @@ def finalizar_stream():
 
 @app.route('/modules/videos_cenas/<path:filename>')
 def serve_videos_cenas(filename):
+    """Serve arquivos de vídeo das cenas individuais."""
     return send_from_directory(
         os.path.join(app.root_path, 'modules', 'videos_cenas'),
         filename
@@ -527,6 +552,7 @@ def serve_videos_cenas(filename):
 
 @app.route('/preview_video/<int:idx>')
 def preview_video(idx):
+    """Exibe um vídeo de cena para pré-visualização."""
     base_path = get_config("pasta_salvar") or "default"
     video_path = os.path.join(base_path, "videos_cenas", f"video{idx}.mp4")
 
@@ -541,6 +567,7 @@ def preview_video(idx):
 from modules.parser_prompts import  limpar_pastas_de_saida
 @app.route("/processar_prompt", methods=["POST"])
 def processar_prompt():
+    """Recebe um prompt inicial e gera o JSON de cenas."""
     try:
         dados=request.get_json()
         prompt_inicial=dados.get("prompt", "").strip()
@@ -576,6 +603,7 @@ from modules import parser_prompts, gerar_imagens, gerar_narracao, gerar_SRT, ju
 
 @app.route("/complete_stream")
 def complete_stream():
+    """Executa toda a pipeline de geração enviando logs por SSE."""
     from modules import parser_prompts, gerar_imagens, gerar_narracao, gerar_SRT, montar_cenas, juntar_cenas
 
     def gerar_log():
@@ -667,10 +695,12 @@ def complete_stream():
 
 @app.route("/configuracoes")
 def pagina_configuracoes():
+    """Exibe a tela de configurações do usuário."""
     return render_template("configuracoes.html", page_title="Configurações")
 
 @app.route("/api/configuracoes", methods=["GET"])
 def obter_configuracoes():
+    """Retorna as configurações atuais em formato JSON."""
     from modules.config import get_config
     return jsonify({
         "api_key": get_config("api_key"),
@@ -681,6 +711,7 @@ def obter_configuracoes():
 
 @app.route("/salvar_config", methods=["POST"])
 def salvar_configuracoes():
+    """Persiste as configurações enviadas pelo frontend."""
     dados = request.get_json()
     print("📝 Config recebido do front-end:", dados)
     try:
@@ -695,6 +726,7 @@ def salvar_configuracoes():
 
 @app.route('/selecionar_pasta')
 def selecionar_pasta():
+    """Abre diálogo para o usuário escolher uma pasta local."""
     try:
         root = tk.Tk()
         root.withdraw()
