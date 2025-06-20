@@ -1,3 +1,5 @@
+"""Geração de narrações utilizando Selenium e ElevenLabs."""
+
 import os
 import json
 import time
@@ -11,33 +13,40 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 def get_paths():
+    """Obtém os diretórios utilizados para salvar arquivos de áudio e cenas."""
     base = get_config("pasta_salvar") or "."
     return {
         "base": base,
         "audios": os.path.join(base, "audios_narracoes"),
-        "cenas": os.path.join(base, "cenas_com_imagens.json")
+        "cenas": os.path.join(base, "cenas_com_imagens.json"),
     }
 
 
 def iniciar_driver():
+    """Inicia o Chrome configurado para download automático dos áudios."""
     chrome_options = Options()
     chrome_options.add_argument("--start-maximized")
-    chrome_options.add_experimental_option("prefs", {
-        "download.default_directory": os.path.abspath(get_paths()["audios"]),
-        "download.prompt_for_download": False,
-        "download.directory_upgrade": True,
-        "safebrowsing.enabled": True
-    })
+    chrome_options.add_experimental_option(
+        "prefs",
+        {
+            "download.default_directory": os.path.abspath(get_paths()["audios"]),
+            "download.prompt_for_download": False,
+            "download.directory_upgrade": True,
+            "safebrowsing.enabled": True,
+        },
+    )
     return webdriver.Chrome(options=chrome_options)
 
 
 def esperar(driver, selector, by=By.XPATH, clickable=False, timeout=20):
+    """Aguarda um elemento estar visível ou clicável."""
     wait = WebDriverWait(driver, timeout)
     cond = EC.element_to_be_clickable if clickable else EC.visibility_of_element_located
     return wait.until(cond((by, selector)))
 
 
 def login(driver):
+    """Realiza o login e seleciona a voz desejada no site da ElevenLabs."""
     driver.get("https://elevenlabs.io/app/speech-synthesis/text-to-speech")
 
     wait = WebDriverWait(driver, 20)
@@ -78,6 +87,7 @@ def login(driver):
     time.sleep(3)
 
 def gerar_e_baixar(driver, texto, index):
+    """Gera a narração no site e faz o download do arquivo gerado."""
     paths = get_paths()
     wait = WebDriverWait(driver, 20)
 
@@ -111,6 +121,7 @@ def gerar_e_baixar(driver, texto, index):
 
 
 def run_gerar_narracoes(indices):
+    """Processa a geração de todas as narrações solicitadas."""
     paths = get_paths()
 
     with open(paths["cenas"], encoding="utf-8") as f:
@@ -120,6 +131,7 @@ def run_gerar_narracoes(indices):
     driver = iniciar_driver()
     try:
         login(driver)
+        # Itera sobre as cenas definidas pelo usuário
         for i in indices:
             texto = cenas[i].get("narracao")
             if not texto:
