@@ -1,3 +1,5 @@
+"""Montagem individual de cenas combinando imagem, áudio e legenda."""
+
 import os
 import json
 import re
@@ -59,6 +61,7 @@ def run_montar_cenas(indices: list, usar_soft: bool, cor: str, tamanho: int, pos
     with open(ARQ_CENAS, encoding="utf-8") as f:
         cenas = json.load(f)
 
+    # Processa cada cena selecionada
     for i in indices:
         img_path = os.path.join(PASTA_IMAGENS, f"imagem{i+1}.jpg")
         aud_path = os.path.join(PASTA_AUDIOS, f"narracao{i+1}.mp3")

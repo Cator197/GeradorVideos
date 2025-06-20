@@ -13,6 +13,7 @@ ARQUIVO_TXT = os.path.join(BASE_DIR, "prompts.txt")
 ARQUIVO_JSON = os.path.join(BASE_DIR, "cenas.json")
 
 def salvar_prompt_txt(conteudo, caminho=ARQUIVO_TXT):
+    """Salva o conteúdo de prompts em um arquivo de texto."""
     with open(caminho, "w", encoding="utf-8") as f:
         f.write(conteudo.strip())
 
@@ -24,6 +25,7 @@ def parse_prompts_txt(caminho_txt=ARQUIVO_TXT):
     blocos = texto.split("---")
     cenas = []
 
+    # Cada bloco representa uma cena descrita no arquivo
     for bloco in blocos:
         cena = {}
         img = re.search(r"Imagem:\s*(.+?)(?:\n|$)", bloco, re.DOTALL)
@@ -73,6 +75,7 @@ def limpar_pastas_de_saida():
 
     for pasta in pastas:
         if os.path.exists(pasta):
+            # Remove todos os arquivos de cada pasta de saída
             for f in os.listdir(pasta):
                 caminho = os.path.join(pasta, f)
                 if os.path.isfile(caminho):

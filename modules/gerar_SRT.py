@@ -1,3 +1,5 @@
+"""Geração de arquivos SRT a partir de áudios narrados."""
+
 import os
 import json
 from modules.config import get_config
@@ -5,6 +7,7 @@ from pydub import AudioSegment
 from faster_whisper import WhisperModel
 
 def get_paths():
+    """Retorna os diretórios utilizados para áudios e arquivos SRT."""
     base = get_config("pasta_salvar") or os.getcwd()
     return {
         "base": base,
@@ -15,6 +18,7 @@ def get_paths():
     }
 
 def formatar_tempo(segundos):
+    """Converte segundos para o formato HH:MM:SS,mmm exigido pelo SRT."""
     h = int(segundos // 3600)
     m = int((segundos % 3600) // 60)
     s = int(segundos % 60)
@@ -22,9 +26,11 @@ def formatar_tempo(segundos):
     return f"{h:02}:{m:02}:{s:02},{ms:03}"
 
 def carregar_modelo():
+    """Carrega o modelo Whisper para transcrição de áudio."""
     return WhisperModel("small", device="cpu", compute_type="int8")
 
 def gerar_srt_por_palavra(model, audio_path, srt_path):
+    """Gera arquivo SRT contendo cada palavra com seu timestamp."""
     segments, _ = model.transcribe(audio_path, word_timestamps=True)
     linhas = []
     contador = 1
@@ -41,6 +47,7 @@ def gerar_srt_por_palavra(model, audio_path, srt_path):
         f.write("\n".join(linhas))
 
 def gerar_srt_soft(indices):
+    """Gera um único SRT contínuo combinando todos os áudios."""
     paths = get_paths()
     model = carregar_modelo()
     with open(paths["cenas"], encoding="utf-8") as f:
@@ -71,6 +78,7 @@ def gerar_srt_soft(indices):
         f.write("\n".join(linhas))
 
 def run_gerar_legendas(indices, tipo="hard"):
+    """Gera legendas para as cenas no modo hard ou soft."""
     paths = get_paths()
     os.makedirs(paths["srts"], exist_ok=True)
     model = carregar_modelo()
