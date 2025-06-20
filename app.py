@@ -576,85 +576,89 @@ from modules import parser_prompts, gerar_imagens, gerar_narracao, gerar_SRT, ju
 
 @app.route("/complete_stream")
 def complete_stream():
+    from modules import parser_prompts, gerar_imagens, gerar_narracao, gerar_SRT, montar_cenas, juntar_cenas
+
     def gerar_log():
         try:
-            # Coleta de parâmetros
-            prompt = request.args.get("prompt", "").strip()
-            nome_video = request.args.get("nome_video", "video_final").strip()
-            tipo_imagem = request.args.get("tipo_imagem", "ia")
-            tts_engine = request.args.get("tts_engine", "eleven")
-            voz = request.args.get("voz", "Brian")
+            # 📥 Parâmetros do front
+            prompt           = request.args.get("prompt", "").strip()
+            nome_video       = request.args.get("nome_video", "video_final").strip()
+            usar_legenda     = request.args.get("usar_legenda", "false") == "true"
+            tipo_legenda     = request.args.get("tipo_legenda", "hard")
+            cor              = request.args.get("cor_legenda", "white")
+            tamanho          = int(request.args.get("tamanho_legenda", 24))
+            posicao          = request.args.get("posicao_legenda", "bottom")
+            usar_marca       = request.args.get("usar_marca", "false") == "true"
+            usar_trilha      = request.args.get("usar_trilha", "false") == "true"
+            exportar_capcut  = request.args.get("exportar_capcut", "false") == "true"
+            unir_videos      = request.args.get("unir_videos", "false") == "true"
+            voz              = request.args.get("voz", "Brian")
+            engine           = request.args.get("tts_engine", "eleven")
 
-            usar_legenda = request.args.get("usar_legenda", "false") == "true"
-            tipo_legenda = request.args.get("tipo_legenda", "hard")
-            cor_legenda = request.args.get("cor_legenda", "white")
-            tamanho_legenda = int(request.args.get("tamanho_legenda", 24))
-            posicao_legenda = request.args.get("posicao_legenda", "bottom")
-
-            unir_videos = request.args.get("unir_videos", "false") == "true"
-            exportar_capcut = request.args.get("exportar_capcut", "false") == "true"
-            usar_trilha = request.args.get("usar_trilha", "false") == "true"
-            usar_marca = request.args.get("usar_marca", "false") == "true"
-
-            # 1. Salvar prompt inicial e gerar cenas
             if not prompt:
-                yield "❌ Prompt inicial vazio.\n"
+                yield "data: ❌ Prompt inicial vazio\n\n"
                 return
 
-            yield "🧩 Processando prompt inicial...\n"
+            # 🔹 Etapa 1: Processar prompt
+            yield "data: 🧠 Processando prompt inicial...\n\n"
             parser_prompts.salvar_prompt_txt(prompt)
             parser_prompts.limpar_pastas()
             cenas = parser_prompts.parse_prompts_txt()
-
-            base = get_config("pasta_salvar") or os.getcwd()
-            json_path = os.path.join(base, "cenas_com_imagens.json")
-            with open(json_path, "w", encoding="utf-8") as f:
+            with open(get_config("pasta_salvar") + "/cenas_com_imagens.json", "w", encoding="utf-8") as f:
                 json.dump(cenas, f, ensure_ascii=False, indent=2)
+            yield f"data: ✅ {len(cenas)} prompts processados\n\n"
 
-            yield f"✅ {len(cenas)} prompts processados.\n"
+            indices = list(range(len(cenas)))
 
-            # 2. Gerar imagens
-            if tipo_imagem == "ia":
-                yield "🖼️ Gerando imagens com IA...\n"
-                for idx in range(len(cenas)):
-                    resultado = gerar_imagens.gerar_uma(idx)
-                    yield resultado["log"] + "\n"
+            # 🔹 Etapa 2: Gerar imagens
+            yield "data: 🎨 Gerando imagens...\n\n"
+            resultado_imagens = gerar_imagens.run_gerar_imagens(indices)
+            for log in resultado_imagens["logs"]:
+                yield f"data: {log}\n\n"
 
-            # 3. Gerar narração
-            yield "🗣️ Gerando narrações...\n"
-            logs_audio = gerar_narracao.run_generate_audio(list(range(len(cenas))), engine=tts_engine, voz=voz)
-            for linha in logs_audio:
-                yield linha + "\n"
+            # 🔹 Etapa 3: Gerar narrações
+            yield "data: 🎙️ Gerando narrações...\n\n"
+            resultado_audio = gerar_narracao.run_gerar_narracoes(indices)
+            for log in resultado_audio["logs"]:
+                yield f"data: {log}\n\n"
 
-            # 4. Gerar legendas
+            # 🔹 Etapa 4: Gerar legendas
             if usar_legenda:
-                yield f"💬 Gerando legendas ({tipo_legenda})...\n"
-                resultado = gerar_SRT.run_gerar_legendas(list(range(len(cenas))), tipo=tipo_legenda)
-                for linha in resultado["logs"]:
-                    yield linha + "\n"
+                yield f"data: 💬 Gerando legendas ({tipo_legenda})...\n\n"
+                resultado_legendas = gerar_SRT.run_gerar_legendas(indices, tipo=tipo_legenda)
+                for log in resultado_legendas["logs"]:
+                    yield f"data: {log}\n\n"
 
-            # 5. Juntar cenas
+            # 🔹 Etapa 5: Montar vídeos das cenas
+            yield "data: 🧩 Montando cenas...\n\n"
+            resultado_montagem = montar_cenas.run_montar_cenas(indices, usar_soft=(tipo_legenda=="soft"), cor=cor, tamanho=tamanho, posicao=posicao)
+            for log in resultado_montagem["logs"]:
+                yield f"data: {log}\n\n"
+
+            # 🔹 Etapa 6: Juntar vídeo final
             if unir_videos:
-                yield "🎞️ Juntando vídeo final...\n"
-                juntar_cenas.juntar_todas(
-                    nome_arquivo=nome_video,
-                    usar_legenda=usar_legenda,
-                    tipo_legenda=tipo_legenda,
-                    cor=cor_legenda,
-                    tamanho=tamanho_legenda,
-                    posicao=posicao_legenda,
-                    exportar_capcut=exportar_capcut,
-                    usar_trilha=usar_trilha,
-                    usar_marca=usar_marca
+                yield "data: 🎞️ Juntando vídeo final...\n\n"
+                resultado_final = juntar_cenas.run_juntar_cenas(
+                    tipo_transicao="cut",
+                    usar_musica=usar_trilha,
+                    trilha_path=os.path.join(get_config("pasta_salvar"), "videos_final", "trilha.mp3") if usar_trilha else None,
+                    volume=0.2,
+                    usar_watermark=usar_marca,
+                    marca_path=os.path.join(get_config("pasta_salvar"), "videos_final", "marca.png") if usar_marca else None,
+                    opacidade=0.3,
+                    posicao="('right','bottom')"
                 )
-                yield f"✅ Vídeo final salvo como {nome_video}.mp4\n"
+                for log in resultado_final["logs"]:
+                    yield f"data: {log}\n\n"
 
-            yield "🏁 Pipeline completa finalizada.\n"
+
+
+            yield "data: ✅ Pipeline completa finalizada\n\n"
 
         except Exception as e:
-            yield f"❌ Erro durante o processo: {str(e)}\n"
+            yield f"data: ❌ Erro: {str(e)}\n\n"
 
-    return Response(gerar_log(), mimetype="text/event-stream")
+    return Response(stream_with_context(gerar_log()), mimetype='text/event-stream')
 
 
 #--------------------------------------------------------------------------------------------------------------------

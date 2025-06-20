@@ -90,7 +90,7 @@ def gerar_e_baixar(driver, texto, index):
 
     before = set(os.listdir(paths["audios"]))
     download_btn.click()
-
+    time.sleep(1)
     for _ in range(30):
         time.sleep(1)
         after = set(os.listdir(paths["audios"]))
