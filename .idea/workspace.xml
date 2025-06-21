@@ -4,9 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT revisão geral funcionando">
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT antes de comentar todos os códigos">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/cenas.json" beforeDir="false" afterPath="$PROJECT_DIR$/modules/cenas.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_imagens.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_imagens.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -201,8 +203,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.app" />
         <item itemvalue="Python.parser_prompts" />
+        <item itemvalue="Python.app" />
         <item itemvalue="Python.gerar_narracao" />
         <item itemvalue="Python.main" />
         <item itemvalue="Python.montar_cenas" />
@@ -337,10 +339,44 @@
       <option name="project" value="LOCAL" />
       <updated>1750368713837</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="COMMIT antes de comentar todos os códigos">
+      <option name="closed" value="true" />
+      <created>1750415320505</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1750415320505</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="HEAD" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+        <entry key="User">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="*" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
     <option name="TAB_STATES">
       <map>
         <entry key="MAIN">
@@ -364,6 +400,7 @@
     <MESSAGE value="Commit antes de refator o gerar narrações para tirar o time sleep" />
     <MESSAGE value="COMMIT antes da revisão geral do código" />
     <MESSAGE value="COMMIT revisão geral funcionando" />
-    <option name="LAST_COMMIT_MESSAGE" value="COMMIT revisão geral funcionando" />
+    <MESSAGE value="COMMIT antes de comentar todos os códigos" />
+    <option name="LAST_COMMIT_MESSAGE" value="COMMIT antes de comentar todos os códigos" />
   </component>
 </project>

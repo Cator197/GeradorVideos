@@ -62,32 +62,39 @@ async def baixar_imagem(session, url, caminho_local):
         with open(caminho_local, "wb") as f:
             f.write(await resp.read())
 
+async def processar_cena(session, i, cenas, logs, paths):
+    """Processa individualmente uma cena para gerar a imagem."""
+    try:
+        prompt = cenas[i].get("prompt_imagem", "")
+        logs.append(f"🎨 Gerando imagem {i+1}: {prompt[:50]}...")
+        resp = await criar_imagem(session, prompt)
+        task_id = resp["data"]["task_id"]
+        logs.append(f"⏳ Aguardando conclusão da tarefa {task_id}...")
+        resultado = await checar_status(session, task_id)
+        url = resultado["data"].get("output", {}).get("image_url")
+        caminho_local = os.path.join(paths["pasta_imagens"], f"imagem{i+1}.jpg")
+        await baixar_imagem(session, url, caminho_local)
+        cenas[i].update({
+            "task_id_imagem": task_id,
+            "image_url": url,
+            "arquivo_local": caminho_local
+        })
+        logs.append(f"✅ Imagem {i+1} salva em {caminho_local}")
+    except Exception as e:
+        logs.append(f"❌ Erro ao gerar imagem {i+1}: {e}")
+
 async def gerar_imagens_async(cenas, indices, logs):
-    """Processa a geração das imagens de forma assíncrona."""
+    """Processa a geração das imagens de forma paralela."""
     paths = get_paths()
     os.makedirs(paths["pasta_imagens"], exist_ok=True)
 
     async with aiohttp.ClientSession(headers=get_headers()) as session:
-        # Percorre cada índice de cena solicitado
-        for i in indices:
-            prompt = cenas[i].get("prompt_imagem", "")
+        tarefas = [
+            processar_cena(session, i, cenas, logs, paths)
+            for i in indices
+        ]
+        await asyncio.gather(*tarefas)
 
-            logs.append(f"🎨 Gerando imagem {i+1}: {prompt[:50]}...")
-            resp = await criar_imagem(session, prompt)
-            task_id = resp["data"]["task_id"]
-            logs.append(f"⏳ Aguardando conclusão da tarefa {task_id}...")
-            resultado = await checar_status(session, task_id)
-            url = resultado["data"].get("output", {}).get("image_url")
-            caminho_local = os.path.join(paths["pasta_imagens"], f"imagem{i+1}.jpg")
-            await baixar_imagem(session, url, caminho_local)
-            cenas[i].update({
-                "task_id_imagem": task_id,
-                "image_url": url,
-                "arquivo_local": caminho_local
-            })
-
-
-            logs.append(f"✅ Imagem {i+1} salva em {caminho_local}")
     return cenas
 
 def run_gerar_imagens(indices):
@@ -99,7 +106,6 @@ def run_gerar_imagens(indices):
     logs = []
     cenas_atualizadas = asyncio.run(gerar_imagens_async(cenas, indices, logs))
 
-    # Atualiza somente as cenas processadas
     for i in indices:
         cenas[i] = cenas_atualizadas[i]
 
@@ -138,7 +144,6 @@ def gerar_eventos_para_stream(scope, single, start):
     logs = []
 
     async def executar():
-        """Wrapper para rodar a função assíncrona dentro de asyncio.run."""
         await gerar_imagens_async(cenas, indices, logs)
 
     asyncio.run(executar())

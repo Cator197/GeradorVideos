@@ -65,21 +65,21 @@ def login(driver):
     print("Clicando em: Select voice")
     esperar(driver, "//button[starts-with(@aria-label, 'Select voice')]", clickable=True).click()
 
-    print("Escrevendo: Brian")
-    esperar(driver, '//input[@placeholder="Search voices..."]').send_keys("Brian")
+    print("Escrevendo: Adam")
+    esperar(driver, '//input[@placeholder="Search voices..."]').send_keys("Adam")
 
     time.sleep(2)
 
     try:
-        print("verificando se tem Brian escrito")
-        nome_voz = esperar(driver, '//p/span[contains(text(), "Brian")]', timeout=5).text.strip()
-        if nome_voz.lower() != "brian":
+        print("verificando se tem Adam escrito")
+        nome_voz = esperar(driver, '//p/span[contains(text(), "Adam")]', timeout=5).text.strip()
+        if nome_voz.lower() != "Adam":
             print(f"⚠️ Voz encontrada: {nome_voz}")
     except:
-        print("❌ Voz 'Brian' não encontrada")
+        print("❌ Voz 'Adam' não encontrada")
 
-    print("selecionando Brian")
-    esperar(driver, '//p/span[contains(text(), "Brian")]', clickable=True).click()
+    print("selecionando Adam")
+    esperar(driver, '//p/span[contains(text(), "Adam")]', clickable=True).click()
     print("clicar no seletor de modelo")
     esperar(driver, "//button[starts-with(@aria-label, 'Select model')]", clickable=True).click()
     print("selecioando V2")
