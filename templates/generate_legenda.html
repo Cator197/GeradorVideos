@@ -4,25 +4,40 @@
 <div class="bg-white rounded-xl shadow p-6 space-y-6">
   <form id="form_generate_legendas" class="space-y-6">
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Grid principal com 4 colunas -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
 
-      <!-- Lista de Narrações -->
-      <div>
-        <label for="legenda_list" class="block font-semibold mb-2 text-slate-700">Resumo das Narrações</label>
-        <select id="legenda_list" name="legenda_list" multiple size="10"
-                class="w-full border rounded p-2 shadow-sm">
-          {% for cena in cenas %}
-            <option value="{{ loop.index0 }}">
-              Narração {{ loop.index }} – {{ cena.narracao[:60] if cena.narracao else '[sem texto]' }}
-            </option>
-          {% endfor %}
-        </select>
+      <!-- 🟩 Colunas 1-2: Resumo das Narrações + Pré-visualização -->
+      <div class="col-span-2 space-y-4">
+        <!-- Lista de narrações -->
+        <div>
+          <label for="legenda_list" class="block font-semibold mb-2 text-slate-700">Resumo das Narrações</label>
+          <select id="legenda_list" name="legenda_list" multiple size="10"
+                  class="w-full border rounded p-2 shadow-sm">
+            {% for cena in cenas %}
+              <option value="{{ loop.index0 }}">
+                Narração {{ loop.index }} – {{ cena.narracao[:60] if cena.narracao else '[sem texto]' }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- 🟥 Pré-visualização -->
+        <div>
+          <h4 class="font-semibold text-slate-700 mb-2">🔍 Pré-visualização</h4>
+            <div id="preview_legenda"
+                 class="text-center rounded p-4 shadow-md"
+                 style="background-color: #dbeafe; font-size: 24px; font-family: Arial;">
+              Exemplo de Legenda
+            </div>
+        </div>
       </div>
 
-      <!-- Painel de Configurações -->
-      <div class="bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
+      <!-- 🟦 Colunas 3-4: Configurações -->
+      <div class="md:col-start-3 col-span-2 bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
         <h3 class="font-semibold text-lg">⚙️ Configurações</h3>
 
+        <!-- Escopo -->
         <div class="space-y-2">
           <label class="block"><input type="radio" name="scope" value="all" checked> Todas</label>
           <label class="flex items-center gap-2">
@@ -37,15 +52,76 @@
           </label>
         </div>
 
-        <!-- Novo campo: Tipo de legenda -->
-        <div class="space-y-2">
-          <label for="tipo_legenda" class="block font-semibold text-slate-700">Tipo de Legenda</label>
-          <select id="tipo_legenda" name="tipo" class="w-full border rounded p-2">
-            <option value="hard" selected>Hard (uma por narração)</option>
-            <option value="soft">Soft (uma legenda contínua)</option>
+        <!-- Modo de legenda -->
+        <div>
+          <label for="modo_legenda" class="block font-semibold text-slate-700">Modo de Legenda</label>
+          <select id="modo_legenda" name="modo" class="w-full border rounded p-2">
+            <option value="palavra">Por Palavra</option>
+            <option value="linha1">1 Linha</option>
+            <option value="linha2" selected>2 Linhas</option>
+            <option value="linha3">3 Linhas</option>
           </select>
         </div>
 
+        <!-- Fonte -->
+        <div>
+          <label for="fonte" class="block font-semibold text-slate-700">Fonte</label>
+          <select id="fonte" name="fonte" class="w-full border rounded p-2">
+            <option value="Arial" style="font-family: Arial;" selected>Arial</option>
+            <option value="Roboto" style="font-family: Roboto;">Roboto</option>
+            <option value="Open Sans" style="font-family: 'Open Sans';">Open Sans</option>
+            <option value="Montserrat" style="font-family: Montserrat;">Montserrat</option>
+            <option value="Lato" style="font-family: Lato;">Lato</option>
+            <option value="Bebas Neue" style="font-family: 'Bebas Neue';">Bebas Neue</option>
+            <option value="Courier New" style="font-family: 'Courier New';">Courier New</option>
+            <option value="Georgia" style="font-family: Georgia;">Georgia</option>
+          </select>
+        </div>
+
+        <!-- Tamanho da Fonte -->
+        <div>
+          <label for="tamanho" class="block font-semibold text-slate-700">Tamanho da Fonte</label>
+          <input type="number" id="tamanho" name="tamanho" value="24" min="10" max="72"
+                 class="w-full border rounded p-2">
+        </div>
+
+        <!-- Cor da legenda -->
+        <div>
+          <label for="cor" class="block font-semibold text-slate-700">Cor do Texto</label>
+          <input type="color" id="cor" name="cor" value="#000000" class="w-full h-10 border rounded p-1">
+        </div>
+
+        <!-- Estilo Visual -->
+        <div>
+          <label for="estilo" class="block font-semibold text-slate-700">Estilo Visual</label>
+          <select id="estilo" name="estilo" class="w-full border rounded p-2">
+            <option value="simples">Cor Simples</option>
+            <option value="borda">Com Borda</option>
+            <option value="sombra">Esfumaçada (Sombra)</option>
+            <option value="glow">Brilho (Glow)</option>
+            <option value="tv">Estilo TV</option>
+            <option value="retro">Retrô</option>
+            <option value="cartoon">Cartoon</option>
+            <option value="inverso">Inverso</option>
+            <option value="fundo">Fundo Translúcido</option>
+          </select>
+        </div>
+
+        <!-- Animação -->
+        <div>
+          <label for="animacao" class="block font-semibold text-slate-700">Animação</label>
+          <select id="animacao" name="animacao" class="w-full border rounded p-2">
+            <option value="nenhuma">Nenhuma</option>
+            <option value="fade">Fade-in</option>
+            <option value="karaoke">Karaokê</option>
+            <option value="zoom">Zoom</option>
+            <option value="deslizar">Deslizar</option>
+            <option value="piscar">Piscar</option>
+            <option value="pulsar">Pulsar</option>
+          </select>
+        </div>
+
+        <!-- Botão de ação -->
         <button id="generate_legendas" type="button"
                 class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow">
           📝 Gerar Legendas
@@ -54,7 +130,7 @@
     </div>
 
     <!-- Barra de Progresso -->
-    <div class="w-full bg-gray-200 rounded-full h-4">
+    <div class="w-full bg-gray-200 rounded-full h-4 mt-4">
       <div id="progress_fill" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
     </div>
 
@@ -62,6 +138,7 @@
     <div class="bg-black text-green-400 text-sm p-4 rounded-md h-40 overflow-y-auto text-left font-mono whitespace-pre">
       <pre id="log"></pre>
     </div>
+
   </form>
 </div>
 {% endblock %}

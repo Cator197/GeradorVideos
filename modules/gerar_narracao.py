@@ -14,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 def get_paths():
     """Obtém os diretórios utilizados para salvar arquivos de áudio e cenas."""
-    base = get_config("pasta_salvar") or "."
+    base = get_config("pasta_salvar") or os.getcwd()
     return {
         "base": base,
         "audios": os.path.join(base, "audios_narracoes"),

@@ -95,6 +95,7 @@ def imagens_stream():
 
 #----- NARRAÇÃO -------------------------------------------------------------------------------------------------------
 from modules.gerar_narracao import run_gerar_narracoes, iniciar_driver, login, gerar_e_baixar, get_paths
+from modules import gerar_narracao
 
 @app.route("/generate_narracao")
 def generate_narracao():
@@ -114,7 +115,8 @@ def narracoes_run():
     single = request.form.get("single_index", type=int)
     start  = request.form.get("from_index",   type=int)
 
-    path = get_paths()["cenas"]
+    path = gerar_narracao.get_paths()["cenas"]
+    print(path)
     with open(path, encoding="utf-8") as f:
         total = len(json.load(f))
 
@@ -146,7 +148,8 @@ def gerar_narracoes_stream():
     single = request.args.get("single_index", type=int)
     start  = request.args.get("from_index", type=int)
 
-    path = get_paths()["cenas"]
+    path = gerar_narracao.get_paths()["cenas"]
+    print(path)
     with open(path, encoding="utf-8") as f:
         total = len(json.load(f))
 
@@ -218,9 +221,109 @@ def remover_silencio_route():
 
 #---------------------------------------------------------------------------------------------------------------------
 
-#----- LEGENDAS ------------------------------------------------------------------------------------------------------
+# #----- LEGENDAS ------------------------------------------------------------------------------------------------------
+#
+# from modules.gerar_SRT import run_gerar_legendas, gerar_srt_por_palavra, carregar_modelo
+#
+# @app.route("/generate_legenda")
+# def generate_legenda():
+#     """Página para criar legendas das narrações."""
+#     path = caminho_cenas_final()
+#     if not os.path.exists(path):
+#         return "Arquivo cenas_com_imagens.json não encontrado", 500
+#
+#     with open(path, "r", encoding="utf-8") as f:
+#         cenas = json.load(f)
+#
+#     return render_template("generate_legenda.html", cenas=cenas)
+#
+# @app.route("/legendas", methods=["POST"])
+# def gerar_legendas():
+#     """Gera arquivos de legenda para as cenas."""
+#     scope  = request.form.get("scope", "all")
+#     single = request.form.get("single_index", type=int)
+#     start  = request.form.get("from_index",   type=int)
+#     tipo   = request.form.get("tipo", "hard")
+#
+#     path = caminho_cenas_final()
+#     with open(path, encoding="utf-8") as f:
+#         total = len(json.load(f))
+#
+#     if scope == "all":
+#         indices = list(range(total))
+#     elif scope == "single" and single and 1 <= single <= total:
+#         indices = [single - 1]
+#     elif scope == "from" and start and 1 <= start <= total:
+#         indices = list(range(start - 1, total))
+#     else:
+#         return jsonify({"error": "Parâmetros inválidos"}), 400
+#
+#     try:
+#         from modules.gerar_SRT import run_gerar_legendas
+#         resultado = run_gerar_legendas(indices, tipo=tipo)
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+#
+#     return jsonify({
+#         "status": "ok",
+#         "logs": resultado["logs"],
+#         "cenas": resultado["cenas"]
+#     })
+#
+# @app.route("/legendas_stream", methods=["GET"])
+# def gerar_legendas_stream():
+#     """Versão em streaming da geração de legendas."""
+#     scope  = request.args.get("scope", "all")
+#     single = request.args.get("single_index", type=int)
+#     start  = request.args.get("from_index", type=int)
+#
+#     path = caminho_cenas_final()
+#     with open(path, encoding="utf-8") as f:
+#         total = len(json.load(f))
+#
+#     if scope == "all":
+#         indices = list(range(total))
+#     elif scope == "single" and single and 1 <= single <= total:
+#         indices = [single - 1]
+#     elif scope == "from" and start and 1 <= start <= total:
+#         indices = list(range(start - 1, total))
+#     else:
+#         return Response("data: ❌ Parâmetros inválidos\n\n", mimetype='text/event-stream')
+#
+#     def gerar_eventos():
+#         from modules.gerar_SRT import gerar_srt_por_palavra
+#         with open(path, "r", encoding="utf-8") as f:
+#             cenas = json.load(f)
+#
+#         for idx in indices:
+#             pasta_audio = os.path.join(get_config("pasta_salvar") or ".", "audios_narracoes")
+#             audio_path = os.path.join(pasta_audio, f"narracao{idx + 1}.mp3")
+#
+#             pasta_srt = os.path.join(get_config("pasta_salvar") or ".", "legendas_srt")
+#             os.makedirs(pasta_srt, exist_ok=True)
+#             srt_path = os.path.join(pasta_srt, f"legenda{idx + 1}.srt")
+#
+#             if os.path.exists(audio_path):
+#                 yield f"data: 📝 Gerando legenda {idx + 1}\n\n"
+#                 gerar_srt_por_palavra(carregar_modelo(), audio_path, srt_path)
+#                 cenas[idx]["srt_path"] = srt_path
+#                 yield f"data: ✅ Legenda {idx + 1} salva\n\n"
+#             else:
+#                 yield f"data: ⚠️ Áudio {idx + 1} não encontrado\n\n"
+#
+#             with open(path, "w", encoding="utf-8") as f:
+#                 json.dump(cenas, f, ensure_ascii=False, indent=2)
+#
+#         yield f"data: 🔚 Fim do processo\n\n"
+#
+#     return Response(stream_with_context(gerar_eventos()), mimetype='text/event-stream')
+#
+# #---------------------------------------------------------------------------------------------------------------------
 
-from modules.gerar_SRT import run_gerar_legendas, gerar_srt_por_palavra, carregar_modelo
+#----- LEGENDAS (versão .ASS) ---------------------------------------------------------------------------------------
+
+from modules.gerar_ASS import get_paths, gerar_ass_com_whisper, carregar_modelo
+from modules.config import get_config
 
 @app.route("/generate_legenda")
 def generate_legenda():
@@ -234,18 +337,29 @@ def generate_legenda():
 
     return render_template("generate_legenda.html", cenas=cenas)
 
-@app.route("/legendas", methods=["POST"])
-def gerar_legendas():
-    """Gera arquivos de legenda para as cenas."""
-    scope  = request.form.get("scope", "all")
-    single = request.form.get("single_index", type=int)
-    start  = request.form.get("from_index",   type=int)
-    tipo   = request.form.get("tipo", "hard")
 
-    path = caminho_cenas_final()
-    with open(path, encoding="utf-8") as f:
-        total = len(json.load(f))
+@app.route("/legendas_ass", methods=["POST"])
+def gerar_legendas_ass():
+    """Gera arquivos .ASS estilizados para as cenas."""
+    data = request.get_json()
+    scope  = data.get("scope", "all")
+    single = data.get("single_index")
+    start  = data.get("from_index")
 
+    estilo = {
+        "nome": "Estilo",
+        "fonte": data.get("fonte", "Arial"),
+        "tamanho": int(data.get("tamanho", 48)),
+        "cor": data.get("cor", "#FFFFFF"),
+        "estilo": data.get("estilo", "simples"),
+        "animacao": data.get("animacao", "nenhuma")
+    }
+
+    path_cenas = caminho_cenas_final()
+    with open(path_cenas, encoding="utf-8") as f:
+        cenas = json.load(f)
+
+    total = len(cenas)
     if scope == "all":
         indices = list(range(total))
     elif scope == "single" and single and 1 <= single <= total:
@@ -255,65 +369,31 @@ def gerar_legendas():
     else:
         return jsonify({"error": "Parâmetros inválidos"}), 400
 
+    logs = []
+    modelo = carregar_modelo()
+
     try:
-        from modules.gerar_SRT import run_gerar_legendas
-        resultado = run_gerar_legendas(indices, tipo=tipo)
+        paths = get_paths()
+        for idx in indices:
+            path_audio = os.path.join(paths["audios"], f"narracao{idx + 1}.mp3")
+            path_ass   = os.path.join(paths["legendas"], f"legenda{idx + 1}.ass")
+
+            if not os.path.exists(path_audio):
+                logs.append(f"⚠️ Áudio {idx + 1} não encontrado")
+                continue
+
+            logs.append(f"📝 Gerando legenda {idx + 1}")
+            gerar_ass_com_whisper(modelo, path_audio, path_ass, estilo)
+            cenas[idx]["ass_path"] = path_ass
+            logs.append(f"✅ Legenda {idx + 1} salva: {path_ass}")
+
+        with open(path_cenas, "w", encoding="utf-8") as f:
+            json.dump(cenas, f, ensure_ascii=False, indent=2)
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-    return jsonify({
-        "status": "ok",
-        "logs": resultado["logs"],
-        "cenas": resultado["cenas"]
-    })
-
-@app.route("/legendas_stream", methods=["GET"])
-def gerar_legendas_stream():
-    """Versão em streaming da geração de legendas."""
-    scope  = request.args.get("scope", "all")
-    single = request.args.get("single_index", type=int)
-    start  = request.args.get("from_index", type=int)
-
-    path = caminho_cenas_final()
-    with open(path, encoding="utf-8") as f:
-        total = len(json.load(f))
-
-    if scope == "all":
-        indices = list(range(total))
-    elif scope == "single" and single and 1 <= single <= total:
-        indices = [single - 1]
-    elif scope == "from" and start and 1 <= start <= total:
-        indices = list(range(start - 1, total))
-    else:
-        return Response("data: ❌ Parâmetros inválidos\n\n", mimetype='text/event-stream')
-
-    def gerar_eventos():
-        from modules.gerar_SRT import gerar_srt_por_palavra
-        with open(path, "r", encoding="utf-8") as f:
-            cenas = json.load(f)
-
-        for idx in indices:
-            pasta_audio = os.path.join(get_config("pasta_salvar") or ".", "audios_narracoes")
-            audio_path = os.path.join(pasta_audio, f"narracao{idx + 1}.mp3")
-
-            pasta_srt = os.path.join(get_config("pasta_salvar") or ".", "legendas_srt")
-            os.makedirs(pasta_srt, exist_ok=True)
-            srt_path = os.path.join(pasta_srt, f"legenda{idx + 1}.srt")
-
-            if os.path.exists(audio_path):
-                yield f"data: 📝 Gerando legenda {idx + 1}\n\n"
-                gerar_srt_por_palavra(carregar_modelo(), audio_path, srt_path)
-                cenas[idx]["srt_path"] = srt_path
-                yield f"data: ✅ Legenda {idx + 1} salva\n\n"
-            else:
-                yield f"data: ⚠️ Áudio {idx + 1} não encontrado\n\n"
-
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(cenas, f, ensure_ascii=False, indent=2)
-
-        yield f"data: 🔚 Fim do processo\n\n"
-
-    return Response(stream_with_context(gerar_eventos()), mimetype='text/event-stream')
+    return jsonify({"status": "ok", "logs": logs, "cenas": cenas})
 
 #---------------------------------------------------------------------------------------------------------------------
 
@@ -332,18 +412,12 @@ def generate_montagem():
 
 @app.route("/montagem", methods=["POST"])
 def montagem_cenas():
-    """Monta os vídeos de cada cena de acordo com as opções."""
+    """Monta os vídeos de cada cena com legenda .ASS embutida."""
     from modules.montar_cenas import run_montar_cenas
 
     scope   = request.form.get("scope", "all")
     single  = request.form.get("single_index", type=int)
-    start   = request.form.get("from_index",   type=int)
-    tipo    = request.form.get("tipo", "hard")
-    cor     = request.form.get("cor", "white")
-    tamanho = request.form.get("tamanho", type=int)
-    posicao = request.form.get("posicao", "bottom")
-
-    usar_soft = tipo == "soft"
+    start   = request.form.get("from_index", type=int)
 
     path = caminho_cenas_final()
     with open(path, encoding="utf-8") as f:
@@ -359,7 +433,7 @@ def montagem_cenas():
         return jsonify({"error": "Parâmetros inválidos"}), 400
 
     try:
-        resultado = run_montar_cenas(indices, usar_soft, cor, tamanho, posicao)
+        resultado = run_montar_cenas(indices)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -368,18 +442,13 @@ def montagem_cenas():
         "logs": resultado["logs"]
     })
 
+
 @app.route("/montagem_stream", methods=["GET"])
 def montagem_stream():
-    """Streaming do progresso de montagem das cenas."""
+    """Streaming do progresso de montagem das cenas com legenda .ASS."""
     scope   = request.args.get("scope", "all")
     single  = request.args.get("single_index", type=int)
     start   = request.args.get("from_index", type=int)
-    tipo    = request.args.get("tipo", "hard")
-    cor     = request.args.get("cor", "white")
-    tamanho = request.args.get("tamanho", type=int)
-    posicao = request.args.get("posicao", "bottom")
-
-    usar_soft = tipo == "soft"
 
     path = caminho_cenas_final()
     with open(path, encoding="utf-8") as f:
@@ -399,13 +468,10 @@ def montagem_stream():
         import time
 
         yield f"data: 🚀 Iniciando montagem das cenas...\n\n"
-        resultado = run_montar_cenas(indices, usar_soft, cor, tamanho, posicao)
-        logs = resultado["logs"]
-
-        for log in logs:
+        resultado = run_montar_cenas(indices)
+        for log in resultado["logs"]:
             yield f"data: {log}\n\n"
             time.sleep(0.1)
-
         yield f"data: 🔚 Fim do processo\n\n"
 
     return Response(stream_with_context(gerar_eventos()), mimetype='text/event-stream')

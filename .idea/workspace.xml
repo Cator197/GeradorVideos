@@ -4,11 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT antes de comentar todos os códigos">
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT antes de alterações de legendas">
+      <change afterPath="$PROJECT_DIR$/modules/gerar_ASS.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/modules/teste_ffmpeg_legenda_ass.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/cenas.json" beforeDir="false" afterPath="$PROJECT_DIR$/modules/cenas.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_imagens.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_imagens.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/montar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/montar_cenas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_legenda.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_legenda.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_legenda.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_legenda.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,21 +73,22 @@
     "Python.main.executor": "Run",
     "Python.montar_cenas.executor": "Run",
     "Python.parser_prompts.executor": "Run",
+    "Python.teste_ffmpeg_legenda_ass.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/PycharmProjects/geradorVideo/static/img",
+    "last_opened_file_path": "D:/PycharmProjects/geradorVideo/modules",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\PycharmProjects\geradorVideo\modules" />
       <recent name="D:\PycharmProjects\geradorVideo\static\img" />
       <recent name="D:\PycharmProjects\geradorVideo" />
       <recent name="D:\PycharmProjects\geradorVideo\templates" />
       <recent name="D:\PycharmProjects\geradorVideo\modules\audios_narracoes" />
-      <recent name="D:\PycharmProjects\geradorVideo\scripts\imagens" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\PycharmProjects\geradorVideo\modules" />
@@ -157,28 +165,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="montar_cenas" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="geradorVideo" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scripts" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scripts/montar_cenas.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="parser_prompts" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="geradorVideo" />
       <option name="ENV_FILES" value="" />
@@ -201,13 +187,35 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="teste_ffmpeg_legenda_ass" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="geradorVideo" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/modules" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/modules/teste_ffmpeg_legenda_ass.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.parser_prompts" />
         <item itemvalue="Python.app" />
+        <item itemvalue="Python.parser_prompts" />
+        <item itemvalue="Python.teste_ffmpeg_legenda_ass" />
         <item itemvalue="Python.gerar_narracao" />
         <item itemvalue="Python.main" />
-        <item itemvalue="Python.montar_cenas" />
       </list>
     </recent_temporary>
   </component>
@@ -347,7 +355,15 @@
       <option name="project" value="LOCAL" />
       <updated>1750415320505</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="COMMIT antes de alterações de legendas">
+      <option name="closed" value="true" />
+      <created>1750508276260</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1750508276260</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -401,6 +417,7 @@
     <MESSAGE value="COMMIT antes da revisão geral do código" />
     <MESSAGE value="COMMIT revisão geral funcionando" />
     <MESSAGE value="COMMIT antes de comentar todos os códigos" />
-    <option name="LAST_COMMIT_MESSAGE" value="COMMIT antes de comentar todos os códigos" />
+    <MESSAGE value="COMMIT antes de alterações de legendas" />
+    <option name="LAST_COMMIT_MESSAGE" value="COMMIT antes de alterações de legendas" />
   </component>
 </project>

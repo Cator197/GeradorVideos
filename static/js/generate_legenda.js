@@ -1,59 +1,96 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("form_generate_legendas");
-  const btn = document.getElementById("generate_legendas");
+  const log = document.getElementById("log");
   const fill = document.getElementById("progress_fill");
-  const log  = document.getElementById("log");
+  const btn = document.getElementById("generate_legendas");
 
-  const scope_all    = document.querySelector('input[value="all"]');
-  const scope_single = document.querySelector('input[value="single"]');
-  const scope_from   = document.querySelector('input[value="from"]');
-  const input_single = document.getElementById("single_index");
-  const input_from   = document.getElementById("from_index");
-  const tipoSelect   = document.getElementById("tipo_legenda");
+  const radios = document.querySelectorAll('input[name="scope"]');
+  const singleInput = document.getElementById("single_index");
+  const fromInput = document.getElementById("from_index");
 
-  // Habilita ou desabilita inputs conforme a opção selecionada
-  document.querySelectorAll('input[name="scope"]').forEach(el => {
-    el.addEventListener("change", () => {
-      input_single.disabled = !scope_single.checked;
-      input_from.disabled   = !scope_from.checked;
+  const preview = document.getElementById("preview_legenda");
+  const fonte = document.getElementById("fonte");
+  const tamanho = document.getElementById("tamanho");
+  const estilo = document.getElementById("estilo");
+  const animacao = document.getElementById("animacao");
+  const cor = document.getElementById("cor");
+  const modo = document.getElementById("modo_legenda");
+
+  const estilosClasse = [
+    "estilo-simples", "estilo-borda", "estilo-sombra", "estilo-glow",
+    "estilo-tv", "estilo-retro", "estilo-cartoon", "estilo-inverso", "estilo-fundo"
+  ];
+  const animacoesClasse = [
+    "animacao-fade", "animacao-karaoke", "animacao-zoom", "animacao-deslizar",
+    "animacao-piscar", "animacao-pulsar"
+  ];
+
+  function atualizarPreview() {
+    const estiloSelecionado = `estilo-${estilo.value}`;
+    const animacaoSelecionada = animacao.value !== "nenhuma" ? `animacao-${animacao.value}` : "";
+
+    preview.classList.remove(...estilosClasse);
+    preview.classList.remove(...animacoesClasse);
+
+    preview.classList.add(estiloSelecionado);
+    if (animacaoSelecionada) preview.classList.add(animacaoSelecionada);
+
+    preview.style.fontFamily = fonte.value;
+    preview.style.fontSize = `${tamanho.value}px`;
+    preview.style.color = cor.value;
+  }
+
+  [fonte, tamanho, estilo, animacao, cor].forEach((el) =>
+    el.addEventListener("change", atualizarPreview)
+  );
+
+  atualizarPreview();
+
+  radios.forEach((radio) => {
+    radio.addEventListener("change", () => {
+      singleInput.disabled = radio.value !== "single";
+      fromInput.disabled = radio.value !== "from";
     });
   });
 
-  btn.addEventListener("click", async () => {
-    fill.style.width = "0%";
-    log.textContent = "⏳ Iniciando geração de legendas...\n";
+  if (btn) {
+    btn.addEventListener("click", () => {
+      const scope = document.querySelector('input[name="scope"]:checked')?.value;
+      const payload = {
+        scope,
+        modo: modo.value,
+        fonte: fonte.value,
+        tamanho: parseInt(tamanho.value),
+        estilo: estilo.value,
+        animacao: animacao.value,
+        cor: cor.value,
+        single_index: parseInt(singleInput.value) || null,
+        from_index: parseInt(fromInput.value) || null
+      };
 
-    const data = new FormData(form);
-    data.append("tipo", tipoSelect.value);  // Adiciona tipo de legenda: hard ou soft
-    const params = new URLSearchParams(data).toString();
+      log.textContent = "📝 Enviando para geração de legendas...\n";
+      fill.style.width = "0%";
 
-    const source = new EventSource("/legendas_stream?" + params);
-    let count = 0;
-
-    source.onmessage = (event) => {
-      const linha = event.data;
-
-      // Atualiza log
-      log.textContent += linha + "\n";
-      log.scrollTop = log.scrollHeight;
-
-      // Atualiza barra se for linha relevante
-      if (linha.includes("Gerando legenda") || linha.includes("Legenda") || linha.includes("salva")) {
-        count++;
-        const total = document.getElementById("legenda_list").length || 1;
-        const pct = Math.round((count / total) * 100);
-        fill.style.width = pct + "%";
-      }
-
-      // Finaliza SSE automaticamente
-      if (linha.includes("Fim do processo")) {
-        source.close();
-      }
-    };
-
-    source.onerror = () => {
-      log.textContent += "❌ Erro no servidor ou conexão encerrada.\n";
-      source.close();
-    };
-  });
+      fetch("/legendas_ass", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          log.textContent += `❌ Erro: ${data.error}\n`;
+        } else {
+          data.logs.forEach((linha, i) => {
+            log.textContent += linha + "\\n";
+            fill.style.width = Math.min(10 + i * 10, 100) + "%";
+          });
+          log.textContent += "✅ Legendas .ASS geradas com sucesso!\n";
+          fill.style.width = "100%";
+        }
+      })
+      .catch(err => {
+        log.textContent += `❌ Falha na solicitação: ${err}\n`;
+      });
+    });
+  }
 });
