@@ -9,14 +9,16 @@
       <!-- Lista de Narrações -->
       <div>
         <label for="narracao_list" class="block font-semibold mb-2 text-slate-700">Resumo das Narrações</label>
-        <select class="w-full border rounded p-2 shadow-sm" id="narracao_list" name="narracao_list" multiple size="10">
-          {% for cena in cenas %}
-            <option value="{{ loop.index0 }}" data-url="{{ url_for('serve_module_audio', filename='narracao' ~ loop.index ~ '.mp3') }}">
-
-              Narração {{ loop.index }} – {{ cena.narracao[:60] }}
-            </option>
-          {% endfor %}
-        </select>
+          <select class="w-full border rounded p-2 shadow-sm" id="narracao_list" name="narracao_list" multiple size="10">
+            {% for cena in cenas %}
+              <option
+                value="{{ loop.index0 }}"
+                data-url="{{ url_for('serve_module_audio', filename='narracao' ~ loop.index ~ '.mp3') }}"
+                data-narracao="{{ cena.narracao | e if cena.narracao }}">
+                Narração {{ loop.index }} – {{ cena.narracao[:60] if cena.narracao else '[sem texto]' }}
+              </option>
+            {% endfor %}
+          </select>
 
         <!-- Preview de Áudio -->
         <div class="mt-4 text-center">
@@ -25,7 +27,17 @@
             Seu navegador não suporta o elemento áudio.
           </audio>
         </div>
+              <!-- Editor de Narração -->
+        <div id="editor_narracao" class="mt-4 hidden">
+          <label for="texto_narracao" class="block font-semibold mb-1 text-slate-700">📝 Texto da Narração</label>
+          <textarea id="texto_narracao" rows="4" class="w-full border rounded p-2 font-mono text-sm"></textarea>
+          <button id="salvar_narracao" class="mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow">
+            💾 Salvar Alteração
+          </button>
+        </div>
       </div>
+
+
 
       <!-- Painel de Configurações -->
       <div class="bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
@@ -35,7 +47,7 @@
           <label class="block font-medium mb-1">Fonte:</label>
           <select class="w-full border rounded p-2" id="fonte" name="fonte">
             <option value="elevenlabs">Eleven Labs</option>
-            <option value="piapi">API</option>
+            <option value="gemini">Gemini</option>
           </select>
         </div>
 
@@ -51,12 +63,23 @@
             <input type="number" name="from_index" id="from_index" min="1" placeholder="nº"
                    class="w-20 border rounded p-1" disabled>
           </label>
+
+          <label class="flex items-center gap-2">
+            <input type="radio" name="scope" value="custom">
+            Somente os números:
+            <input type="text" id="custom_indices_narracao" placeholder="ex: 1,2,5"
+                   class="w-full border rounded p-1 flex-1" disabled>
+          </label>
         </div>
 
         <div class="mt-4">
+          <button id="preview_voz" type="button" class="ml-2 text-sm text-blue-600 hover:underline">
+            🔊 Ouvir amostra
+          </button>
           <label class="block font-medium mb-1">Voz da Narração:</label>
           <select class="w-full border rounded p-2" id="voz" name="voz">
             <option value="Brian">Brian (inglês)</option>
+            <option value="Matilda">Matilda (inglês)</option>
             <option value="Bella">Bella (inglês)</option>
             <option value="Antoni">Antoni (espanhol)</option>
             <option value="Elli">Elli (alemão)</option>

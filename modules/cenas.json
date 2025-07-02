@@ -1,26 +1,14 @@
 [
-    {
-        "prompt_imagem": "Ultra-realistic cinematic, early Sunday morning light shining through an open window onto a rustic Bible on a wooden table, a warm mug of coffee beside it, peaceful ambiance, spiritual and reflective tone, soft sunbeams and light dust particles in the air, vertical 9:16",
-        "narracao": "“Reflexão dominical: ouça essa palavra que pode mudar o seu dia.”"
-    },
-    {
-        "prompt_imagem": "Ultra-realistic, open Bible showing Jeremiah 29:11 with a hand resting gently on the page, golden morning light highlighting the text, emotional close-up, cozy and reverent atmosphere, vertical 9:16",
-        "narracao": "“Porque sou eu que conheço os planos que tenho para vocês’, diz o Senhor, ‘planos de fazê-los prosperar e não de lhes causar dano, planos de dar-lhes esperança e um futuro.”"
-    },
-    {
-        "prompt_imagem": "Cinematic soft light, a thoughtful person sitting sozinho em uma varanda com vista para montanhas, segurando uma xícara de café, expressão de esperança e contemplação, céu limpo ao fundo, estilo calmo e emocional, vertical 9:16",
-        "narracao": "“Mesmo quando tudo parece sem rumo, Deus já preparou o caminho. Ele tem planos… e são de paz.”"
-    },
-    {
-        "prompt_imagem": "Ultra-realistic, homem jovem escrevendo em um caderno de oração, luz natural entrando pela janela, expressão serena, ambiente tranquilo com plantas e livros ao redor, vertical 9:16",
-        "narracao": "“Hoje, tire um tempo pra falar com Deus. Escreva seus sonhos. Ore pelos seus planos. Confie no processo.”"
-    },
-    {
-        "prompt_imagem": "Cinematic close-up of a person looking into the sky, soft wind blowing, sunlight touching their face with a peaceful glow, hopeful expression, soft background of trees and clouds, vertical 9:16",
-        "narracao": "“Deus não esqueceu de você. Esse versículo é a prova de que a esperança ainda está viva.”"
-    },
-    {
-        "prompt_imagem": "Dramatic sky with rays of light breaking through clouds, a dove flying in the distance, hopeful and divine visual symbolism, vertical 9:16",
-        "narracao": "“Se essa palavra falou com você, comenta ‘amém’ aqui embaixo e compartilha com alguém que precisa ouvir isso hoje.”"
-    }
+  {
+    "prompt_imagem": "Disney Pixar-style cinematic image of a person sitting alone at night with their phone in hand, hesitating to send a message, their expression filled with emotion and longing. The room is dimly lit, symbolizing quiet reflection.",
+    "narracao": "\"Jesus, manda uma mensagem para alguém que eu amo muito.\"",
+    "legenda": "\"Jesus, manda uma mensagem para alguém que eu amo muito.\"",
+    "ass_path": "C:/Users/caiod/Desktop/Nova pasta/gerador\\legendas_ass\\legenda1.ass"
+  },
+  {
+    "prompt_imagem": "Disney Pixar-style image of Jesus looking directly at the camera with a calm and loving expression, surrounded by soft golden light.",
+    "narracao": "\"Quem te enviou essa mensagem te ama muito.\"",
+    "legenda": "\"Quem te enviou essa mensagem te ama muito.\"",
+    "ass_path": "C:/Users/caiod/Desktop/Nova pasta/gerador\\legendas_ass\\legenda2.ass"
+  }
 ]

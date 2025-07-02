@@ -98,16 +98,21 @@ async def gerar_imagens_async(cenas, indices, logs):
     return cenas
 
 def run_gerar_imagens(indices):
-    """Gera imagens e atualiza o arquivo JSON principal."""
     paths = get_paths()
     with open(paths["entrada_json"], encoding="utf-8") as f:
         cenas = json.load(f)
 
     logs = []
+
+    logs=excluir_arquivos(indices)
+
+    # ✅ Gerar as novas imagens
     cenas_atualizadas = asyncio.run(gerar_imagens_async(cenas, indices, logs))
 
     for i in indices:
         cenas[i] = cenas_atualizadas[i]
+        if "legenda" not in cenas[i] and "narracao" in cenas[i]:
+            cenas[i]["legenda"] = cenas[i]["narracao"]
 
     with open(paths["saida_json"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=4)
@@ -115,7 +120,8 @@ def run_gerar_imagens(indices):
 
     return {"cenas": cenas_atualizadas, "logs": logs}
 
-def calcular_indices(scope, single, start, total):
+
+def calcular_indices(scope, single, start, total, selected=None):
     """Calcula os índices das cenas com base nos parâmetros da interface."""
     if scope == "all":
         return list(range(total))
@@ -123,11 +129,13 @@ def calcular_indices(scope, single, start, total):
         return [single - 1]
     elif scope == "from" and start and 1 <= start <= total:
         return list(range(start - 1, total))
+    elif scope == "selected" and selected:
+        indices=[int(x.strip()) - 1 for x in selected.split(",") if x.strip().isdigit()]
+        return [i for i in indices if 0 <= i < total]
     else:
         raise ValueError("Parâmetros inválidos")
 
-def gerar_eventos_para_stream(scope, single, start):
-    """Gera logs de progresso no formato Server-Sent Events."""
+def gerar_eventos_para_stream(scope, single, start, selected=None):
     import time
 
     paths = get_paths()
@@ -136,7 +144,8 @@ def gerar_eventos_para_stream(scope, single, start):
     total = len(cenas)
 
     try:
-        indices = calcular_indices(scope, single, start, total)
+        indices = calcular_indices(scope, single, start, total, selected)
+        logs=excluir_arquivos(indices)
     except Exception:
         yield "data: ❌ Parâmetros inválidos\n\n"
         return
@@ -156,3 +165,18 @@ def gerar_eventos_para_stream(scope, single, start):
         time.sleep(0.2)
 
     yield "data: 🔚 Geração de imagens finalizada\n\n"
+
+def excluir_arquivos(indices):
+    paths = get_paths()
+    logs = []
+    for i in indices:
+        nome_base = f"imagem{i+1}"
+        for ext in [".jpg", ".png", ".mp4"]:
+            caminho = os.path.join(paths["pasta_imagens"], nome_base + ext)
+            if os.path.exists(caminho):
+                try:
+                    os.remove(caminho)
+                    logs.append(f"🗑️ Apagado: {caminho}")
+                except Exception as e:
+                    logs.append(f"⚠️ Erro ao apagar {caminho}: {e}")
+    return logs

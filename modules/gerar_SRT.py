@@ -1,24 +1,20 @@
-"""Geração de arquivos SRT a partir de áudios narrados."""
-
 import os
 import json
-from modules.config import get_config
 from pydub import AudioSegment
 from faster_whisper import WhisperModel
+from modules.config import get_config
 
 def get_paths():
-    """Retorna os diretórios utilizados para áudios e arquivos SRT."""
     base = get_config("pasta_salvar") or os.getcwd()
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     return {
         "base": base,
         "audios": os.path.join(base, "audios_narracoes"),
         "srts": os.path.join(base, "legendas_srt"),
-        "cenas": os.path.join(base, "cenas_com_imagens.json"),
-        "srt_geral": os.path.join(base, "legendas_srt", "legenda_completa.srt"),
+        "cenas": os.path.join(BASE_DIR, "cenas.json"),
     }
 
 def formatar_tempo(segundos):
-    """Converte segundos para o formato HH:MM:SS,mmm exigido pelo SRT."""
     h = int(segundos // 3600)
     m = int((segundos % 3600) // 60)
     s = int(segundos % 60)
@@ -26,85 +22,54 @@ def formatar_tempo(segundos):
     return f"{h:02}:{m:02}:{s:02},{ms:03}"
 
 def carregar_modelo():
-    """Carrega o modelo Whisper para transcrição de áudio."""
     return WhisperModel("small", device="cpu", compute_type="int8")
 
-def gerar_srt_por_palavra(model, audio_path, srt_path):
-    """Gera arquivo SRT contendo cada palavra com seu timestamp."""
-    segments, _ = model.transcribe(audio_path, word_timestamps=True)
-    linhas = []
-    contador = 1
-
-    for seg in segments:
-        for palavra in seg.words:
-            ini = formatar_tempo(palavra.start)
-            fim = formatar_tempo(palavra.end)
-            texto = palavra.word.strip()
-            linhas.append(f"{contador}\n{ini} --> {fim}\n{texto}\n")
-            contador += 1
-
-    with open(srt_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(linhas))
-
-def gerar_srt_soft(indices):
-    """Gera um único SRT contínuo combinando todos os áudios."""
+def gerar_srt_com_bloco(indices, palavras_por_bloco=4):
+    """Gera arquivos SRT com blocos de N palavras por linha."""
     paths = get_paths()
     model = carregar_modelo()
-    with open(paths["cenas"], encoding="utf-8") as f:
-        cenas = json.load(f)
-
-    linhas = []
-    contador = 1
-    offset = 0.0
-
-    for i in indices:
-        audio = os.path.join(paths["audios"], f"narracao{i + 1}.mp3")
-        if not os.path.exists(audio):
-            continue
-
-        segments, _ = model.transcribe(audio, word_timestamps=True)
-        for seg in segments:
-            for palavra in seg.words:
-                ini = formatar_tempo(palavra.start + offset)
-                fim = formatar_tempo(palavra.end + offset)
-                texto = palavra.word.strip()
-                linhas.append(f"{contador}\n{ini} --> {fim}\n{texto}\n")
-                contador += 1
-
-        offset += AudioSegment.from_file(audio).duration_seconds
-
-    os.makedirs(paths["srts"], exist_ok=True)
-    with open(paths["srt_geral"], "w", encoding="utf-8") as f:
-        f.write("\n".join(linhas))
-
-def run_gerar_legendas(indices, tipo="hard"):
-    """Gera legendas para as cenas no modo hard ou soft."""
-    paths = get_paths()
-    os.makedirs(paths["srts"], exist_ok=True)
-    model = carregar_modelo()
-
-    with open(paths["cenas"], encoding="utf-8") as f:
-        cenas = json.load(f)
-
     logs = []
 
-    if tipo == "soft":
-        gerar_srt_soft(indices)
-        logs.append(f"Legenda geral salva em {paths['srt_geral']}")
-        return {"logs": logs, "cenas": cenas}
+    with open(paths["cenas"], encoding="utf-8") as f:
+        cenas = json.load(f)
+
+    os.makedirs(paths["srts"], exist_ok=True)
 
     for i in indices:
-        audio = os.path.join(paths["audios"], f"narracao{i + 1}.mp3")
-        srt = os.path.join(paths["srts"], f"legenda{i + 1}.srt")
+        audio_path = os.path.join(paths["audios"], f"narracao{i + 1}.mp3")
+        srt_path = os.path.join(paths["srts"], f"legenda{i + 1}.srt")
 
-        if os.path.exists(audio):
-            gerar_srt_por_palavra(model, audio, srt)
-            cenas[i]["srt_path"] = srt
-            logs.append(f"Legenda {i + 1} salva em {srt}")
-        else:
-            logs.append(f"Áudio {i + 1} não encontrado")
+        if not os.path.exists(audio_path):
+            logs.append(f"⚠️ Áudio {i + 1} não encontrado.")
+            continue
+
+        segments, _ = model.transcribe(audio_path, word_timestamps=True)
+        bloco, linhas, contador = [], [], 1
+
+        for seg in segments:
+            for palavra in seg.words:
+                bloco.append(palavra)
+                if len(bloco) == palavras_por_bloco:
+                    ini = formatar_tempo(bloco[0].start)
+                    fim = formatar_tempo(bloco[-1].end)
+                    texto = " ".join(w.word for w in bloco)
+                    linhas.append(f"{contador}\n{ini} --> {fim}\n{texto}\n")
+                    contador += 1
+                    bloco = []
+
+        if bloco:
+            ini = formatar_tempo(bloco[0].start)
+            fim = formatar_tempo(bloco[-1].end)
+            texto = " ".join(w.word for w in bloco)
+            linhas.append(f"{contador}\n{ini} --> {fim}\n{texto}\n")
+
+        with open(srt_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(linhas))
+
+        cenas[i]["srt_path"] = srt_path
+        logs.append(f"✅ Legenda {i + 1} gerada com {palavras_por_bloco} palavras por bloco.")
 
     with open(paths["cenas"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)
 
-    return {"logs": logs, "cenas": cenas}
+    return logs

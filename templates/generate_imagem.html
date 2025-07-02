@@ -11,14 +11,23 @@
         <label for="image_list" class="block font-semibold mb-2 text-slate-700">Resumo das Imagens</label>
         <select id="image_list" name="image_list" multiple size="10" class="w-full border rounded p-2 shadow-sm">
           {% for cena in cenas %}
-            <option
-              value="{{ loop.index0 }}"
-              data-url="{{ url_for('serve_module_images', filename='imagem' ~ loop.index ~ '.jpg') }}">
-              Imagem {{ loop.index }} – {{ cena.prompt_imagem }}
-            </option>
-          {% endfor %}
+          {% set numero = loop.index %}
+          {% set arquivo = arquivos_midia.get(numero) %}
+          <option
+            value="{{ loop.index0 }}"
+            {% if arquivo %}
+              data-url="{{ url_for('serve_module_images', filename=arquivo) }}"
+            {% endif %}>
+            Imagem {{ numero }} – {{ cena.prompt_imagem }}
+            {% if not arquivo %}(⚠️ não gerada){% endif %}
+          </option>
+        {% endfor %}
         </select>
       </div>
+
+
+
+
 
       <!-- Painel de Configurações -->
       <div class="bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
@@ -36,6 +45,12 @@
             <input type="number" name="from_index" id="from_index" min="1" placeholder="nº"
                    class="w-20 border rounded p-1" disabled>
           </label>
+                    <label class="block">
+            <input type="radio" name="scope" value="selected"> Somente os números digitados abaixo
+          </label>
+          <input type="text" name="selected_indices" id="selected_indices"
+                 class="w-full border rounded p-2 mt-1 hidden"
+                 placeholder="Ex: 1, 2, 5" />
         </div>
 
         <button id="generate_images" type="button"
@@ -61,7 +76,46 @@
 <div id="modal_preview" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
   <div class="bg-white p-4 rounded-lg shadow-xl max-w-3xl w-full relative">
     <button id="close_modal" class="absolute top-2 right-2 text-xl text-gray-600 hover:text-black">&times;</button>
-    <img id="modal_image" src="" alt="Preview da imagem" class="w-full h-auto rounded-lg max-h-[80vh] object-contain">
+    <img id="modal_image" src="" alt="Preview da imagem" class="w-full h-auto rounded-lg max-h-[80vh] object-contain hidden">
+    <video id="modal_video" class="w-full h-auto rounded-lg max-h-[80vh] object-contain hidden" controls></video>
+  </div>
+</div>
+
+<!-- MODAL DE EDIÇÃO -->
+<div id="modal_edicao" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+  <div class="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full space-y-4 relative">
+    <button id="fechar_edicao" class="absolute top-2 right-3 text-xl text-gray-500 hover:text-black">&times;</button>
+    <h2 class="text-xl font-semibold text-gray-800">✏️ Editar Prompt da Imagem</h2>
+
+    <img id="preview_edicao" class="w-full max-h-64 object-contain rounded border hidden" />
+    <video id="preview_video_edicao" class="w-full max-h-64 object-contain rounded border hidden" controls></video>
+
+    <label for="campo_prompt_edicao" class="block text-sm text-gray-700 font-medium">Prompt:</label>
+    <textarea id="campo_prompt_edicao" rows="4" class="w-full border rounded p-2 font-mono text-sm"></textarea>
+
+    <!-- Feedback -->
+    <div id="status_geracao" class="text-sm text-blue-600 font-medium hidden">⏳ Gerando nova imagem, aguarde...</div>
+
+    <div class="flex flex-col gap-3 pt-4">
+      <div class="flex justify-between gap-4">
+        <button id="salvar_prompt" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow w-full">
+          💾 Salvar Apenas o Prompt
+        </button>
+        <button id="substituir_imagem" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow w-full">
+          🔄 Gerar Nova Imagem
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2 pt-2">
+        <label for="upload_imagem" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded shadow cursor-pointer">
+          ⬆️ Substituir com Arquivo
+        </label>
+        <input type="file" id="upload_imagem" accept="image/*,video/mp4" class="hidden">
+        <span id="nome_arquivo" class="text-sm text-gray-600"></span>
+      </div>
+
+      <img id="preview_upload" src="" class="hidden w-full max-h-52 object-contain border rounded">
+    </div>
   </div>
 </div>
 {% endblock %}

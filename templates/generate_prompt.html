@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow p-6 space-y-6">
+
+    <!-- Nome do vídeo final -->
+  <div>
+    <label for="nome_video_prompt" class="font-semibold block mb-2 text-slate-700">Nome do vídeo final:</label>
+    <input type="text" id="nome_video_prompt" placeholder="Ex: historia_motivacional" class="w-full p-3 border rounded shadow-sm">
+  </div>
+
+  <!-- Prompt inicial -->
+  <div>
+    <label for="initial_prompt_video" class="font-semibold block mb-2 text-slate-700">Prompt inicial:</label>
+    <textarea id="initial_prompt_video" placeholder="Digite seu prompt aqui..." class="w-full h-80 p-3 border rounded resize-y shadow-sm"></textarea>
+  </div>
+
+
+
+  <!-- Botão para processar prompt -->
+  <div class="text-center">
+    <button id="processar_prompt_video" type="button" class="bg-blue-600 hover:bg-blue-700 text-white text-md px-6 py-2 rounded shadow">
+      ✨ Processar Prompt
+    </button>
+  </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/generate_prompt.js') }}"></script>
+{% endblock %}
+

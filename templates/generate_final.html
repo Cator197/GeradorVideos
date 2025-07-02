@@ -4,74 +4,104 @@
 <div class="bg-white rounded-xl shadow p-6 space-y-6">
   <form id="form_generate_final" class="space-y-6">
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-      <!-- Lista de Cenas Montadas -->
-      <div>
-        <label for="final_list" class="block font-semibold mb-2 text-slate-700">Resumo das Cenas Montadas</label>
-        <select id="final_list" name="final_list" multiple size="10" class="w-full border rounded p-2 shadow-sm">
-          {% for cena in cenas %}
-            <option value="{{ loop.index0 }}">
-              Cena {{ loop.index }} – {{ cena.narracao[:60] if cena.narracao else '[sem texto]' }}
-            </option>
-          {% endfor %}
-        </select>
+    <!-- Timeline das Cenas -->
+    <div class="border rounded-xl p-4 bg-slate-50">
+      <h3 class="font-semibold text-lg mb-4">🎞️ Timeline das Cenas</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {% for cena in cenas %}
+        <div class="flex items-start gap-4 scene-row" data-idx="{{ loop.index0 }}">
+          <!-- Cena Card -->
+          <div class="flex-shrink-0 bg-white border rounded-lg shadow-sm p-2 cursor-pointer w-2/3 scene-card">
+            <div class="text-center font-medium mb-2">Cena {{ loop.index }}</div>
+            <div class="text-sm h-16 overflow-hidden text-gray-600">
+              {{ cena.narracao[:60] if cena.narracao else '[sem texto]' }}
+            </div>
+            <div class="mt-2 space-y-2">
+              <label for="efeito_{{ loop.index0 }}" class="block text-xs font-semibold text-gray-500">Efeito:</label>
+              <select id="efeito_{{ loop.index0 }}" name="efeito_{{ loop.index0 }}" class="w-full text-xs border rounded efeito-select">
+                <option value="">Nenhum</option>
+                <option value="preto_branco">Preto e Branco</option>
+                <option value="espelho">Espelho</option>
+                <option value="zoom">Zoom (Ken Burns)</option>
+                <option value="escurecer">Escurecer</option>
+              </select>
+              <div id="config_efeito_{{ loop.index0 }}" class="hidden config-efeito"></div>
+            </div>
+          </div>
+          <!-- Transição -->
+          {% if not loop.last %}
+          <div class="flex flex-col items-center justify-center w-1/3 transition-col">
+            <label class="text-xs font-semibold text-gray-500" for="transicao_{{ loop.index0 }}">Transição</label>
+            <select id="transicao_{{ loop.index0 }}" name="transicao_{{ loop.index0 }}" class="text-xs border rounded mb-1 w-full transition-select">
+              <option value="">Selecione</option>
+              <option value="crossfade">Crossfade</option>
+              <option value="fade">Fade</option>
+              <option value="slide">Slide</option>
+              <option value="overlay">Combinar (Overlay)</option>
+            </select>
+            <input
+              id="duracao_{{ loop.index0 }}"
+              name="duracao_{{ loop.index0 }}"
+              type="number"
+              step="0.1"
+              min="0.1"
+              class="text-xs border rounded px-2 py-1 w-full duration-input"
+              placeholder="Duração (s)"
+              value="0.5"
+            />
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
       </div>
+      <div class="mt-4">
+        <label class="inline-flex items-center">
+          <input type="checkbox" id="aplicar_todas" class="mr-2">
+          Aplicar efeitos a todas as cenas
+        </label>
+      </div>
+    </div>
 
-      <!-- Painel de Configurações -->
-      <div class="bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
-        <h3 class="font-semibold text-lg">⚙️ Configurações</h3>
+    <!-- Painel de Configurações Gerais -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-slate-50 border rounded-lg p-4 shadow-sm space-y-4">
+        <h3 class="font-semibold text-lg">⚙️ Configurações Gerais</h3>
 
-        <div>
-          <label for="transicao" class="block font-medium mb-1">Tipo de Transição:</label>
-          <select id="transicao" name="transicao" class="w-full border rounded p-2">
-            <option value="cut">Corte seco</option>
-            <option value="crossfade">Crossfade</option>
-            <option value="slide">Slide</option>
-            <option value="scroll">Scroll</option>
-            <option value="freeze">Freeze</option>
-          </select>
-        </div>
+        <label class="block"><input type="checkbox" id="usar_trilha"> Usar trilha sonora</label>
+        <input type="file" id="input_trilha" accept="audio/*" class="w-full border rounded p-2 mt-2" disabled>
 
-        <div>
-          <label class="block"><input type="checkbox" id="usar_trilha"> Usar trilha sonora</label>
-          <input type="file" id="input_trilha" accept="audio/*" class="w-full border rounded p-2 mt-2" disabled>
-        </div>
-
-        <div>
-          <label class="block"><input type="checkbox" id="usar_marca"> Adicionar marca d'água</label>
-          <input type="file" id="input_marca" accept="image/*" class="w-full border rounded p-2 mt-2" disabled>
-        </div>
+        <label class="block"><input type="checkbox" id="usar_marca"> Adicionar marca d'água</label>
+        <input type="file" id="input_marca" accept="image/*" class="w-full border rounded p-2 mt-2" disabled>
 
         <div class="flex flex-col gap-3 mt-4">
-          <button id="btn_gerar_video" type="button"
-                  class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow">
+          <button id="btn_gerar_video" type="button" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow">
             🎬 Gerar Vídeo Final
           </button>
-          <button id="btn_gerar_capcut" type="button"
-                  class="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded shadow">
+          <button id="btn_gerar_capcut" type="button" class="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded shadow">
             Exportar para CapCut
           </button>
         </div>
       </div>
+
+      <!-- Log e Progresso -->
+      <div class="space-y-4">
+        <div class="w-full bg-gray-200 rounded-full h-4">
+          <div id="progress_fill" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <div class="bg-black text-green-400 text-sm p-4 rounded-md h-52 overflow-y-auto font-mono">
+          <pre id="log"></pre>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Barra de Progresso -->
-    <div class="w-full bg-gray-200 rounded-full h-4">
-      <div id="progress_fill" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
-    </div>
-
-    <!-- Log -->
-    <div class="bg-black text-green-400 text-sm p-4 rounded-md h-40 overflow-y-auto text-left font-mono whitespace-pre">
-      <pre id="log"></pre>
-    </div>
   </form>
 </div>
 
 <!-- MODAL de Preview de Vídeo -->
 <div id="modal_preview_video" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
   <div class="bg-white p-4 rounded-lg shadow-xl max-w-3xl w-full relative">
-    <button id="close_modal_video" class="absolute top-2 right-2 text-xl text-gray-600 hover:text-black">&times;</button>
+    <button id="close_modal_video" class="absolute top-2 right-2 text-xl text-gray-600 hover:text-black">×</button>
     <video id="preview_video" controls class="w-full rounded-lg max-h-[80vh] object-contain mt-2">
       <source id="video_source" src="" type="video/mp4">
       Seu navegador não suporta o elemento vídeo.

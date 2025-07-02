@@ -88,6 +88,12 @@ def limpar_pastas_de_saida():
 if __name__ == "__main__":
     limpar_pastas_de_saida()
     cenas = parse_prompts_txt()
+
+    # ✅ Copiar narração para legenda se ainda não existir
+    for cena in cenas:
+        if "narracao" in cena and "legenda" not in cena:
+            cena["legenda"] = cena["narracao"]
+
     with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=4)
 
