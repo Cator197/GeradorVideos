@@ -9,6 +9,7 @@ from tkinter import filedialog
 from modules.config import get_config
 import os
 import time
+from modules.verify_license import verify_license
 
 # Importe sua função refatorada de geração de imagens
 
@@ -999,4 +1000,5 @@ def limpar_pastas_saida():
                     os.remove(caminho)
 
 if __name__ == "__main__":
+    verify_license()
     app.run(debug=True, port=5000)

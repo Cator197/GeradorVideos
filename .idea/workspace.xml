@@ -4,39 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT antes de alterações de legendas v2">
-      <change afterPath="$PROJECT_DIR$/modules/fonts/Montserrat.ttf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/modules/google_tts.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/modules/modulos_testes/audios_narracoes/exemplo.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/modules/modulos_testes/preview_legendas_ffmpeg.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/modules/modulos_testes/teste_combinacoes_legenda.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/modules/teste_google_tts.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/js/generate_prompt.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/js/novo_prompt.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/generate_prompt.html" afterDir="false" />
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT antes de iniciar funções de instalador e ativação">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/cenas.json" beforeDir="false" afterPath="$PROJECT_DIR$/modules/cenas.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_ASS.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_ASS.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_SRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_SRT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_imagens.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_imagens.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/juntar_cenas.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/parser_prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/parser_prompts.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/remover_silencio.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/remover_silencio.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/teste_ffmpeg_legenda_ass.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/modulos_testes/teste_ffmpeg_legenda_ass.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/styles.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/img/logo.png" beforeDir="false" afterPath="$PROJECT_DIR$/static/img/logo.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_final.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_final.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_imagem.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_imagem.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_legenda.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_legenda.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_narracao.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_narracao.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_final.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_final.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_imagem.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_imagem.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_legenda.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_legenda.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_narracao.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_narracao.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -395,7 +364,15 @@
       <option name="project" value="LOCAL" />
       <updated>1750606775474</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="COMMIT antes de iniciar funções de instalador e ativação">
+      <option name="closed" value="true" />
+      <created>1751481737770</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1751481737770</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -451,6 +428,7 @@
     <MESSAGE value="COMMIT antes de comentar todos os códigos" />
     <MESSAGE value="COMMIT antes de alterações de legendas" />
     <MESSAGE value="COMMIT antes de alterações de legendas v2" />
-    <option name="LAST_COMMIT_MESSAGE" value="COMMIT antes de alterações de legendas v2" />
+    <MESSAGE value="COMMIT antes de iniciar funções de instalador e ativação" />
+    <option name="LAST_COMMIT_MESSAGE" value="COMMIT antes de iniciar funções de instalador e ativação" />
   </component>
 </project>

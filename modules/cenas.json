@@ -1,14 +1,30 @@
 [
   {
-    "prompt_imagem": "Disney Pixar-style cinematic image of a person sitting alone at night with their phone in hand, hesitating to send a message, their expression filled with emotion and longing. The room is dimly lit, symbolizing quiet reflection.",
-    "narracao": "\"Jesus, manda uma mensagem para alguém que eu amo muito.\"",
-    "legenda": "\"Jesus, manda uma mensagem para alguém que eu amo muito.\"",
-    "ass_path": "C:/Users/caiod/Desktop/Nova pasta/gerador\\legendas_ass\\legenda1.ass"
+    "prompt_imagem": "Disney Pixar-style cinematic image of a person sitting alone on a park bench at dusk, holding their chest with one hand, eyes closed and visibly angustiado. The environment is calm but heavy, with soft purple and orange sky tones.",
+    "narracao": "Oração pra trazer paz pro meu coração!",
+    "legenda": "\"Jesus, uma oração pra trazer paz pro meu coração.\"",
+    "audio_path": "C:/Users/caiod/Desktop/Nova pasta/gerador\\audios_narracoes\\narracao1.mp3",
+    "srt_path": "C:/Users/caiod/Desktop/Nova pasta/gerador\\legendas_srt\\legenda1.srt"
   },
   {
-    "prompt_imagem": "Disney Pixar-style image of Jesus looking directly at the camera with a calm and loving expression, surrounded by soft golden light.",
-    "narracao": "\"Quem te enviou essa mensagem te ama muito.\"",
-    "legenda": "\"Quem te enviou essa mensagem te ama muito.\"",
-    "ass_path": "C:/Users/caiod/Desktop/Nova pasta/gerador\\legendas_ass\\legenda2.ass"
+    "prompt_imagem": "Disney Pixar-style close-up of a person sitting in a calm environment, eyes closed and a soft, peaceful smile on their face. A gentle golden light glows around their chest, symbolizing inner peace and a calm heart. The background is soft and slightly blurred, filled with warm tones. The person's posture and expression show that they are spiritually at rest and emotionally leveled.\n\n",
+    "narracao": "\"Salva essa oração pra fazer sempre antes de dormir.\"",
+    "legenda": "\"Salva essa oração pra fazer sempre antes de dormir.\"",
+    "audio_path": "C:/Users/caiod/Desktop/Nova pasta/gerador\\audios_narracoes\\narracao2.mp3",
+    "srt_path": "C:/Users/caiod/Desktop/Nova pasta/gerador\\legendas_srt\\legenda2.srt"
+  },
+  {
+    "prompt_imagem": "Disney Pixar-style symbolic image of the person praying, with eyes closed, as a gentle wind flows around them and golden light fills their chest, pushing away dark shadows.",
+    "narracao": "\"Repita comigo: Jesus, acalma o que eu não consigo controlar. Silencia o que grita dentro de mim. Que Tua paz entre onde meus pensamentos não alcançam e traga paz para meu coração e de minha família. Amém.\"",
+    "legenda": "\"Repita comigo: Jesus, acalma o que eu não consigo controlar. Silencia o que grita dentro de mim. Que Tua paz entre onde meus pensamentos não alcançam e traga paz para meu coração e de minha família. Amém.\"",
+    "audio_path": "C:/Users/caiod/Desktop/Nova pasta/gerador\\audios_narracoes\\narracao3.mp3",
+    "srt_path": "C:/Users/caiod/Desktop/Nova pasta/gerador\\legendas_srt\\legenda3.srt"
+  },
+  {
+    "prompt_imagem": "Disney Pixar-style cinematic image of a person peacefully lying in bed at night, eyes closed with a gentle smile. The room is softly lit by moonlight through a window, and a warm golden glow surrounds the bed, symbolizing divine blessing. The expression on the person’s face shows calm and surrender. The blankets are gently folded, and the overall atmosphere is quiet, safe, and full of peace.",
+    "narracao": "\"Comenta \"Paz\". E envia para quem você ama e quer que tenha paz no coração.\"",
+    "legenda": "\"Comenta \"Paz\". E envia para quem você ama e quer que tenha paz no coração.\"",
+    "audio_path": "C:/Users/caiod/Desktop/Nova pasta/gerador\\audios_narracoes\\narracao4.mp3",
+    "srt_path": "C:/Users/caiod/Desktop/Nova pasta/gerador\\legendas_srt\\legenda4.srt"
   }
 ]
