@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const radios     = document.querySelectorAll('input[name="scope"]');
   const singleIn   = document.getElementById('single_index');
   const fromIn     = document.getElementById('from_index');
+  const selectedInput = document.getElementById('selected_indices');
 
   // Modal de preview
   const modal         = document.getElementById('modal_preview');
@@ -28,20 +29,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let indiceSelecionado = null;
 
-  // Função auxiliar para exibir imagem ou vídeo
+  function iniciarProgressoGenerico() {
+  document.getElementById('barra_indeterminada').classList.remove('hidden');
+}
+
+  function pararProgressoGenerico() {
+  document.getElementById('barra_indeterminada').classList.add('hidden');
+}
+
   function mostrarMedia(url, imgEl, videoEl) {
-    if (url.endsWith(".mp4")) {
+    if (url?.endsWith(".mp4")) {
       imgEl.classList.add('hidden');
       videoEl.classList.remove('hidden');
       videoEl.src = url;
-    } else {
+    } else if (url) {
       videoEl.classList.add('hidden');
       imgEl.classList.remove('hidden');
       imgEl.src = url;
     }
   }
 
-  // Duplo clique → modal preview
   list.addEventListener('dblclick', () => {
     const idx = list.selectedIndex;
     if (idx < 0) return;
@@ -52,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Seleção → modal edição
   list.addEventListener('change', () => {
     const idx = list.selectedIndex;
     if (idx < 0) return;
@@ -70,12 +76,12 @@ document.addEventListener('DOMContentLoaded', () => {
     modalEdicao.classList.remove('hidden');
   });
 
-  // Fechar modais
   closeModal.addEventListener('click', () => {
     modal.classList.add('hidden');
     modalImage.src = '';
     modalVideo.src = '';
   });
+
   modal.addEventListener('click', (e) => {
     if (e.target === modal) {
       modal.classList.add('hidden');
@@ -83,13 +89,13 @@ document.addEventListener('DOMContentLoaded', () => {
       modalVideo.src = '';
     }
   });
+
   fecharEdicao.addEventListener('click', () => {
     modalEdicao.classList.add('hidden');
     previewEdicao.src = '';
     previewVideoEdicao.src = '';
   });
 
-  // Salvar prompt
   btnSalvarPrompt.addEventListener('click', () => {
     fetch('/editar_prompt', {
       method: 'POST',
@@ -99,17 +105,16 @@ document.addEventListener('DOMContentLoaded', () => {
         novo_prompt: campoPrompt.value
       })
     })
-      .then(resp => resp.json())
-      .then(data => {
-        if (data.status === 'ok') {
-          alert('✅ Prompt atualizado!');
-          modalEdicao.classList.add('hidden');
-          location.reload();
-        }
-      });
+    .then(resp => resp.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        alert('✅ Prompt atualizado!');
+        modalEdicao.classList.add('hidden');
+        location.reload();
+      }
+    });
   });
 
-  // Substituir imagem via geração
   btnSubstituirImagem.addEventListener('click', () => {
     statusGeracao.classList.remove('hidden');
     fetch('/substituir_imagem', {
@@ -120,18 +125,17 @@ document.addEventListener('DOMContentLoaded', () => {
         novo_prompt: campoPrompt.value
       })
     })
-      .then(resp => resp.json())
-      .then(data => {
-        statusGeracao.classList.add('hidden');
-        if (data.status === 'ok') {
-          alert('🔄 Imagem gerada com sucesso!');
-          modalEdicao.classList.add('hidden');
-          location.reload();
-        }
-      });
+    .then(resp => resp.json())
+    .then(data => {
+      statusGeracao.classList.add('hidden');
+      if (data.status === 'ok') {
+        alert('🔄 Imagem gerada com sucesso!');
+        modalEdicao.classList.add('hidden');
+        location.reload();
+      }
+    });
   });
 
-  // Upload de imagem ou vídeo
   uploadInput.addEventListener('change', () => {
     const file = uploadInput.files[0];
     if (!file) return;
@@ -139,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const formData = new FormData();
     formData.append('index', indiceSelecionado);
     formData.append('imagem', file);
-
     nomeArquivo.textContent = `📁 ${file.name}`;
 
     if (file.type.startsWith('image/')) {
@@ -156,28 +159,24 @@ document.addEventListener('DOMContentLoaded', () => {
       method: 'POST',
       body: formData
     })
-      .then(resp => resp.json())
-      .then(data => {
-        if (data.status === 'ok') {
-          alert('✅ Mídia substituída com sucesso!');
-          modalEdicao.classList.add('hidden');
-          location.reload();
-        }
-      });
+    .then(resp => resp.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        alert('✅ Mídia substituída com sucesso!');
+        modalEdicao.classList.add('hidden');
+        location.reload();
+      }
+    });
   });
 
-  // Habilitar/desabilitar campos baseados no escopo
-    const selectedInput = document.getElementById('selected_indices');
-
-    radios.forEach(radio => {
-      radio.addEventListener('change', () => {
-        singleIn.disabled = radio.value !== 'single';
-        fromIn.disabled   = radio.value !== 'from';
-        selectedInput.classList.toggle('hidden', radio.value !== 'selected');
-      });
+  radios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      singleIn.disabled = radio.value !== 'single';
+      fromIn.disabled   = radio.value !== 'from';
+      selectedInput.classList.toggle('hidden', radio.value !== 'selected');
     });
+  });
 
-  // Geração das imagens (com suporte ao escopo "selected")
   btn.addEventListener('click', () => {
     const scope = document.querySelector('input[name="scope"]:checked').value;
     const data  = new URLSearchParams();
@@ -190,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
       data.append('selected_indices', raw);
     }
 
-    barFill.style.width = '0%';
+    iniciarProgressoGenerico();
     logArea.textContent = '';
 
     if (scope === 'all') {
@@ -211,15 +210,10 @@ document.addEventListener('DOMContentLoaded', () => {
       logArea.textContent += linha + '\n';
       logArea.scrollTop = logArea.scrollHeight;
 
-      if (linha.includes("salva em")) {
-        count++;
-        const total = list?.length || 10;
-        const pct = Math.round((count / total) * 100);
-        barFill.style.width = pct + '%';
-      }
 
       if (linha.includes("finalizada")) {
         source.close();
+        pararProgressoGenerico();
         fetch("/imagens", { method: "GET" })
           .then(resp => resp.text())
           .then(html => {
@@ -236,6 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     source.onerror = () => {
       logArea.textContent += "❌ Erro no servidor ou conexão encerrada.\n";
       source.close();
+      pararProgressoGenerico();
     };
   });
 });

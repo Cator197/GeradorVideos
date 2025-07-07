@@ -6,12 +6,12 @@ from modules.config import get_config
 
 def get_paths():
     base = get_config("pasta_salvar") or os.getcwd()
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR = os.path.join(os.getcwd(), "cenas.json")
     return {
         "base": base,
         "audios": os.path.join(base, "audios_narracoes"),
         "srts": os.path.join(base, "legendas_srt"),
-        "cenas": os.path.join(BASE_DIR, "cenas.json"),
+        "cenas": os.path.join(os.getcwd(), "cenas.json"),
     }
 
 def formatar_tempo(segundos):

@@ -11,10 +11,11 @@ BASE_URL = "https://api.piapi.ai"
 def get_paths():
     """Retorna os caminhos de trabalho utilizados pelo módulo."""
     pasta_base = get_config("pasta_salvar") or os.getcwd()
+
     return {
         "pasta_base": pasta_base,
         "pasta_imagens": os.path.join(pasta_base, "imagens"),
-        "entrada_json": os.path.join(os.getcwd(), "modules", "cenas.json"),
+        "entrada_json": os.path.join(os.getcwd(), "cenas.json"),
         "saida_json": os.path.join(pasta_base, "cenas_com_imagens.json"),
     }
 

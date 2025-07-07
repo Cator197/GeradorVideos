@@ -1,36 +1,86 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const lista     = document.getElementById("narracao_list");
-  const audio     = document.getElementById("preview_audio");
-  const source    = document.getElementById("audio_source");
-  const logArea   = document.getElementById("log");
-  const fill      = document.getElementById("progress_fill");
+// Refatorado para usar barra indeterminada
 
-  const btnGerar  = document.getElementById("generate_narracoes");
+// Inicializa quando DOM estiver pronto
+document.addEventListener("DOMContentLoaded", () => {
+  const lista = document.getElementById("narracao_list");
+  const audio = document.getElementById("preview_audio");
+  const source = document.getElementById("audio_source");
+  const logArea = document.getElementById("log");
+  const barraIndeterminada = document.getElementById("barra_indeterminada");
+
+  const btnGerar = document.getElementById("generate_narracoes");
   const btnRemover = document.getElementById("remover_silencio");
   const silencioMin = document.getElementById("silencio_min");
 
-  const editor      = document.getElementById("editor_narracao");
-  const textoBox    = document.getElementById("texto_narracao");
-  const btnSalvar   = document.getElementById("salvar_narracao");
+  const editor = document.getElementById("editor_narracao");
+  const textoBox = document.getElementById("texto_narracao");
+  const btnSalvar = document.getElementById("salvar_narracao");
 
   const singleInput = document.getElementById("single_index");
-  const fromInput   = document.getElementById("from_index");
+  const fromInput = document.getElementById("from_index");
   const customInput = document.getElementById("custom_indices_narracao");
 
   const fonteSelect = document.getElementById("fonte");
-  const vozSelect   = document.getElementById("voz");
+  const vozSelect = document.getElementById("voz");
   const btnPreviewVoz = document.getElementById("preview_voz");
 
   let indiceSelecionado = null;
 
   const vozesPorFonte = {
     elevenlabs: [
-      { value: "Brian", label: "Brian (inglês)" },
-      { value: "Matilda", label: "Matilda (inglês)" },
-      { value: "Bella", label: "Bella (inglês)" },
-      { value: "Antoni", label: "Antoni (espanhol)" },
-      { value: "Elli", label: "Elli (alemão)" },
-      { value: "Helena", label: "Helena (português)" }
+      { value: "Adam", label: "Adam" },
+      { value: "Alice", label: "Alice" },
+      { value: "Antoni", label: "Antoni" },
+      { value: "Aria", label: "Aria" },
+      { value: "Arnold", label: "Arnold" },
+      { value: "Bill", label: "Bill" },
+      { value: "Brian", label: "Brian" },
+      { value: "Callum", label: "Callum" },
+      { value: "Charlie", label: "Charlie" },
+      { value: "Charlotte", label: "Charlotte" },
+      { value: "Chris", label: "Chris" },
+      { value: "Clyde", label: "Clyde" },
+      { value: "Daniel", label: "Daniel" },
+      { value: "Dave", label: "Dave" },
+      { value: "Domi", label: "Domi" },
+      { value: "Dorothy", label: "Dorothy" },
+      { value: "Drew", label: "Drew" },
+      { value: "Elli", label: "Elli" },
+      { value: "Emily", label: "Emily" },
+      { value: "Eric", label: "Eric" },
+      { value: "Ethan", label: "Ethan" },
+      { value: "Fin", label: "Fin" },
+      { value: "Freya", label: "Freya" },
+      { value: "George", label: "George" },
+      { value: "Gigi", label: "Gigi" },
+      { value: "Giovanni", label: "Giovanni" },
+      { value: "Glinda", label: "Glinda" },
+      { value: "Grace", label: "Grace" },
+      { value: "Harry", label: "Harry" },
+      { value: "James", label: "James" },
+      { value: "Jeremy", label: "Jeremy" },
+      { value: "Jessica", label: "Jessica" },
+      { value: "Jessie", label: "Jessie" },
+      { value: "Joseph", label: "Joseph" },
+      { value: "Josh", label: "Josh" },
+      { value: "Laura", label: "Laura" },
+      { value: "Liam", label: "Liam" },
+      { value: "Lily", label: "Lily" },
+      { value: "Matilda", label: "Matilda" },
+      { value: "Michael", label: "Michael" },
+      { value: "Mimi", label: "Mimi" },
+      { value: "Nicole", label: "Nicole" },
+      { value: "Patrick", label: "Patrick" },
+      { value: "Paul", label: "Paul" },
+      { value: "Rachel", label: "Rachel" },
+      { value: "River", label: "River" },
+      { value: "Roger", label: "Roger" },
+      { value: "Sam", label: "Sam" },
+      { value: "Sarah", label: "Sarah" },
+      { value: "Serena", label: "Serena" },
+      { value: "Thomas", label: "Thomas" },
+      { value: "Will", label: "Will" },
+      { value: "Papai Noel", label: "Papai Noel" }
     ],
     gemini: [
       { value: "pt-br-Hélio", label: "Hélio (português Brasil)" },
@@ -50,89 +100,62 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  fonteSelect.addEventListener("change", () => {
-    atualizarVozes(fonteSelect.value);
-  });
-
-  // Inicializar com a fonte atual
+  fonteSelect.addEventListener("change", () => atualizarVozes(fonteSelect.value));
   atualizarVozes(fonteSelect.value);
 
-  // Preview da voz selecionada
   btnPreviewVoz.addEventListener("click", () => {
     const fonte = fonteSelect.value;
     const voz = vozSelect.value;
     const path = `/static/vozes/${fonte}/${voz}.mp3`;
-
-    const audioPreview = new Audio(path);
-    audioPreview.play().catch(() => {
-      alert("❌ Amostra de voz não encontrada.");
-    });
+    new Audio(path).play().catch(() => alert("❌ Amostra de voz não encontrada."));
   });
 
-  // Duplo clique para tocar narração
-  if (lista && audio && source) {
-    lista.addEventListener("dblclick", () => {
-      const selected = lista.options[lista.selectedIndex];
-      const url = selected?.dataset?.url;
+  lista.addEventListener("dblclick", () => {
+    const selected = lista.options[lista.selectedIndex];
+    const url = selected?.dataset?.url;
+    if (url) {
+      source.src = url;
+      audio.load();
+      setTimeout(() => audio.play().catch(() => {}), 100);
+    }
+  });
 
-      if (url) {
-        source.src = url;
-        audio.load();
-        setTimeout(() => {
-          audio.play().catch((err) =>
-            console.warn("Falha ao reproduzir:", err.message)
-          );
-        }, 100);
-      }
-    });
-  }
-
-  // Clique simples: buscar texto diretamente do JSON
   lista.addEventListener("change", () => {
     const selected = lista.options[lista.selectedIndex];
     const url = selected?.dataset?.url;
     indiceSelecionado = parseInt(selected.value);
-
     if (url) {
       source.src = url;
       audio.load();
     }
-
     fetch(`/get_narracao?index=${indiceSelecionado}`)
       .then(resp => resp.json())
       .then(data => {
-        textoBox.value = data.texto || '';
+        textoBox.value = data.texto || "";
         editor.classList.remove("hidden");
       })
       .catch(() => {
-        textoBox.value = '';
+        textoBox.value = "";
         editor.classList.remove("hidden");
       });
   });
 
-  // Salvar texto no JSON (sem gerar áudio)
   btnSalvar.addEventListener("click", () => {
     const novoTexto = textoBox.value.trim();
-
-    fetch('/editar_narracao', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        index: indiceSelecionado,
-        novo_texto: novoTexto
-      })
+    fetch("/editar_narracao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ index: indiceSelecionado, novo_texto: novoTexto })
     })
       .then(resp => resp.json())
       .then(data => {
-        if (data.status === 'ok') {
+        if (data.status === "ok") {
           const msg = document.createElement("div");
           msg.textContent = "✅ Texto salvo com sucesso!";
           msg.className = "mt-2 text-green-600 font-semibold";
           editor.appendChild(msg);
           setTimeout(() => msg.remove(), 3000);
-
-          lista.options[indiceSelecionado].textContent =
-            `Narração ${indiceSelecionado + 1} – ${novoTexto.slice(0, 60)}${novoTexto.length > 60 ? '...' : ''}`;
+          lista.options[indiceSelecionado].textContent = `Narração ${indiceSelecionado + 1} – ${novoTexto.slice(0, 60)}${novoTexto.length > 60 ? "..." : ""}`;
         } else {
           alert("❌ Erro ao salvar.");
         }
@@ -140,10 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(() => alert("❌ Erro na comunicação com o servidor."));
   });
 
-  // Habilita e desabilita campos de índice
-  const radios = document.querySelectorAll('input[name="scope"]');
-
-  radios.forEach((radio) => {
+  document.querySelectorAll('input[name="scope"]').forEach(radio => {
     radio.addEventListener("change", () => {
       singleInput.disabled = radio.value !== "single";
       fromInput.disabled = radio.value !== "from";
@@ -151,7 +171,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Geração de narrações
   if (btnGerar) {
     btnGerar.addEventListener("click", () => {
       const scope = document.querySelector('input[name="scope"]:checked')?.value;
@@ -172,53 +191,41 @@ document.addEventListener("DOMContentLoaded", () => {
         query += `&custom_indices=${lista}`;
       }
 
-      fill.style.width = "0%";
       logArea.textContent = "🎤 Iniciando geração de narrações...\n";
+      barraIndeterminada.classList.remove("hidden");
 
-      const source = new EventSource("/narracao_stream?" + query);
-      let count = 0;
-
-      source.onmessage = (event) => {
-        const linha = event.data;
-        logArea.textContent += linha + "\n";
+      const stream = new EventSource("/narracao_stream?" + query);
+      stream.onmessage = (event) => {
+        logArea.textContent += event.data + "\n";
         logArea.scrollTop = logArea.scrollHeight;
 
-        if (linha.includes("Narração") || linha.includes("salva") || linha.includes("gerada")) {
-          count++;
-          fill.style.width = Math.min(5 + count * 10, 100) + "%";
-        }
-
-        if (linha.includes("✅ Geração de narrações finalizada") || linha.includes("🔚 Fim do processo")) {
-          fill.style.width = "100%";
-          source.close();
+        if (event.data.includes("✅ Geração de narrações finalizada") || event.data.includes("🔚 Fim do processo")) {
+          barraIndeterminada.classList.add("hidden");
+          stream.close();
         }
       };
-
-      source.onerror = () => {
+      stream.onerror = () => {
         logArea.textContent += "❌ Erro no servidor ou conexão encerrada.\n";
-        source.close();
+        barraIndeterminada.classList.add("hidden");
+        stream.close();
       };
     });
   }
 
-  // Remover silêncio dos áudios
   if (btnRemover && silencioMin) {
     btnRemover.addEventListener("click", () => {
       const valor = silencioMin.value || "0.3";
       logArea.textContent += `🧹 Removendo silêncio com mínimo de ${valor}s...\n`;
-
       fetch(`/remover_silencio?min_silence=${valor}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.status === "ok") {
-            logArea.textContent += `✅ Silêncios removidos de ${data.arquivos} arquivos.\n`;
+            logArea.textContent += `✅ Silências removidos de ${data.arquivos} arquivos.\n`;
           } else {
             logArea.textContent += `❌ Erro: ${data.error}\n`;
           }
         })
-        .catch((err) => {
-          logArea.textContent += `❌ Erro na requisição: ${err}\n`;
-        });
+        .catch((err) => logArea.textContent += `❌ Erro na requisição: ${err}\n`);
     });
   }
 });

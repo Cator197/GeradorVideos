@@ -166,7 +166,7 @@ def run_juntar_cenas(
                 merged.extend([first, second])
 
         print("[CONCAT] concatenando...")
-        final = concatenate_videoclips(merged, method="compose")
+        final = concatenate_videoclips(merged)
         logs.append(f"🎞️ {len(clips)} cenas juntadas")
 
         # Trilha sonora
@@ -192,7 +192,6 @@ def run_juntar_cenas(
             out,
             fps=24,
             codec="libx264",
-            threads=24,
             preset="ultrafast",
             audio_codec="aac",
             logger=None

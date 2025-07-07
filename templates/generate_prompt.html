@@ -3,31 +3,66 @@
 {% block content %}
 <div class="bg-white rounded-xl shadow p-6 space-y-6">
 
-    <!-- Nome do vídeo final -->
+  <!-- Nome do vídeo final -->
   <div>
     <label for="nome_video_prompt" class="font-semibold block mb-2 text-slate-700">Nome do vídeo final:</label>
     <input type="text" id="nome_video_prompt" placeholder="Ex: historia_motivacional" class="w-full p-3 border rounded shadow-sm">
   </div>
 
-  <!-- Prompt inicial -->
-  <div>
-    <label for="initial_prompt_video" class="font-semibold block mb-2 text-slate-700">Prompt inicial:</label>
-    <textarea id="initial_prompt_video" placeholder="Digite seu prompt aqui..." class="w-full h-80 p-3 border rounded resize-y shadow-sm"></textarea>
+  <!-- Lista de Cenas -->
+  <div id="lista_cenas" class="space-y-6">
+    <!-- Cena 1 (exemplo inicial) -->
+    <div class="cena bg-gray-50 p-4 rounded-lg shadow-sm space-y-4 border border-slate-200">
+      <h3 class="font-semibold text-slate-800">Cena 1</h3>
+
+      <div>
+        <label class="block font-medium text-sm text-slate-700 mb-1">Imagem:</label>
+        <textarea class="campo-imagem w-full p-2 border rounded shadow-sm resize-y" rows="1"></textarea>
+      </div>
+
+      <div>
+        <label class="block font-medium text-sm text-slate-700 mb-1">Narração:</label>
+        <textarea class="campo-narracao w-full p-2 border rounded shadow-sm resize-y" rows="1"></textarea>
+      </div>
+    </div>
   </div>
 
-
-
-  <!-- Botão para processar prompt -->
+  <!-- Botão para adicionar cena -->
   <div class="text-center">
-    <button id="processar_prompt_video" type="button" class="bg-blue-600 hover:bg-blue-700 text-white text-md px-6 py-2 rounded shadow">
-      ✨ Processar Prompt
+    <button id="adicionar_cena" type="button" class="text-blue-600 font-semibold hover:underline">
+      ➕ Adicionar nova cena
     </button>
   </div>
 
+  <!-- Botões de ação -->
+  <div class="text-center space-x-4 mt-6">
+    <button id="processar_prompt_video" type="button" class="bg-blue-600 hover:bg-blue-700 text-white text-md px-6 py-2 rounded shadow">
+      ✨ Processar Prompt
+    </button>
 
+    <button id="abrir_modal_prompt_formatado" type="button" class="bg-purple-600 hover:bg-purple-700 text-white text-md px-6 py-2 rounded shadow">
+      📄 Prompt formatado
+    </button>
+  </div>
+</div>
+
+<!-- Modal Prompt Formatado -->
+<div id="modal_prompt_formatado" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-xl p-6 max-w-3xl w-full relative shadow-lg">
+    <button id="fechar_modal_prompt" class="absolute top-3 right-4 text-gray-500 text-2xl hover:text-black">&times;</button>
+    <h2 class="text-xl font-bold mb-4 text-gray-800">📄 Prompt já formatado</h2>
+
+    <textarea id="campo_prompt_formatado" placeholder="Cole aqui o conteúdo do prompt completo..." class="w-full h-80 p-3 border rounded resize-y shadow-sm"></textarea>
+
+    <div class="text-right mt-4">
+      <button id="enviar_prompt_formatado" type="button" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded shadow">
+        ✅ Enviar
+      </button>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/generate_prompt.js') }}"></script>
 {% endblock %}
-

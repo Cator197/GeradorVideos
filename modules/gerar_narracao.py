@@ -16,12 +16,12 @@ def get_paths():
     """Obtém os diretórios utilizados para salvar arquivos de áudio e cenas."""
     base = get_config("pasta_salvar") or os.getcwd()
     # Diretório da pasta modules (onde está este arquivo)
-    BASE_DIR=os.path.dirname(os.path.abspath(__file__))
-    ARQUIVO_JSON=os.path.join(BASE_DIR, "cenas.json")
+    BASE_DIR=os.path.join(os.getcwd(), "cenas.json")
+    ARQUIVO_JSON=os.path.join(os.getcwd(), "cenas.json")
     return {
         "base": base,
         "audios": os.path.join(base, "audios_narracoes"),
-        "cenas": os.path.join(BASE_DIR, "cenas.json"),
+        "cenas": os.path.join(os.getcwd(), "cenas.json"),
     }
 
 
@@ -65,33 +65,33 @@ def login(driver, voz="Brian"):
     wait.until(EC.url_contains("/text-to-speech"))
 
     try:
-        print("Clicando em: Get started")
+        #print("Clicando em: Get started")
         esperar(driver, "//button[normalize-space()='Get started']", clickable=True, timeout=5).click()
     except:
         pass
 
-    print("Clicando em: Select voice")
+    #print("Clicando em: Select voice")
     esperar(driver, "//button[starts-with(@aria-label, 'Select voice')]", clickable=True).click()
 
-    print(f"Escrevendo: {voz}")
+    #print(f"Escrevendo: {voz}")
     esperar(driver, '//input[@placeholder="Search voices..."]').send_keys(voz)
 
     time.sleep(2)
 
     try:
-        print("verificando se tem voz escrita")
+        #print("verificando se tem voz escrita")
         nome_voz = esperar(driver, f'//p/span[contains(text(), "{voz}")]', timeout=5).text.strip()
         if nome_voz.lower() != voz.lower():
             print(f"⚠️ Voz encontrada diferente: {nome_voz}")
     except:
         print(f"❌ Voz '{voz}' não encontrada")
 
-    print("selecionando voz")
+    #print("selecionando voz")
     esperar(driver, f'//p/span[contains(text(), "{voz}")]', clickable=True).click()
 
-    print("clicar no seletor de modelo")
+    #print("clicar no seletor de modelo")
     esperar(driver, "//button[starts-with(@aria-label, 'Select model')]", clickable=True).click()
-    print("selecionando V2")
+    #print("selecionando V2")
     esperar(driver, '//button[@value="eleven_multilingual_v2"]', clickable=True).click()
     time.sleep(3)
 

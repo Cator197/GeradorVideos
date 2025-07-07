@@ -5,12 +5,23 @@ import json
 import re
 from modules.config import get_config
 
+
 # Diretório da pasta modules (onde está este arquivo)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PASTA_RAIZ = os.path.dirname(BASE_DIR)
 
 # Caminho para o .txt e saída padrão JSON
-ARQUIVO_TXT = os.path.join(BASE_DIR, "prompts.txt")
-ARQUIVO_JSON = os.path.join(BASE_DIR, "cenas.json")
+ARQUIVO_TXT = os.path.join(PASTA_RAIZ, "prompts.txt")
+ARQUIVO_JSON = os.path.join(PASTA_RAIZ, "cenas.json")
+
+# # Garante que o arquivo prompts.txt exista
+# if not os.path.exists(ARQUIVO_TXT):
+#     with open(ARQUIVO_TXT, "w", encoding="utf-8") as f:
+#         f.write("")
+#
+# if not os.path.exists(ARQUIVO_JSON):
+#     with open(ARQUIVO_JSON, "w", encoding="utf-8") as f:
+#         json.dump([], f, ensure_ascii=False, indent=4)
 
 def salvar_prompt_txt(conteudo, caminho=ARQUIVO_TXT):
     """Salva o conteúdo de prompts em um arquivo de texto."""
@@ -71,7 +82,7 @@ def limpar_pastas_de_saida():
         os.path.join(base, "legendas_srt"),
         os.path.join(base, "videos_cenas")
     ]
-    arquivo_json = os.path.join(base, "cenas_com_imagens.json")
+    arquivo_json = os.path.join(os.getcwd(), "cenas_com_imagens.json")
 
     for pasta in pastas:
         if os.path.exists(pasta):

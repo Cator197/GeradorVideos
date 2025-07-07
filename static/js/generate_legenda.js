@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const log = document.getElementById("log");
-  const fill = document.getElementById("progress_fill");
+  const barra = document.getElementById("barra_indeterminada");
   const btn = document.getElementById("generate_legendas");
 
   const radios = document.querySelectorAll('input[name="scope"]');
@@ -38,6 +38,14 @@ document.addEventListener("DOMContentLoaded", () => {
     "animacao-fade", "animacao-karaoke", "animacao-zoom", "animacao-deslizar",
     "animacao-piscar", "animacao-pulsar"
   ];
+
+  function iniciarProgresso() {
+    barra.classList.remove("hidden");
+  }
+
+  function pararProgresso() {
+    barra.classList.add("hidden");
+  }
 
   function atualizarPreview() {
     const estiloSelecionado = `estilo-${estilo.value}`;
@@ -79,29 +87,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   tipoLegenda.addEventListener("change", () => {
     const valor = tipoLegenda.value;
-    if (valor === "ass") {
-      configASS.classList.remove("hidden");
-      configSRT.classList.add("hidden");
-    } else if (valor === "srt") {
-      configASS.classList.add("hidden");
-      configSRT.classList.remove("hidden");
-    } else {
-      configASS.classList.add("hidden");
-      configSRT.classList.add("hidden");
-    }
+    configASS.classList.toggle("hidden", valor !== "ass");
+    configSRT.classList.toggle("hidden", valor !== "srt");
   });
 
   if (btn) {
     btn.addEventListener("click", () => {
       const tipo = tipoLegenda.value;
-
-      if (!tipo) {
-        alert("Selecione o tipo de legenda antes de continuar.");
-        return;
-      }
+      if (!tipo) return alert("Selecione o tipo de legenda antes de continuar.");
 
       const scope = document.querySelector('input[name="scope"]:checked')?.value;
-
       const payload = {
         scope,
         single_index: parseInt(singleInput.value) || null,
@@ -109,7 +104,6 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       let endpoint = "";
-
       if (tipo === "ass") {
         endpoint = "/legendas_ass";
         Object.assign(payload, {
@@ -127,30 +121,28 @@ document.addEventListener("DOMContentLoaded", () => {
         payload.qtde_palavras = parseInt(qtdePalavras.value);
       }
 
+      iniciarProgresso();
       log.textContent = "📝 Enviando para geração de legendas...\n";
-      fill.style.width = "0%";
 
       fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       })
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            log.textContent += `❌ Erro: ${data.error}\n`;
-          } else {
-            data.logs.forEach((linha, i) => {
-              log.textContent += linha + "\n";
-              fill.style.width = Math.min(10 + i * 10, 100) + "%";
-            });
-            log.textContent += `✅ Legendas ${tipo.toUpperCase()} geradas com sucesso!\n`;
-            fill.style.width = "100%";
-          }
-        })
-        .catch(err => {
-          log.textContent += `❌ Falha na solicitação: ${err}\n`;
-        });
+      .then(res => res.json())
+      .then(data => {
+        pararProgresso();
+        if (data.error) {
+          log.textContent += `❌ Erro: ${data.error}\n`;
+        } else {
+          data.logs.forEach(linha => log.textContent += linha + "\n");
+          log.textContent += `✅ Legendas ${tipo.toUpperCase()} geradas com sucesso!\n`;
+        }
+      })
+      .catch(err => {
+        pararProgresso();
+        log.textContent += `❌ Falha na solicitação: ${err}\n`;
+      });
     });
   }
 
@@ -168,27 +160,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   btnSalvar.addEventListener("click", () => {
     const novoTexto = textoBox.value.trim();
-
     fetch('/editar_legenda', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        index: indiceSelecionado,
-        novo_texto: novoTexto
-      })
+      body: JSON.stringify({ index: indiceSelecionado, novo_texto: novoTexto })
     })
-      .then(resp => resp.json())
-      .then(data => {
-        if (data.status === 'ok') {
-          const msg = document.createElement("div");
-          msg.textContent = "✅ Legenda salva!";
-          msg.className = "mt-2 text-green-600 font-semibold";
-          editor.appendChild(msg);
-          setTimeout(() => msg.remove(), 3000);
+    .then(resp => resp.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        const msg = document.createElement("div");
+        msg.textContent = "✅ Legenda salva!";
+        msg.className = "mt-2 text-green-600 font-semibold";
+        editor.appendChild(msg);
+        setTimeout(() => msg.remove(), 3000);
 
-          listaLegenda.options[indiceSelecionado].textContent =
-            `Legenda ${indiceSelecionado + 1} – ${novoTexto.slice(0, 60)}${novoTexto.length > 60 ? '...' : ''}`;
-        }
-      });
+        listaLegenda.options[indiceSelecionado].textContent =
+          `Legenda ${indiceSelecionado + 1} – ${novoTexto.slice(0, 60)}${novoTexto.length > 60 ? '...' : ''}`;
+      }
+    });
   });
 });

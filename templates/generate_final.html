@@ -16,7 +16,9 @@
             <div class="text-sm h-16 overflow-hidden text-gray-600">
               {{ cena.narracao[:60] if cena.narracao else '[sem texto]' }}
             </div>
+
             <div class="mt-2 space-y-2">
+              <!-- Efeito -->
               <label for="efeito_{{ loop.index0 }}" class="block text-xs font-semibold text-gray-500">Efeito:</label>
               <select id="efeito_{{ loop.index0 }}" name="efeito_{{ loop.index0 }}" class="w-full text-xs border rounded efeito-select">
                 <option value="">Nenhum</option>
@@ -26,8 +28,22 @@
                 <option value="escurecer">Escurecer</option>
               </select>
               <div id="config_efeito_{{ loop.index0 }}" class="hidden config-efeito"></div>
+
+              <!-- Legenda -->
+              <label class="block text-xs font-semibold text-gray-500 mt-3">
+                <input type="checkbox" name="usar_legenda_{{ loop.index0 }}" class="mr-2 usar-legenda-checkbox">
+                Inserir legenda nesta cena
+              </label>
+
+              <label for="posicao_legenda_{{ loop.index0 }}" class="block text-xs font-semibold text-gray-500">Posição da legenda:</label>
+              <select id="posicao_legenda_{{ loop.index0 }}" name="posicao_legenda_{{ loop.index0 }}" class="w-full text-xs border rounded legenda-posicao-select" disabled>
+                <option value="inferior" selected>Inferior</option>
+                <option value="central">Centralizada</option>
+                <option value="superior">Superior</option>
+              </select>
             </div>
           </div>
+
           <!-- Transição -->
           {% if not loop.last %}
           <div class="flex flex-col items-center justify-center w-1/3 transition-col">
@@ -54,12 +70,25 @@
         </div>
         {% endfor %}
       </div>
-      <div class="mt-4">
-        <label class="inline-flex items-center">
-          <input type="checkbox" id="aplicar_todas" class="mr-2">
-          Aplicar efeitos a todas as cenas
-        </label>
+      <!-- Controle de geração das cenas -->
+      <div class="border border-blue-200 p-4 rounded-xl bg-blue-50 space-y-3">
+        <h3 class="font-semibold text-lg text-blue-800">🎬 Geração das Cenas Individuais</h3>
+        <div class="flex items-center gap-4 flex-wrap">
+          <label class="flex items-center gap-2 text-sm">
+            <input type="radio" name="scope_cena" value="all" checked>
+            Todas as cenas
+          </label>
+          <label class="flex items-center gap-2 text-sm">
+            <input type="radio" name="scope_cena" value="single">
+            Apenas uma cena:
+          </label>
+          <input type="number" id="input_single_idx" class="border rounded px-2 py-1 text-sm w-24" min="1" placeholder="Nº da cena" disabled>
+          <button id="btn_gerar_cenas" type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm">
+            🧩 Gerar Cenas
+          </button>
+        </div>
       </div>
+
     </div>
 
     <!-- Painel de Configurações Gerais -->
@@ -77,9 +106,6 @@
           <button id="btn_gerar_video" type="button" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow">
             🎬 Gerar Vídeo Final
           </button>
-          <button id="btn_gerar_capcut" type="button" class="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded shadow">
-            Exportar para CapCut
-          </button>
         </div>
       </div>
 
@@ -92,9 +118,7 @@
           <pre id="log"></pre>
         </div>
       </div>
-
     </div>
-
   </form>
 </div>
 
@@ -112,4 +136,17 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/generate_final.js') }}"></script>
+<script>
+  // Habilita/desabilita posição da legenda com base no checkbox
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.usar-legenda-checkbox').forEach((checkbox, idx) => {
+      checkbox.addEventListener('change', () => {
+        const select = document.querySelector(`#posicao_legenda_${idx}`);
+        if (select) {
+          select.disabled = !checkbox.checked;
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}

@@ -4,8 +4,97 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT antes de iniciar funções de instalador e ativação">
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT durante de iniciar funções de instalador e ativação -">
+      <change afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Adam.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Alice.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Antoni.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Aria.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Arnold.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Bill.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Brian.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Callum.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Charlie.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Charlotte.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Chris.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Clyde.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Daniel.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Dave.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Domi.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Dorothy.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Drew.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Elli.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Emily.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Eric.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Ethan.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Fin.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Freya.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/George.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Gigi.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Giovanni.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Glinda.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Grace.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Harry.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/James.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Jeremy.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Jessica.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Jessie.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Joseph.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Josh.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Laura.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Liam.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Lily.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Matilda.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Michael.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Mimi.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Nicole.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Papai Noel.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Patrick.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Paul.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Rachel.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/River.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Roger.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Sam.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Sarah.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Serena.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Thomas.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Will.mp3" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/arquivado/02.gerar_animacao.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/arquivado/03.gerar_narracao.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/arquivado/04.gerar_falas.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/arquivado/05.gerar_lipsync.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/arquivado/06.inserir_efeitos.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/arquivado/07.gerar_trilha.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/arquivado/08.gerar_legendas.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/arquivado/09.exportar_srt.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/arquivado/10.montar_cenas.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/arquivado/11.juntar_cenas.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/cenas.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_ASS.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_ASS.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_SRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_SRT.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_imagens.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_imagens.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/juntar_cenas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/modulos_testes/audios_narracoes/exemplo.mp3" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/modulos_testes/preview_legendas_ffmpeg.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/modulos_testes/teste_combinacoes_legenda.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/modulos_testes/teste_ffmpeg_legenda_ass.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/parser_prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/parser_prompts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/teste_google_tts.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_final.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_final.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_imagem.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_imagem.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_legenda.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_legenda.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_narracao.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_narracao.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/novo_prompt.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/novo_prompt.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_final.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_final.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_imagem.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_imagem.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_legenda.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_legenda.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_narracao.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_narracao.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_prompt.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_prompt.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,52 +135,53 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;Python.00.parser_prompts.executor&quot;: &quot;Run&quot;,
-    &quot;Python.01.gerar_imagens.executor&quot;: &quot;Run&quot;,
-    &quot;Python.02.gerar_animacao.executor&quot;: &quot;Run&quot;,
-    &quot;Python.03.gerar_narracao.executor&quot;: &quot;Run&quot;,
-    &quot;Python.adicionar_marcadagua.executor&quot;: &quot;Run&quot;,
-    &quot;Python.app.executor&quot;: &quot;Run&quot;,
-    &quot;Python.gerar_SRT.executor&quot;: &quot;Run&quot;,
-    &quot;Python.gerar_imagens (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.gerar_imagens.executor&quot;: &quot;Run&quot;,
-    &quot;Python.gerar_narracao.executor&quot;: &quot;Run&quot;,
-    &quot;Python.juntar_cenas.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.montar_cenas.executor&quot;: &quot;Run&quot;,
-    &quot;Python.parser_prompts.executor&quot;: &quot;Run&quot;,
-    &quot;Python.preview_legendas_ffmpeg.executor&quot;: &quot;Run&quot;,
-    &quot;Python.teste_combinacoes_legenda.executor&quot;: &quot;Run&quot;,
-    &quot;Python.teste_ffmpeg_legenda_ass.executor&quot;: &quot;Run&quot;,
-    &quot;Python.teste_google_tts.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/PycharmProjects/geradorVideo/modules&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "Python.00.parser_prompts.executor": "Run",
+    "Python.01.gerar_imagens.executor": "Run",
+    "Python.02.gerar_animacao.executor": "Run",
+    "Python.03.gerar_narracao.executor": "Run",
+    "Python.adicionar_marcadagua.executor": "Run",
+    "Python.app.executor": "Run",
+    "Python.gerar_SRT.executor": "Run",
+    "Python.gerar_imagens (1).executor": "Run",
+    "Python.gerar_imagens.executor": "Run",
+    "Python.gerar_narracao.executor": "Run",
+    "Python.juntar_cenas.executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.montar_cenas.executor": "Run",
+    "Python.parser_prompts.executor": "Run",
+    "Python.preview_legendas_ffmpeg.executor": "Run",
+    "Python.run.executor": "Run",
+    "Python.teste_combinacoes_legenda.executor": "Run",
+    "Python.teste_ffmpeg_legenda_ass.executor": "Run",
+    "Python.teste_google_tts.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "D:/PycharmProjects/geradorVideo/static/vozes/elevenlabs",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\PycharmProjects\geradorVideo\static\vozes\elevenlabs" />
+      <recent name="D:\PycharmProjects\geradorVideo" />
       <recent name="D:\PycharmProjects\geradorVideo\modules" />
       <recent name="D:\PycharmProjects\geradorVideo\static\img" />
-      <recent name="D:\PycharmProjects\geradorVideo" />
       <recent name="D:\PycharmProjects\geradorVideo\templates" />
-      <recent name="D:\PycharmProjects\geradorVideo\modules\audios_narracoes" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\PycharmProjects\geradorVideo" />
       <recent name="D:\PycharmProjects\geradorVideo\modules\fonts" />
       <recent name="D:\PycharmProjects\geradorVideo\modules\modulos_testes\audios_narracoes" />
       <recent name="D:\PycharmProjects\geradorVideo\modules\modulos_testes" />
       <recent name="D:\PycharmProjects\geradorVideo\static\img" />
-      <recent name="D:\PycharmProjects\geradorVideo\modules" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.app">
+  <component name="RunManager" selected="Python.run">
     <configuration name="app" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="geradorVideo" />
       <option name="ENV_FILES" value="" />
@@ -106,28 +196,6 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/app.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="gerar_SRT" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="geradorVideo" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/modules" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/modules/gerar_SRT.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -180,6 +248,28 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="run" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="geradorVideo" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/run.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="teste_google_tts" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="geradorVideo" />
       <option name="ENV_FILES" value="" />
@@ -204,11 +294,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.run" />
         <item itemvalue="Python.app" />
         <item itemvalue="Python.parser_prompts" />
         <item itemvalue="Python.gerar_narracao" />
         <item itemvalue="Python.teste_google_tts" />
-        <item itemvalue="Python.gerar_SRT" />
       </list>
     </recent_temporary>
   </component>
@@ -372,7 +462,15 @@
       <option name="project" value="LOCAL" />
       <updated>1751481737770</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="COMMIT durante de iniciar funções de instalador e ativação -">
+      <option name="closed" value="true" />
+      <created>1751502386257</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1751502386257</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -429,6 +527,7 @@
     <MESSAGE value="COMMIT antes de alterações de legendas" />
     <MESSAGE value="COMMIT antes de alterações de legendas v2" />
     <MESSAGE value="COMMIT antes de iniciar funções de instalador e ativação" />
-    <option name="LAST_COMMIT_MESSAGE" value="COMMIT antes de iniciar funções de instalador e ativação" />
+    <MESSAGE value="COMMIT durante de iniciar funções de instalador e ativação -" />
+    <option name="LAST_COMMIT_MESSAGE" value="COMMIT durante de iniciar funções de instalador e ativação -" />
   </component>
 </project>

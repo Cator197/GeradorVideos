@@ -23,7 +23,7 @@ def get_paths():
     """Obtém os diretórios utilizados para salvar arquivos de áudio e cenas."""
     base = get_config("pasta_salvar") or os.getcwd()
     # Diretório da pasta modules (onde está este arquivo)
-    BASE_DIR=os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     ARQUIVO_JSON=os.path.join(BASE_DIR, "cenas.json")
     return {
         "audios": os.path.join(base, "audios_narracoes"),

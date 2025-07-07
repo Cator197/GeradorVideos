@@ -72,14 +72,17 @@ def processar_prompt():
             if "narracao" in cena and "legenda" not in cena:
                 cena["legenda"] = cena["narracao"]
 
+
+
         # Salva o cenas.json
-        cenas_path = os.path.join("modules", "cenas.json")
+        cenas_path = os.path.join(os.getcwd(),"cenas.json")
+        #print(cenas_path)
         with open(cenas_path, "w", encoding="utf-8") as f:
             import json
             json.dump(cenas, f, ensure_ascii=False, indent=4)
 
         # Salvar nome do vídeo
-        with open(os.path.join("modules", "ultimo_nome_video.txt"), "w", encoding="utf-8") as f:
+        with open(os.path.join(os.getcwd(),"ultimo_nome_video.txt"), "w", encoding="utf-8") as f:
             f.write(nome_video)
         limpar_pastas_saida()
         return jsonify({"status": "ok"})
@@ -95,7 +98,7 @@ from modules.gerar_imagens import run_gerar_imagens, calcular_indices, gerar_eve
 
 @app.route("/imagens", methods=["GET"])
 def imagens_page():
-    path = os.path.join(app.root_path, "modules", "cenas.json")
+    path = os.path.join(os.getcwd(),"cenas.json")
     with open(path, encoding="utf-8") as f:
         cenas = json.load(f)
 
@@ -120,13 +123,13 @@ def imagens_page():
 @app.route("/imagens", methods=["POST"])
 def imagens_run():
     """Endpoint que inicia a geração das imagens."""
-    print("[ROTA] POST /imagens")
+    #("[ROTA] POST /imagens")
     scope     = request.form.get("scope", "all")
     single    = request.form.get("single_index", type=int)
     start     = request.form.get("from_index", type=int)
     selected  = request.form.get("selected_indices")
 
-    path = os.path.join(app.root_path, "modules", "cenas.json")
+    path = os.path.join(os.getcwd(),"cenas.json")
     with open(path, encoding="utf-8") as f:
         total = len(json.load(f))
 
@@ -156,7 +159,7 @@ def serve_module_images(filename):
 @app.route("/imagens_stream", methods=["GET"])
 def imagens_stream():
     """Fluxo SSE de geração de imagens."""
-    print("[ROTA] GET /imagens_stream")
+    #print("[ROTA] GET /imagens_stream")
     scope    = request.args.get("scope", "all")
     single   = request.args.get("single_index", type=int)
     start    = request.args.get("from_index", type=int)
@@ -268,12 +271,12 @@ from modules import gerar_narracao
 @app.route("/generate_narracao")
 def generate_narracao():
     """Exibe a tela de geração de narrações."""
-    path = os.path.join(app.root_path, "modules", "cenas.json")
+    path = os.path.join(os.getcwd(),"cenas.json")
     if not os.path.exists(path):
         return "Arquivo cenas.json não encontrado", 500
     with open(path, "r", encoding="utf-8") as f:
         cenas = json.load(f)
-    return render_template("generate_narracao.html", cenas=cenas)
+    return render_template("generate_narracao.html",page_title="Gerar Narração", cenas=cenas)
 
 
 @app.route("/narracoes", methods=["POST"])
@@ -389,7 +392,7 @@ def serve_module_audio(filename):
 @app.route("/editar_narracao", methods=["POST"])
 def editar_narracao():
     data = request.get_json()
-    print("🚨 Dados recebidos:", data)  # 👈 Adicione isso
+    #print("🚨 Dados recebidos:", data)  # 👈 Adicione isso
     index = int(data["index"])
     novo = data["novo_texto"]
 
@@ -452,7 +455,7 @@ def generate_legenda():
     with open(path["cenas"], "r", encoding="utf-8") as f:
         cenas = json.load(f)
 
-    return render_template("generate_legenda.html", cenas=cenas)
+    return render_template("generate_legenda.html", page_title="Gerar Legendas", cenas=cenas)
 
 
 @app.route("/legendas_ass", methods=["POST"])
@@ -682,7 +685,7 @@ def generate_final():
     try:
         with open(path, "r", encoding="utf-8") as f:
             cenas = json.load(f)
-        return render_template("generate_final.html", cenas=cenas)
+        return render_template("generate_final.html", page_title="Gerar Video Final", cenas=cenas)
     except json.JSONDecodeError:
         return "Erro ao ler o arquivo JSON de cenas", 500
 
@@ -800,7 +803,7 @@ def preview_video(idx):
     base      = get_config("pasta_salvar") or "default"
     video_path = os.path.join(base, "videos_cenas", f"video{idx+1}.mp4")
     print(f"video{idx+1}.mp4")
-    print(video_path)
+    #print(video_path)
     if not os.path.isfile(video_path):
         return "Vídeo não encontrado", 404
     return send_file(video_path, mimetype='video/mp4')
@@ -955,14 +958,36 @@ def obter_configuracoes():
 
 @app.route("/salvar_config", methods=["POST"])
 def salvar_configuracoes():
-    """Persiste as configurações enviadas pelo frontend."""
+    """Persiste as configurações enviadas pelo frontend e garante subpastas."""
     dados = request.get_json()
-    print("📝 Config recebido do front-end:", dados)
+    #print("📝 Config recebido do front-end:", dados)
+
     try:
+        # Salva a configuração criptografada
         salvar_config(dados)
-        app.config['USUARIO_CONFIG']=dados  # Atualiza em tempo real
+        app.config['USUARIO_CONFIG'] = dados  # Atualiza config em tempo real
         print("🔐 Gravado com sucesso.")
+
+        # Verifica se foi fornecido o caminho da pasta de salvamento
+        pasta_salvar = dados.get("pasta_salvar")
+        if pasta_salvar:
+            subpastas = [
+                "imagens",
+                "audios_narracoes",
+                "legendas_ass",
+                "legendas_srt",
+                "videos_cenas",
+                "videos_final"
+            ]
+            for nome in subpastas:
+                caminho = os.path.join(pasta_salvar, nome)
+                os.makedirs(caminho, exist_ok=True)
+            print("📁 Pastas de salvamento verificadas/criadas com sucesso.")
+        else:
+            print("⚠️ Nenhum caminho de pasta_salvar fornecido.")
+
         return jsonify({"status": "ok"})
+
     except Exception as e:
         print("❌ Erro ao salvar config:", e)
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
@@ -999,6 +1024,28 @@ def limpar_pastas_saida():
                 if os.path.isfile(caminho):
                     os.remove(caminho)
 
-if __name__ == "__main__":
-    verify_license()
-    app.run(debug=True, port=5000)
+@app.before_request
+def checar_configuracao():
+    caminho = request.path
+
+    # Lista de rotas que não precisam da config (evita loop)
+    rotas_livres = ["/api/configuracoes", "/selecionar_pasta", "/configuracoes", "/salvar_config", "/static/", "/favicon.ico"]
+
+    # Permitir se a rota está liberada
+    if any(caminho.startswith(r) for r in rotas_livres):
+        return
+
+    # Verifica se a pasta de salvamento foi configurada
+    pasta = get_config("pasta_salvar")
+
+    if not pasta or not os.path.exists(pasta):
+        print("🔒 Redirecionando: configuração não encontrada ou pasta inválida")
+        return redirect(url_for("pagina_configuracoes"))  # Use o nome correto da view
+
+
+
+
+
+# if __name__ == "__main__":
+#   verify_license()
+#     app.run(debug=True, port=5000)

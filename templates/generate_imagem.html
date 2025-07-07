@@ -21,13 +21,9 @@
             Imagem {{ numero }} – {{ cena.prompt_imagem }}
             {% if not arquivo %}(⚠️ não gerada){% endif %}
           </option>
-        {% endfor %}
+          {% endfor %}
         </select>
       </div>
-
-
-
-
 
       <!-- Painel de Configurações -->
       <div class="bg-slate-50 border border-gray-200 rounded-lg p-4 shadow-sm space-y-4">
@@ -45,7 +41,7 @@
             <input type="number" name="from_index" id="from_index" min="1" placeholder="nº"
                    class="w-20 border rounded p-1" disabled>
           </label>
-                    <label class="block">
+          <label class="block">
             <input type="radio" name="scope" value="selected"> Somente os números digitados abaixo
           </label>
           <input type="text" name="selected_indices" id="selected_indices"
@@ -60,9 +56,10 @@
       </div>
     </div>
 
-    <!-- Barra de Progresso -->
-    <div class="w-full bg-gray-200 rounded-full h-4">
-      <div id="progress_fill" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+
+    <div id="barra_indeterminada" class="material-progress hidden">
+      <div class="bar bar1"></div>
+      <div class="bar bar2"></div>
     </div>
 
     <!-- Log -->
@@ -83,41 +80,51 @@
 
 <!-- MODAL DE EDIÇÃO -->
 <div id="modal_edicao" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
-  <div class="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full space-y-4 relative">
+  <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-5xl relative">
     <button id="fechar_edicao" class="absolute top-2 right-3 text-xl text-gray-500 hover:text-black">&times;</button>
-    <h2 class="text-xl font-semibold text-gray-800">✏️ Editar Prompt da Imagem</h2>
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">✏️ Editar Prompt da Imagem</h2>
 
-    <img id="preview_edicao" class="w-full max-h-64 object-contain rounded border hidden" />
-    <video id="preview_video_edicao" class="w-full max-h-64 object-contain rounded border hidden" controls></video>
-
-    <label for="campo_prompt_edicao" class="block text-sm text-gray-700 font-medium">Prompt:</label>
-    <textarea id="campo_prompt_edicao" rows="4" class="w-full border rounded p-2 font-mono text-sm"></textarea>
-
-    <!-- Feedback -->
-    <div id="status_geracao" class="text-sm text-blue-600 font-medium hidden">⏳ Gerando nova imagem, aguarde...</div>
-
-    <div class="flex flex-col gap-3 pt-4">
-      <div class="flex justify-between gap-4">
-        <button id="salvar_prompt" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow w-full">
-          💾 Salvar Apenas o Prompt
-        </button>
-        <button id="substituir_imagem" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow w-full">
-          🔄 Gerar Nova Imagem
-        </button>
+    <!-- Estrutura lateral: imagem à esquerda, campos à direita -->
+    <div class="flex flex-row gap-6">
+      <!-- Lado esquerdo: imagem/vídeo -->
+      <div class="w-3/5">
+        <img id="preview_edicao" class="w-full max-h-[480px] object-contain rounded border hidden" />
+        <video id="preview_video_edicao" class="w-full max-h-[480px] object-contain rounded border hidden" controls></video>
+        <img id="preview_upload" src="" class="hidden w-full max-h-[320px] mt-4 object-contain border rounded">
       </div>
 
-      <div class="flex items-center gap-2 pt-2">
-        <label for="upload_imagem" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded shadow cursor-pointer">
-          ⬆️ Substituir com Arquivo
-        </label>
-        <input type="file" id="upload_imagem" accept="image/*,video/mp4" class="hidden">
-        <span id="nome_arquivo" class="text-sm text-gray-600"></span>
-      </div>
+      <!-- Lado direito: edição -->
+      <div class="w-2/5 flex flex-col justify-between">
+        <div>
+          <label for="campo_prompt_edicao" class="block text-sm text-gray-700 font-medium mb-1">Prompt:</label>
+          <textarea id="campo_prompt_edicao" rows="8" class="w-full border rounded p-2 font-mono text-sm"></textarea>
+        </div>
 
-      <img id="preview_upload" src="" class="hidden w-full max-h-52 object-contain border rounded">
+        <div id="status_geracao" class="text-sm text-blue-600 font-medium hidden mt-3">⏳ Gerando nova imagem, aguarde...</div>
+
+        <div class="flex flex-col gap-3 pt-4">
+          <div class="flex justify-between gap-2">
+            <button id="salvar_prompt" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow w-1/2">
+              💾 Salvar Prompt
+            </button>
+            <button id="substituir_imagem" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow w-1/2">
+              🔄 Gerar Nova
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2 pt-2">
+            <label for="upload_imagem" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded shadow cursor-pointer">
+              ⬆️ Arquivo Local
+            </label>
+            <input type="file" id="upload_imagem" accept="image/*,video/mp4" class="hidden">
+            <span id="nome_arquivo" class="text-sm text-gray-600 truncate"></span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
