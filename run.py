@@ -32,8 +32,9 @@ def abrir_navegador(porta):
     webbrowser.open(f"http://127.0.0.1:{porta}")
 
 if __name__ == "__main__":
-    configurar_logs()
+    #configurar_logs()
     #verify_license()
     porta_livre = encontrar_porta_livre()
     threading.Thread(target=abrir_navegador, args=(porta_livre,), daemon=True).start()
-    serve(app, host="127.0.0.1", port=porta_livre)
+    #serve(app, host="127.0.0.1", port=porta_livre)
+    app.run(debug=True, port=porta_livre)

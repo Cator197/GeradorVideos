@@ -577,93 +577,11 @@ def editar_legenda():
 #---------------------------------------------------------------------------------------------------------------------
 
 
-#----- MONTAR CENAS --------------------------------------------------------------------------------------------------
-
-@app.route("/generate_montagem")
-def generate_montagem():
-    """Renderiza a página para montar vídeos das cenas."""
-    path = caminho_cenas_final()
-    if not os.path.exists(path):
-        return "Arquivo cenas_com_imagens.json não encontrado", 500
-    with open(path, "r", encoding="utf-8") as f:
-        cenas = json.load(f)
-    return render_template("generate_montagem.html", cenas=cenas)
-
-@app.route("/montagem", methods=["POST"])
-def montagem_cenas():
-    """Monta os vídeos de cada cena com legenda .ASS embutida."""
-    from modules.montar_cenas import run_montar_cenas
-
-    scope   = request.form.get("scope", "all")
-    single  = request.form.get("single_index", type=int)
-    start   = request.form.get("from_index", type=int)
-
-    path = caminho_cenas_final()
-    with open(path, encoding="utf-8") as f:
-        total = len(json.load(f))
-
-    if scope == "all":
-        indices = list(range(total))
-    elif scope == "single" and single and 1 <= single <= total:
-        indices = [single - 1]
-    elif scope == "from" and start and 1 <= start <= total:
-        indices = list(range(start - 1, total))
-    else:
-        return jsonify({"error": "Parâmetros inválidos"}), 400
-
-    try:
-        resultado = run_montar_cenas(indices)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-    return jsonify({
-        "status": "ok",
-        "logs": resultado["logs"]
-    })
-
-
-@app.route("/montagem_stream", methods=["GET"])
-def montagem_stream():
-    """Streaming do progresso de montagem das cenas com legenda .ASS."""
-    scope   = request.args.get("scope", "all")
-    single  = request.args.get("single_index", type=int)
-    start   = request.args.get("from_index", type=int)
-
-    path = caminho_cenas_final()
-    with open(path, encoding="utf-8") as f:
-        total = len(json.load(f))
-
-    if scope == "all":
-        indices = list(range(total))
-    elif scope == "single" and single and 1 <= single <= total:
-        indices = [single - 1]
-    elif scope == "from" and start and 1 <= start <= total:
-        indices = list(range(start - 1, total))
-    else:
-        return Response("data: ❌ Parâmetros inválidos\n\n", mimetype='text/event-stream')
-
-    def gerar_eventos():
-        from modules.montar_cenas import run_montar_cenas
-        import time
-
-        yield f"data: 🚀 Iniciando montagem das cenas...\n\n"
-        resultado = run_montar_cenas(indices)
-        for log in resultado["logs"]:
-            yield f"data: {log}\n\n"
-            time.sleep(0.1)
-        yield f"data: 🔚 Fim do processo\n\n"
-
-    return Response(stream_with_context(gerar_eventos()), mimetype='text/event-stream')
-
-
-#---------------------------------------------------------------------------------------------------------------------
-
 import os, json
 from flask import (
     request, render_template, jsonify,
     Response, stream_with_context, send_from_directory, send_file
 )
-from modules.juntar_cenas import run_juntar_cenas
 from modules.config import get_config
 
 # caminho para o JSON gerado em etapas anteriores
@@ -677,6 +595,10 @@ def salvar_arquivo_upload(request_file, destino):
         return destino
     return None
 
+# caminho para o JSON gerado em etapas anteriores
+def caminho_cenas_final():
+    return os.path.join(get_config("pasta_salvar") or ".", "cenas_com_imagens.json")
+
 @app.route("/generate_final")
 def generate_final():
     path = caminho_cenas_final()
@@ -689,67 +611,60 @@ def generate_final():
     except json.JSONDecodeError:
         return "Erro ao ler o arquivo JSON de cenas", 500
 
+from modules.juntar_cenas import montar_uma_cena
+@app.route("/montar_cenas_stream", methods=["GET"])
+def montar_cenas_stream():
+    scope   = request.args.get("scope", "all")
+    single  = request.args.get("single_index", type=int)
+    start   = request.args.get("from_index", type=int)
 
-# @app.route("/finalizar", methods=["POST"])
-# def finalizar_video():
-#     """
-#     Recebe por form-data:
-#       - 'acao': 'video' ou 'capcut'
-#       - 'cenas': JSON string com lista de {efeito, transicao, duracao}
-#       - flags e arquivos de trilha/marca
-#     """
-#     try:
-#         tipo = request.form.get("acao", "video")
-#         cenas_json = request.form.get("cenas", "[]")
-#         usar_trilha = request.form.get("usar_trilha") == "true"
-#         usar_marca  = request.form.get("usar_marca")  == "true"
-#
-#         # salva uploads
-#         trilha_path = salvar_arquivo_upload(
-#             request.files.get("trilha"),
-#             os.path.join(get_config("pasta_salvar"), "videos_final", "trilha.mp3")
-#         ) if usar_trilha else None
-#
-#         marca_path = salvar_arquivo_upload(
-#             request.files.get("marca"),
-#             os.path.join(get_config("pasta_salvar"), "videos_final", "marca.png")
-#         ) if usar_marca else None
-#
-#         if tipo == "video":
-#             resultado = run_juntar_cenas(
-#                 cenas_param=cenas_json,
-#                 usar_musica=usar_trilha,
-#                 trilha_path=trilha_path,
-#                 volume=0.2,
-#                 usar_watermark=usar_marca,
-#                 marca_path=marca_path,
-#                 opacidade=0.3,
-#                 posicao="('right','bottom')"
-#             )
-#         else:
-#             resultado = exportar_para_capcut(
-#                 trilha_path=trilha_path,
-#                 marca_path=marca_path
-#             )
-#
-#         return jsonify(resultado)
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
+    path = caminho_cenas_final()
+    with open(path, encoding="utf-8") as f:
+        cenas_json = json.load(f)
+        total = len(cenas_json)
+
+    if scope == "all":
+        indices = list(range(total))
+    elif scope == "single" and single and 1 <= single <= total:
+        indices = [single - 1]
+    elif scope == "from" and start and 1 <= start <= total:
+        indices = list(range(start - 1, total))
+    else:
+        return Response("data: ❌ Parâmetros inválidos\n\n", mimetype='text/event-stream')
+
+    def gerar():
+        yield "data: 🚀 Iniciando geração das cenas individuais...\n\n"
+        logs = []
+        for idx in indices:
+            try:
+                config = cenas_json[idx]
+                caminho = montar_uma_cena(idx, config)
+                logs.append(f"✅ Cena {idx + 1} salva em {os.path.basename(caminho)}")
+                yield f"data: ✅ Cena {idx + 1} gerada com sucesso\n\n"
+            except Exception as e:
+                logs.append(f"❌ Erro na cena {idx + 1}: {str(e)}")
+                yield f"data: ❌ Erro na cena {idx + 1}: {str(e)}\n\n"
+        yield "data: 🔚 Conclusão das cenas\n\n"
+
+    return Response(stream_with_context(gerar()), mimetype='text/event-stream')
+
+@app.route("/atualizar_config_cenas", methods=["POST"])
+def atualizar_config_cenas():
+    cenas_config = request.get_json()
+    path = caminho_cenas_final()
+    with open(path, encoding="utf-8") as f:
+        cenas_existentes = json.load(f)
+
+    for i, cena in enumerate(cenas_config):
+        cenas_existentes[i].update(cena)
+
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(cenas_existentes, f, indent=2, ensure_ascii=False)
+
+    return jsonify({"status": "ok"})
 
 @app.route("/finalizar_stream", methods=["POST"])
 def finalizar_stream():
-    """
-    Recebe JSON:
-      {
-        acao: "video"|"capcut",
-        cenas: [{efeito, transicao, duracao}, ...],
-        usar_trilha: bool,
-        trilha_path?: string,
-        usar_marca: bool,
-        marca_path?: string
-      }
-    Retorna SSE (text/event-stream) com logs.
-    """
     data = request.get_json(force=True)
     acao        = data.get("acao", "video")
     cenas_json  = json.dumps(data.get("cenas", []))
@@ -760,13 +675,11 @@ def finalizar_stream():
 
     def event_gen():
         yield "data: 🚀 Iniciando montagem final...\n\n"
-        # informa trilha e marca se houver
         if usar_trilha and trilha_path:
             yield f"data: 🎵 Trilha: {trilha_path}\n\n"
         if usar_marca and marca_path:
             yield f"data: 🌊 Marca d'água: {marca_path}\n\n"
 
-        # chama o core: run_juntar_cenas ou exportar_para_capcut
         if acao == "video":
             resultado = run_juntar_cenas(
                 cenas_param=cenas_json,
@@ -779,17 +692,21 @@ def finalizar_stream():
                 posicao="('right','bottom')"
             )
         else:
-            resultado = exportar_para_capcut(
-                trilha_path=trilha_path,
-                marca_path=marca_path
-            )
+            resultado = {"logs": ["Exportação para CapCut desativada."]}
 
         for log in resultado.get("logs", []):
             yield f"data: {log}\n\n"
         yield "data: 🔚 Finalização concluída\n\n"
 
-    return Response(stream_with_context(event_gen()),
-                    mimetype='text/event-stream')
+    return Response(stream_with_context(event_gen()), mimetype='text/event-stream')
+
+@app.route('/preview_video/<int:idx>')
+def preview_video(idx):
+    base      = get_config("pasta_salvar") or "default"
+    video_path = os.path.join(base, "videos_cenas", f"video{idx+1}.mp4")
+    if not os.path.isfile(video_path):
+        return "Vídeo não encontrado", 404
+    return send_file(video_path, mimetype='video/mp4')
 
 @app.route('/modules/videos_cenas/<path:filename>')
 def serve_videos_cenas(filename):
@@ -798,145 +715,9 @@ def serve_videos_cenas(filename):
         filename
     )
 
-@app.route('/preview_video/<int:idx>')
-def preview_video(idx):
-    base      = get_config("pasta_salvar") or "default"
-    video_path = os.path.join(base, "videos_cenas", f"video{idx+1}.mp4")
-    print(f"video{idx+1}.mp4")
-    #print(video_path)
-    if not os.path.isfile(video_path):
-        return "Vídeo não encontrado", 404
-    return send_file(video_path, mimetype='video/mp4')
 #--------------------------------------------------------------------------------------------------------------------
 
-#----- COMPLETE -----------------------------------------------------------------------------------------------------
-from modules.parser_prompts import  limpar_pastas_de_saida
 
-# @app.route("/processar_prompt", methods=["POST"])
-# def processar_prompt():
-#     """Recebe um prompt inicial e gera o JSON de cenas."""
-#     try:
-#         dados=request.get_json()
-#         prompt_inicial=dados.get("prompt", "").strip()
-#
-#         if not prompt_inicial:
-#             return jsonify({"status": "erro", "erro": "Prompt vazio"}), 400
-#
-#         # Caminhos dos arquivos
-#         BASE_DIR=os.path.dirname(os.path.abspath(__file__))
-#         caminho_txt=os.path.join(BASE_DIR, "modules", "prompts.txt")
-#         base=get_config("pasta_salvar") or os.getcwd()
-#
-#         caminho_json=os.path.join(base, "cenas.json")
-#
-#         # Salva o prompt no arquivo de texto
-#         with open(caminho_txt, "w", encoding="utf-8") as f:
-#             f.write(prompt_inicial.strip() + "\n")
-#
-#         # Executa o parser para gerar o JSON
-#         from modules import parser_prompts
-#         cenas=parser_prompts.parse_prompts_txt(caminho_txt)
-#         limpar_pastas_de_saida()
-#         with open(caminho_json, "w", encoding="utf-8") as f:
-#             json.dump(cenas, f, ensure_ascii=False, indent=2)
-#
-#         return jsonify({"status": "ok", "total_cenas": len(cenas)})
-#
-#     except Exception as e:
-#         return jsonify({"status": "erro", "erro": str(e)}), 500
-#
-#
-# from modules import parser_prompts, gerar_imagens, gerar_narracao, gerar_SRT, juntar_cenas
-
-@app.route("/complete_stream")
-def complete_stream():
-    """Executa toda a pipeline de geração enviando logs por SSE."""
-    from modules import parser_prompts, gerar_imagens, gerar_narracao, gerar_SRT, montar_cenas, juntar_cenas
-
-    def gerar_log():
-        try:
-            # 📥 Parâmetros do front
-            prompt           = request.args.get("prompt", "").strip()
-            nome_video       = request.args.get("nome_video", "video_final").strip()
-            usar_legenda     = request.args.get("usar_legenda", "false") == "true"
-            tipo_legenda     = request.args.get("tipo_legenda", "hard")
-            cor              = request.args.get("cor_legenda", "white")
-            tamanho          = int(request.args.get("tamanho_legenda", 24))
-            posicao          = request.args.get("posicao_legenda", "bottom")
-            usar_marca       = request.args.get("usar_marca", "false") == "true"
-            usar_trilha      = request.args.get("usar_trilha", "false") == "true"
-            exportar_capcut  = request.args.get("exportar_capcut", "false") == "true"
-            unir_videos      = request.args.get("unir_videos", "false") == "true"
-            voz              = request.args.get("voz", "Brian")
-            engine           = request.args.get("tts_engine", "eleven")
-
-            if not prompt:
-                yield "data: ❌ Prompt inicial vazio\n\n"
-                return
-
-            # 🔹 Etapa 1: Processar prompt
-            yield "data: 🧠 Processando prompt inicial...\n\n"
-            parser_prompts.salvar_prompt_txt(prompt)
-            parser_prompts.limpar_pastas()
-            cenas = parser_prompts.parse_prompts_txt()
-            with open(get_config("pasta_salvar") + "/cenas_com_imagens.json", "w", encoding="utf-8") as f:
-                json.dump(cenas, f, ensure_ascii=False, indent=2)
-            yield f"data: ✅ {len(cenas)} prompts processados\n\n"
-
-            indices = list(range(len(cenas)))
-
-            # 🔹 Etapa 2: Gerar imagens
-            yield "data: 🎨 Gerando imagens...\n\n"
-            resultado_imagens = gerar_imagens.run_gerar_imagens(indices)
-            for log in resultado_imagens["logs"]:
-                yield f"data: {log}\n\n"
-
-            # 🔹 Etapa 3: Gerar narrações
-            yield "data: 🎙️ Gerando narrações...\n\n"
-            resultado_audio = gerar_narracao.run_gerar_narracoes(indices)
-            for log in resultado_audio["logs"]:
-                yield f"data: {log}\n\n"
-
-            # 🔹 Etapa 4: Gerar legendas
-            if usar_legenda:
-                yield f"data: 💬 Gerando legendas ({tipo_legenda})...\n\n"
-                resultado_legendas = gerar_SRT.run_gerar_legendas(indices, tipo=tipo_legenda)
-                for log in resultado_legendas["logs"]:
-                    yield f"data: {log}\n\n"
-
-            # 🔹 Etapa 5: Montar vídeos das cenas
-            yield "data: 🧩 Montando cenas...\n\n"
-            resultado_montagem = montar_cenas.run_montar_cenas(indices, usar_soft=(tipo_legenda=="soft"), cor=cor, tamanho=tamanho, posicao=posicao)
-            for log in resultado_montagem["logs"]:
-                yield f"data: {log}\n\n"
-
-            # 🔹 Etapa 6: Juntar vídeo final
-            if unir_videos:
-                yield "data: 🎞️ Juntando vídeo final...\n\n"
-                resultado_final = juntar_cenas.run_juntar_cenas(
-                    tipo_transicao="cut",
-                    usar_musica=usar_trilha,
-                    trilha_path=os.path.join(get_config("pasta_salvar"), "videos_final", "trilha.mp3") if usar_trilha else None,
-                    volume=0.2,
-                    usar_watermark=usar_marca,
-                    marca_path=os.path.join(get_config("pasta_salvar"), "videos_final", "marca.png") if usar_marca else None,
-                    opacidade=0.3,
-                    posicao="('right','bottom')"
-                )
-                for log in resultado_final["logs"]:
-                    yield f"data: {log}\n\n"
-
-
-
-            yield "data: ✅ Pipeline completa finalizada\n\n"
-
-        except Exception as e:
-            yield f"data: ❌ Erro: {str(e)}\n\n"
-
-    return Response(stream_with_context(gerar_log()), mimetype='text/event-stream')
-
-
-#--------------------------------------------------------------------------------------------------------------------
 
 #----- CONFIGURAÇÕES ------------------------------------------------------------------------------------------------
 

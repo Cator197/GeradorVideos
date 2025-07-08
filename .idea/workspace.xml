@@ -4,97 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT durante de iniciar funções de instalador e ativação -">
-      <change afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Adam.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Alice.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Antoni.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Aria.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Arnold.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Bill.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Brian.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Callum.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Charlie.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Charlotte.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Chris.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Clyde.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Daniel.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Dave.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Domi.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Dorothy.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Drew.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Elli.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Emily.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Eric.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Ethan.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Fin.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Freya.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/George.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Gigi.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Giovanni.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Glinda.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Grace.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Harry.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/James.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Jeremy.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Jessica.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Jessie.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Joseph.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Josh.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Laura.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Liam.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Lily.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Matilda.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Michael.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Mimi.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Nicole.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Papai Noel.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Patrick.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Paul.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Rachel.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/River.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Roger.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Sam.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Sarah.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Serena.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Thomas.mp3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/vozes/elevenlabs/Will.mp3" afterDir="false" />
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT antes de iniciar a refatoção do juntar_cenas unindo com o montar_cenas">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/arquivado/02.gerar_animacao.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/arquivado/03.gerar_narracao.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/arquivado/04.gerar_falas.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/arquivado/05.gerar_lipsync.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/arquivado/06.inserir_efeitos.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/arquivado/07.gerar_trilha.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/arquivado/08.gerar_legendas.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/arquivado/09.exportar_srt.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/arquivado/10.montar_cenas.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/arquivado/11.juntar_cenas.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/cenas.json" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/gerar_ASS.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_ASS.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_SRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_SRT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_imagens.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_imagens.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/juntar_cenas.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/modulos_testes/audios_narracoes/exemplo.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/modulos_testes/preview_legendas_ffmpeg.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/modulos_testes/teste_combinacoes_legenda.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/modulos_testes/teste_ffmpeg_legenda_ass.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/parser_prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/parser_prompts.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/teste_google_tts.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/js/generate_final.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_final.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_imagem.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_imagem.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_legenda.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_legenda.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_narracao.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_narracao.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/novo_prompt.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/novo_prompt.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_montagem.js" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/complete.html" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/generate_final.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_final.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_imagem.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_imagem.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_legenda.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_legenda.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_narracao.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_narracao.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_prompt.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_prompt.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_montagem.html" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -470,7 +391,15 @@
       <option name="project" value="LOCAL" />
       <updated>1751502386257</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="COMMIT antes de iniciar a refatoção do juntar_cenas unindo com o montar_cenas">
+      <option name="closed" value="true" />
+      <created>1751928229834</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1751928229834</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -528,6 +457,7 @@
     <MESSAGE value="COMMIT antes de alterações de legendas v2" />
     <MESSAGE value="COMMIT antes de iniciar funções de instalador e ativação" />
     <MESSAGE value="COMMIT durante de iniciar funções de instalador e ativação -" />
-    <option name="LAST_COMMIT_MESSAGE" value="COMMIT durante de iniciar funções de instalador e ativação -" />
+    <MESSAGE value="COMMIT antes de iniciar a refatoção do juntar_cenas unindo com o montar_cenas" />
+    <option name="LAST_COMMIT_MESSAGE" value="COMMIT antes de iniciar a refatoção do juntar_cenas unindo com o montar_cenas" />
   </component>
 </project>

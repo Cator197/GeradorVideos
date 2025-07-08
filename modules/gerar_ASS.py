@@ -31,72 +31,6 @@ def get_paths():
         "cenas": os.path.join(BASE_DIR, "cenas.json"),
     }
 
-def fonte_instalada(fonte_nome):
-    fontes = [os.path.basename(f.fname).split('.')[0].lower() for f in fm.fontManager.ttflist]
-    return fonte_nome.lower() in fontes
-
-def instalar_fonte_ttf(path_ttf):
-    pasta_fontes = os.path.join(os.environ['WINDIR'], 'Fonts')
-    nome_arquivo = os.path.basename(path_ttf)
-    destino = os.path.join(pasta_fontes, nome_arquivo)
-
-    try:
-        if not os.path.exists(destino):
-            shutil.copy(path_ttf, destino)
-            ctypes.windll.gdi32.AddFontResourceW(destino)
-            print(f"✅ Fonte instalada: {nome_arquivo}")
-        else:
-            print(f"ℹ️ Fonte já está instalada: {nome_arquivo}")
-        return True
-    except Exception as e:
-        print(f"❌ Erro ao instalar fonte: {e}")
-        return False
-
-def baixar_fonte_ttf_github(fonte_nome, variante="Regular"):
-    pasta_fonts = os.path.join(os.path.dirname(__file__), "fonts")
-    os.makedirs(pasta_fonts, exist_ok=True)
-
-    nome_slug = fonte_nome.lower().replace(" ", "")
-    nome_arquivo = f"{fonte_nome.replace(' ', '')}-{variante}.ttf"
-    path_ttf = os.path.join(pasta_fonts, nome_arquivo)
-
-    # Caminho com subpasta 'static' para fontes modernas como Montserrat
-    url = f"https://github.com/google/fonts/raw/main/ofl/{nome_slug}/static/{nome_arquivo}"
-    print(f"⬇️ Baixando fonte de: {url}")
-
-    try:
-        r = requests.get(url)
-        if r.status_code == 200:
-            with open(path_ttf, "wb") as f:
-                f.write(r.content)
-            print(f"✅ Fonte salva em: {path_ttf}")
-            return instalar_fonte_ttf(path_ttf)
-        else:
-            print(f"❌ Erro ao baixar fonte: {r.status_code}")
-            return False
-    except Exception as e:
-        print(f"❌ Falha geral ao baixar fonte do GitHub: {e}")
-        return False
-
-
-
-def garantir_fonte_instalada(fonte_nome):
-    if fonte_instalada(fonte_nome):
-        return fonte_nome
-
-    pasta_fonts = os.path.join(os.path.dirname(__file__), "fonts")
-    candidatos = [f for f in os.listdir(pasta_fonts) if f.lower().endswith(".ttf") and fonte_nome.lower() in f.lower()]
-    if candidatos:
-        if instalar_fonte_ttf(os.path.join(pasta_fonts, candidatos[0])):
-            return fonte_nome
-
-    if baixar_fonte_ttf_github(fonte_nome):
-        return fonte_nome
-
-    print("⚠️ Fallback para Arial.")
-    return "Arial"
-
-import re
 
 import os
 import re
@@ -109,7 +43,7 @@ def hex_ass(cor_hex):
     return "&H00FFFFFF"
 
 def gerar_ass_com_whisper(modelo, path_audio, path_saida, estilo, modo="linha2"):
-    from modules.gerar_ASS import garantir_fonte_instalada, formatar_tempo
+
     segments, _ = modelo.transcribe(path_audio, word_timestamps=True)
 
     ass_cor = hex_ass(estilo.get("cor", "#FFFF00"))
@@ -120,7 +54,7 @@ def gerar_ass_com_whisper(modelo, path_audio, path_saida, estilo, modo="linha2")
 
     ass_karaoke_inline = hex_ass(estilo.get("cor_karaoke", "#00FFFF"))[2:]
 
-    fonte = garantir_fonte_instalada(estilo.get("fonte", "Arial"))
+
     tamanho = int(estilo.get("tamanho", 48)) * 2
 
     estilo_visual = estilo.get("estilo", "simples")

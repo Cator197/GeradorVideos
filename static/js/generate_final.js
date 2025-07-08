@@ -1,25 +1,36 @@
+// static/js/generate_final.js
+
 document.addEventListener('DOMContentLoaded', () => {
-  const trilhaCheckbox = document.getElementById('usar_trilha');
-  const trilhaInput = document.getElementById('input_trilha');
-  const marcaCheckbox = document.getElementById('usar_marca');
-  const marcaInput = document.getElementById('input_marca');
-  const btnVideo = document.getElementById('btn_gerar_video');
-  const barraIndeterminada = document.getElementById('barra_indeterminada');
-  const logEl = document.getElementById('log');
-  const sceneRows = document.querySelectorAll('.scene-row');
-  const modal = document.getElementById('modal_preview_video');
-  const previewVideo = document.getElementById('preview_video');
-  const previewSource = document.getElementById('video_source');
-  const closeModalBtn = document.getElementById('close_modal_video');
+  const trilhaCheckbox      = document.getElementById('usar_trilha');
+  const trilhaInput         = document.getElementById('input_trilha');
+  const marcaCheckbox       = document.getElementById('usar_marca');
+  const marcaInput          = document.getElementById('input_marca');
+  const btnVideo            = document.getElementById('btn_gerar_video');
+  const btnGerarCenas       = document.getElementById('btn_gerar_cenas');
+  const barraIndeterminada  = document.getElementById('barra_indeterminada');
+  const logEl               = document.getElementById('log');
+  const sceneRows           = document.querySelectorAll('.scene-row');
+  const modal               = document.getElementById('modal_preview_video');
+  const previewVideo        = document.getElementById('preview_video');
+  const previewSource       = document.getElementById('video_source');
+  const closeModalBtn       = document.getElementById('close_modal_video');
 
-  trilhaCheckbox.addEventListener('change', () => trilhaInput.disabled = !trilhaCheckbox.checked);
-  marcaCheckbox.addEventListener('change', () => marcaInput.disabled = !marcaCheckbox.checked);
+  // Ativa/desativa inputs de trilha e marca
+  trilhaCheckbox.addEventListener('change', () => {
+    trilhaInput.disabled = !trilhaCheckbox.checked;
+  });
 
+  marcaCheckbox.addEventListener('change', () => {
+    marcaInput.disabled = !marcaCheckbox.checked;
+  });
+
+  // Exibe opções de efeito se for 'zoom'
   function handleEfeitoChange(e) {
     const select = e.target;
     const row = select.closest('.scene-row');
     const idx = row.dataset.idx;
     const container = row.querySelector('.config-efeito');
+
     if (select.value === 'zoom') {
       container.innerHTML = `
         <label class="block text-xs text-gray-600 mt-2">Fator de Zoom:</label>
@@ -37,17 +48,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Associa mudança de efeito à exibição de configurações
   sceneRows.forEach(row => {
     const idx = row.dataset.idx;
     const sel = row.querySelector(`select[name="efeito_${idx}"]`);
     sel.addEventListener('change', handleEfeitoChange);
   });
 
+  // Adiciona logs no painel de progresso
   function appendLog(msg) {
     logEl.textContent += msg + '\n';
     logEl.scrollTop = logEl.scrollHeight;
   }
 
+  // Coleta as opções de cada cena
   function coletarCenas() {
     return Array.from(sceneRows).map(row => {
       const idx = row.dataset.idx;
@@ -61,13 +75,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const config = {};
       if (efeito === 'zoom') {
         config.fator = row.querySelector(`input[name="zoom_fator_${idx}"]`).value;
-        config.modo = row.querySelector(`select[name="zoom_tipo_${idx}"]`).value;
+        config.modo  = row.querySelector(`select[name="zoom_tipo_${idx}"]`).value;
       }
 
       return { efeito, transicao, duracao, config, usarLegenda, posicaoLegenda };
     });
   }
 
+  // Envia os dados da montagem final ao backend via SSE
   async function startStream(payload) {
     appendLog('🚀 Iniciando geração...');
     barraIndeterminada?.classList.remove("hidden");
@@ -106,30 +121,57 @@ document.addEventListener('DOMContentLoaded', () => {
     appendLog('✅ Finalização completa');
   }
 
-  // Habilita ou desabilita o campo de número da cena
-    document.querySelectorAll('input[name="scope_cena"]').forEach(radio => {
-      radio.addEventListener('change', () => {
-        const single = document.querySelector('input[name="scope_cena"][value="single"]').checked;
-        document.getElementById('input_single_idx').disabled = !single;
-      });
+  // Modo: todas, apenas uma
+  document.querySelectorAll('input[name="scope_cena"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const single = document.querySelector('input[name="scope_cena"][value="single"]').checked;
+      document.getElementById('input_single_idx').disabled = !single;
     });
+  });
 
-    // Clique no botão de gerar cenas (lógica real será implementada depois)
-    document.getElementById('btn_gerar_cenas').addEventListener('click', () => {
-      const escopo = document.querySelector('input[name="scope_cena"]:checked').value;
-      const input = document.getElementById('input_single_idx');
-      const indice = parseInt(input.value);
+  // Geração das cenas individuais ou todas
+  btnGerarCenas.addEventListener('click', async () => {
+  const escopo = document.querySelector('input[name="scope_cena"]:checked').value;
+  const input  = document.getElementById('input_single_idx');
+  const indice = parseInt(input.value);
 
-      if (escopo === 'single' && (isNaN(indice) || indice < 1)) {
-        alert('Informe um número de cena válido.');
-        return;
-      }
+  if (escopo === 'single' && (isNaN(indice) || indice < 1)) {
+    alert('Informe um número de cena válido.');
+    return;
+  }
 
-      console.log("🔧 Gerar cenas:", escopo === 'all' ? 'todas' : `cena ${indice}`);
-      // Chamada AJAX para gerar cenas virá aqui...
-    });
+  // 🔄 Atualiza o JSON com configurações visuais da interface
+  await fetch('/atualizar_config_cenas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(coletarCenas())
+  });
 
+  logEl.textContent = '';
+  appendLog('🚧 Iniciando geração das cenas...');
+  barraIndeterminada?.classList.remove("hidden");
 
+  let url = `/montar_cenas_stream?scope=${escopo}`;
+  if (escopo === 'single') url += `&single_index=${indice}`;
+
+  const evtSource = new EventSource(url);
+
+  evtSource.onmessage = (event) => {
+    appendLog(event.data);
+    if (event.data.includes("🔚")) {
+      barraIndeterminada?.classList.add("hidden");
+      evtSource.close();
+    }
+  };
+
+  evtSource.onerror = () => {
+    appendLog('❌ Erro na conexão de stream.');
+    barraIndeterminada?.classList.add("hidden");
+    evtSource.close();
+  };
+});
+
+  // Inicia a geração do vídeo final
   function gerar(tipo) {
     logEl.textContent = '';
     appendLog('🧩 Coletando configurações...');
@@ -154,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnVideo.addEventListener('click', () => gerar('video'));
 
-  // Dê duplo clique em uma cena para pré-visualizar
+  // Pré-visualização de cenas
   document.querySelectorAll('.scene-card').forEach(card => {
     card.addEventListener('dblclick', () => {
       const row = card.closest('.scene-row');

@@ -1,203 +1,225 @@
-"""Rotinas para juntar cenas individuais em um único vídeo final, com transições funcionais e correções de dimensionamento."""
+import os
+import subprocess
+from modules.config import get_config
+import shlex
+import subprocess
+import shutil
+
+def montar_uma_cena(idx, config):
+    base = get_config("pasta_salvar") or os.getcwd()
+    pasta_imagens = os.path.join(base, "imagens")
+    pasta_audios = os.path.join(base, "audios_narracoes")
+    pasta_legendas = os.path.join(base, "legendas_ass")
+    pasta_saida = os.path.join(base, "videos_cenas")
+
+    imagem_path = os.path.join(pasta_imagens, f"imagem{idx + 1}.jpg")
+    audio_path = os.path.join(pasta_audios, f"narracao{idx + 1}.mp3")
+    legenda_path = os.path.join(pasta_legendas, f"legenda{idx + 1}.ass")
+    video_efeito = os.path.join(pasta_saida, f"temp_efeito_{idx}.mp4")
+
+    usar_legenda=config.get("usarLegenda", False)
+    pos_legenda=config.get("posicaoLegenda", "inferior")
+
+    print(f"[DEBUG] Cena {idx + 1} - config recebido:", config)
+
+    # 1. Aplicar efeito
+    print("🌀 Efeito:", config.get("efeito"))
+
+    aplicar_efeito_na_imagem(
+        imagem_path=imagem_path,
+        audio_path=audio_path,
+        output_path=video_efeito,
+        efeito=config.get("efeito"),
+        config_efeito=config.get("config", {})
+    )
+    print("Legenda path:", legenda_path)
+
+    if usar_legenda and os.path.exists(legenda_path):
+        video_legenda=os.path.join(pasta_saida, f"temp_legenda_{idx}.mp4")
+        adicionar_legenda_ass(video_efeito, legenda_path, pos_legenda, video_legenda)
+    else:
+        video_legenda=video_efeito
+
+    if not os.path.exists(video_efeito):
+        raise FileNotFoundError(f"❌ Arquivo não criado: {video_legenda}")
+
+    return video_legenda
+
+
+
+
+# ---------------------- FUNÇÕES AUXILIARES -----------------------------------------------------------------------
+
+def adicionar_legenda_ass(input_path, legenda_path, posicao, output_path):
+    # Corrigir e escapar caminho da legenda
+    vei = os.path.abspath(input_path)
+    leg = os.path.abspath(legenda_path)
+    out = os.path.abspath(output_path)
+
+    # Escapando para o formato: C\:\\pasta\\arquivo.ass
+    leg = leg.replace("\\", "\\\\").replace(":", "\\:")
+
+    # Monta filtro com aspas simples internas
+    filtro = f"subtitles='{leg}'"
+
+    # Monta comando com filtro entre aspas duplas (por conta do shell do Windows)
+    cmd = [
+        "ffmpeg", "-hide_banner", "-loglevel", "info", "-y",
+        "-i", vei,
+        "-vf", filtro,
+        "-c:a", "copy",
+        out
+    ]
+
+    print("DEBUG comando ffmpeg:", " ".join(cmd))
+    subprocess.run(cmd, check=True)
+
+
+def obter_duracao_em_segundos(path):
+    """Usa ffprobe para obter a duração do vídeo/áudio em segundos."""
+    cmd = [
+        "ffprobe", "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "json", path
+    ]
+    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if result.returncode == 0:
+        try:
+            duracao = float(json.loads(result.stdout)["format"]["duration"])
+            return duracao
+        except Exception:
+            pass
+    return 5  # valor padrão de segurança
 
 import os
+import subprocess
 import json
-from moviepy import (
-    VideoFileClip,
-    concatenate_videoclips,
-    AudioFileClip,
-    CompositeVideoClip,
-    ImageClip,
-    vfx
-
-)
-from moviepy.video.fx import Resize, FadeIn, FadeOut, SlideIn, SlideOut
 from modules.config import get_config
 
-# Configurações de diretórios
-PASTA_BASE   = get_config("pasta_salvar") or "."
-PASTA_VIDEOS = os.path.join(PASTA_BASE, "videos_cenas")
-PASTA_SAIDA  = os.path.join(PASTA_BASE, "videos_final")
-os.makedirs(PASTA_SAIDA, exist_ok=True)
+def aplicar_efeito_na_imagem(imagem_path, audio_path, output_path, efeito, config_efeito):
+    import subprocess
+    import os
 
+    fator = float(config_efeito.get("fator", 1.2))
+    modo = config_efeito.get("modo", "in")
+    fps = int(config_efeito.get("fps", 25))
+    duracao = obter_duracao_em_segundos(audio_path)
+    total_frames = duracao * fps
 
-def aplicar_efeito(clip, efeito, config=None):
-    """Aplica um efeito ao clipe usando API MoviePy v2.2.1+."""
-    print(f"[EFEITO] {efeito}")
-    # Preto e branco
-    if efeito == "preto_branco":
-        return clip.with_effects([vfx.BlackAndWhite()])
-
-    # Espelho horizontal
-    if efeito == "espelho":
-        return clip.with_effects([vfx.MirrorX()])
-
-    # Escurecer
-    if efeito == "escurecer":
-        return clip.with_effects([vfx.MultiplyColor(0.5)])
-
-    # Zoom Ken Burns
     if efeito == "zoom":
-        cfg   = config or {}
-        raw   = str(cfg.get("fator", 1.2)).replace(",", ".")
-        fator = float(raw)
-        modo  = cfg.get("modo", "in")  # 'in' ou 'out'
-        dur   = clip.duration
-        w, h  = clip.size
-
         if modo == "in":
-            # Zoom in: inicia em 1.0 e cresce até 'fator', sem recorte
-            zoom_func = lambda t: 1.0 + (fator - 1.0) * (t / dur)
-            return clip.with_effects([Resize(zoom_func)])
+            z_expr = f"1+({fator}-1)*on/{total_frames}"
         else:
-            # Zoom out: inicia em 'fator' e decresce até 1.0, com recorte
-            zoom_func = lambda t: fator - (fator - 1.0) * (t / dur)
-            zoomed = clip.with_effects([Resize(zoom_func)])
-            # centraliza e mantém quadro fixo
-            def offset(t):
-                s = zoom_func(t)
-                return (-(s - 1.0) * w / 2, -(s - 1.0) * h / 2)
-            return CompositeVideoClip(
-                [zoomed.with_position(offset)],
-                size=(w, h)
-            ).with_duration(dur)
+            z_expr = f"{fator}-({fator}-1)*on/{total_frames}"
 
-    # Sem efeito específico
-    return clip
-
-
-def aplicar_transicao(prev, curr, tipo, dur):
-    """
-    Recebe:
-      prev, curr: VideoFileClip
-      tipo: 'crossfade'|'fade'|'slide'|'overlay' ou qualquer outro para cut
-      dur: duração da transição em segundos
-    Retorna:
-      (first, second) — dois clipes que, quando concatenados com method='compose',
-      geram a transição desejada.
-    """
-    w, h = prev.size
-
-    # 1) Fade / Crossfade para preto
-    if tipo in ("crossfade", "fade"):
-        # fade-out no final de prev
-        first = prev.with_effects([FadeOut(dur)])
-        # fade-in no início de curr, começando quando prev terminar
-        second = curr.with_effects([FadeIn(dur)]).with_start(prev.duration)
-        return first, second
-
-    # 3) Slide
-    if tipo == "slide":
-        # 2.a) Slide-out do prev pela esquerda
-        prev_slide=prev.with_effects([SlideOut(dur, side="left")])
-        # 2.b) Slide-in do curr pela direita, com overlap de 'dur' segundos
-        curr_slide=curr.with_effects([SlideIn(dur, side="right")]) \
-            .with_start(prev.duration - dur)
-        # 2.c) Composição dos dois para gerar o período de overlap
-        comp=CompositeVideoClip(
-            [prev_slide, curr_slide],
-            size=(w, h)
-        ).with_duration(prev.duration + curr.duration - dur)
-        # 2.d) Resto de curr que não estava no overlap
-        if curr.duration > dur:
-            rest=curr.subclipped(dur, curr.duration).with_start(prev.duration)
-        else:
-            rest=curr.with_start(prev.duration)
-        return comp, rest
-
-    # 4) Overlay (fade anterior + mostra próximo staticamente)
-    if tipo == "overlay":
-        curr_ov=curr.with_start(prev.duration - dur) \
-            .with_opacity(0.7) \
-            .with_position(("center", "center"))
-        comp=CompositeVideoClip(
-            [prev, curr_ov],
-            size=(w, h)
-        ).with_duration(prev.duration + curr.duration - dur)
-        if curr.duration > dur:
-            rest=curr.subclipped(dur, curr.duration).with_start(prev.duration)
-        else:
-            rest=curr.with_start(prev.duration)
-        return comp, rest
-
-    # 4) Cut seco (sem transição)
-    second = curr.with_start(prev.duration)
-    return prev, second
-
-
-def run_juntar_cenas(
-    cenas_param: str,
-    usar_musica=False,
-    trilha_path=None,
-    volume=0.2,
-    usar_watermark=False,
-    marca_path=None,
-    opacidade=0.3,
-    posicao=("right","bottom")
-):
-    logs = []
-    try:
-        cfg_list = json.loads(cenas_param)
-        arquivos = sorted(os.listdir(PASTA_VIDEOS))
-        clips = []
-
-        # Carrega e aplica efeitos
-        for idx, fname in enumerate(arquivos):
-            path = os.path.join(PASTA_VIDEOS, fname)
-            print(f"[CENA] {idx+1}: {fname}")
-            clip = VideoFileClip(path)
-            cfg  = cfg_list[idx] if idx < len(cfg_list) else {}
-            clip = aplicar_efeito(clip, cfg.get("efeito"), cfg.get("config"))
-            logs.append(f"🔧 Cena {idx+1}: efeito={cfg.get('efeito','nenhum')}")
-            clips.append(clip)
-
-        # Aplica transições e concatena
-        merged = []
-        for i, clip in enumerate(clips):
-            if i == 0:
-                merged.append(clip)
-            else:
-                prev     = merged.pop()
-                cfg_prev = cfg_list[i-1]
-                tipo     = cfg_prev.get("transicao", "cut")
-                dur      = float(cfg_prev.get("duracao", 0.5))
-                logs.append(f"🔀 Transição {i}->{i+1}: {tipo} ({dur}s)")
-                first, second = aplicar_transicao(prev, clip, tipo, dur)
-                merged.extend([first, second])
-
-        print("[CONCAT] concatenando...")
-        final = concatenate_videoclips(merged)
-        logs.append(f"🎞️ {len(clips)} cenas juntadas")
-
-        # Trilha sonora
-        if usar_musica and trilha_path and os.path.isfile(trilha_path):
-            print(f"[ÁUDIO] {trilha_path}")
-            audio = AudioFileClip(trilha_path).volumex(volume)
-            final = final.with_audio(audio)
-            logs.append("🎵 Trilha aplicada")
-
-        # Marca d'água
-        if usar_watermark and marca_path and os.path.isfile(marca_path):
-            print(f"[WATERMARK] {marca_path}")
-            marca = ImageClip(marca_path)
-            marca = marca.with_duration(final.duration).resized(height=100)
-            marca = marca.with_opacity(opacidade).with_position(posicao)
-            final = CompositeVideoClip([final, marca], size=(w, h))
-            logs.append("🌊 Marca d'água aplicada")
-
-        # Salva vídeo
-        out = os.path.join(PASTA_SAIDA, f"video_final_{int(final.duration)}s.mp4")
-        print(f"[SAVE] {out}")
-        final.write_videofile(
-            out,
-            fps=24,
-            codec="libx264",
-            preset="ultrafast",
-            audio_codec="aac",
-            logger=None
+        filtro = (
+            "scale=8000:-1,"
+            f"zoompan=z='{z_expr}':"
+            f"x='iw/2-(iw/zoom/2)':"
+            f"y='ih/2-(ih/zoom/2)':"
+            f"d=25:fps={fps}:s=1080x1920,"
+            "format=yuv420p"
         )
-        logs.append(f"✅ Salvo em: {out}")
-        return {"logs": logs}
-    except Exception as e:
-        print(f"[ERROR] {e}")
-        return {"logs": [f"❌ Erro: {e}"]}
+
+        cmd = [
+            "ffmpeg", "-y",
+            "-loop", "1", "-framerate", str(fps),
+            "-i", imagem_path,
+            "-vf", filtro,
+            "-t", str(duracao),
+            "-c:v", "libx264", "-preset", "ultrafast", "-crf", "20",
+            output_path
+        ]
+
+
+
+    elif efeito in ["espelho", "escurecer", "preto_branco"]:
+
+        filtro={
+
+            "espelho": "hflip",
+
+            "escurecer": "eq=brightness=-0.3",
+
+            "preto_branco": "format=gray"
+
+        }[efeito]
+
+        # Como padronizamos para .mp4 com duração do áudio, aplicamos com loop:
+
+        filtro+=",format=yuv420p"
+
+
+    else:
+
+        filtro="format=yuv420p"
+
+    cmd=[
+
+        "ffmpeg", "-y",
+
+        "-loop", "1",
+
+        "-framerate", str(fps),
+
+        "-i", imagem_path,
+
+        "-vf", filtro,
+
+        "-t", str(duracao),
+
+        "-c:v", "libx264",
+
+        "-preset", "ultrafast",
+
+        "-crf", "20",
+
+        output_path
+
+    ]
+
+    print("🎬 FFmpeg aplicando efeito:", " ".join(cmd))
+
+    result=subprocess.run(cmd, capture_output=True, text=True)
+
+    print("STDERR FFmpeg:", result.stderr)
+
+    if result.returncode != 0:
+        raise RuntimeError(f"❌ Erro ao aplicar efeito: {result.stderr}")
+
+    return output_path
+
+
+def montar_video_com_audio(base_visual_path, audio_path, output_path):
+    ext = os.path.splitext(base_visual_path)[-1].lower()
+    if ext == ".jpg":
+        cmd = [
+            "ffmpeg", "-y",
+            "-loop", "1",
+            "-i", base_visual_path,
+            "-i", audio_path,
+            "-shortest",
+            "-c:v", "libx264", "-tune", "stillimage", "-preset", "ultrafast", "-crf", "20",
+            "-pix_fmt", "yuv420p",
+            output_path
+        ]
+    elif ext == ".mp4":
+        cmd = [
+            "ffmpeg", "-y",
+            "-i", base_visual_path,
+            "-i", audio_path,
+            "-shortest",
+            "-c:v", "copy",
+            "-c:a", "aac",
+            output_path
+        ]
+    else:
+        raise ValueError(f"❌ Formato visual não suportado: {ext}")
+
+    print("🎬 FFmpeg final video:", " ".join(cmd))
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    print("STDERR FFmpeg:", result.stderr)
+    if result.returncode != 0:
+        raise RuntimeError(f"❌ Erro ao montar vídeo com áudio: {result.stderr}")
+
+    return output_path
