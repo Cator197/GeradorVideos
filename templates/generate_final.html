@@ -55,29 +55,25 @@
             </div>
           </div>
 
-          <!-- Transição -->
           {% if not loop.last %}
-          <div class="flex flex-col items-center justify-center w-1/3 transition-col">
-            <label class="text-xs font-semibold text-gray-500" for="transicao_{{ loop.index0 }}">Transição</label>
-            <select id="transicao_{{ loop.index0 }}" name="transicao_{{ loop.index0 }}" class="text-xs border rounded mb-1 w-full transition-select">
-              <option value="">Selecione</option>
-              <option value="crossfade">Crossfade</option>
-              <option value="fade">Fade</option>
-              <option value="slide">Slide</option>
-              <option value="overlay">Combinar (Overlay)</option>
-            </select>
-            <input
-              id="duracao_{{ loop.index0 }}"
-              name="duracao_{{ loop.index0 }}"
-              type="number"
-              step="0.1"
-              min="0.1"
-              class="text-xs border rounded px-2 py-1 w-full duration-input"
-              placeholder="Duração (s)"
-              value="0.5"
-            />
-          </div>
+            <div class="w-1/3 transition-col">
+              <div class="config-transicao flex flex-col items-center justify-center">
+                <!-- o JS vai inserir aqui a label + select -->
+              </div>
+              <input
+                id="duracao_{{ loop.index0 }}"
+                name="duracao_{{ loop.index0 }}"
+                type="number"
+                step="0.1"
+                min="0.1"
+                class="text-xs border rounded px-2 py-1 w-full duration-input mt-1"
+                placeholder="Duração (s)"
+                value="0.5"
+              />
+            </div>
           {% endif %}
+
+
         </div>
         {% endfor %}
       </div>

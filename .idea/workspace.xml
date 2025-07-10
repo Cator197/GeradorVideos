@@ -4,18 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT antes de iniciar a refatoção do juntar_cenas unindo com o montar_cenas">
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT antes de iniciar a refatoção do gerar legendas com ASS">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/gerar_ASS.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_ASS.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/juntar_cenas.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/js/generate_final.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_final.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_montagem.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_legenda.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_legenda.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/complete.html" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/generate_final.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_final.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_montagem.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_legenda.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_legenda.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,36 +54,36 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "Python.00.parser_prompts.executor": "Run",
-    "Python.01.gerar_imagens.executor": "Run",
-    "Python.02.gerar_animacao.executor": "Run",
-    "Python.03.gerar_narracao.executor": "Run",
-    "Python.adicionar_marcadagua.executor": "Run",
-    "Python.app.executor": "Run",
-    "Python.gerar_SRT.executor": "Run",
-    "Python.gerar_imagens (1).executor": "Run",
-    "Python.gerar_imagens.executor": "Run",
-    "Python.gerar_narracao.executor": "Run",
-    "Python.juntar_cenas.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.montar_cenas.executor": "Run",
-    "Python.parser_prompts.executor": "Run",
-    "Python.preview_legendas_ffmpeg.executor": "Run",
-    "Python.run.executor": "Run",
-    "Python.teste_combinacoes_legenda.executor": "Run",
-    "Python.teste_ffmpeg_legenda_ass.executor": "Run",
-    "Python.teste_google_tts.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/PycharmProjects/geradorVideo/static/vozes/elevenlabs",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;Python.00.parser_prompts.executor&quot;: &quot;Run&quot;,
+    &quot;Python.01.gerar_imagens.executor&quot;: &quot;Run&quot;,
+    &quot;Python.02.gerar_animacao.executor&quot;: &quot;Run&quot;,
+    &quot;Python.03.gerar_narracao.executor&quot;: &quot;Run&quot;,
+    &quot;Python.adicionar_marcadagua.executor&quot;: &quot;Run&quot;,
+    &quot;Python.app.executor&quot;: &quot;Run&quot;,
+    &quot;Python.gerar_SRT.executor&quot;: &quot;Run&quot;,
+    &quot;Python.gerar_imagens (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.gerar_imagens.executor&quot;: &quot;Run&quot;,
+    &quot;Python.gerar_narracao.executor&quot;: &quot;Run&quot;,
+    &quot;Python.juntar_cenas.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.montar_cenas.executor&quot;: &quot;Run&quot;,
+    &quot;Python.parser_prompts.executor&quot;: &quot;Run&quot;,
+    &quot;Python.preview_legendas_ffmpeg.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run.executor&quot;: &quot;Run&quot;,
+    &quot;Python.teste_combinacoes_legenda.executor&quot;: &quot;Run&quot;,
+    &quot;Python.teste_ffmpeg_legenda_ass.executor&quot;: &quot;Run&quot;,
+    &quot;Python.teste_google_tts.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/PycharmProjects/geradorVideo/static/vozes/elevenlabs&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\PycharmProjects\geradorVideo\static\vozes\elevenlabs" />
@@ -147,6 +145,28 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="juntar_cenas" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="geradorVideo" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/modules" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/modules/juntar_cenas.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="parser_prompts" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="geradorVideo" />
       <option name="ENV_FILES" value="" />
@@ -191,35 +211,13 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="teste_google_tts" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="geradorVideo" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/modules" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/modules/teste_google_tts.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Python.run" />
+        <item itemvalue="Python.juntar_cenas" />
         <item itemvalue="Python.app" />
         <item itemvalue="Python.parser_prompts" />
         <item itemvalue="Python.gerar_narracao" />
-        <item itemvalue="Python.teste_google_tts" />
       </list>
     </recent_temporary>
   </component>
@@ -399,7 +397,15 @@
       <option name="project" value="LOCAL" />
       <updated>1751928229834</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="COMMIT antes de iniciar a refatoção do gerar legendas com ASS">
+      <option name="closed" value="true" />
+      <created>1751986255244</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1751986255244</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -458,6 +464,7 @@
     <MESSAGE value="COMMIT antes de iniciar funções de instalador e ativação" />
     <MESSAGE value="COMMIT durante de iniciar funções de instalador e ativação -" />
     <MESSAGE value="COMMIT antes de iniciar a refatoção do juntar_cenas unindo com o montar_cenas" />
-    <option name="LAST_COMMIT_MESSAGE" value="COMMIT antes de iniciar a refatoção do juntar_cenas unindo com o montar_cenas" />
+    <MESSAGE value="COMMIT antes de iniciar a refatoção do gerar legendas com ASS" />
+    <option name="LAST_COMMIT_MESSAGE" value="COMMIT antes de iniciar a refatoção do gerar legendas com ASS" />
   </component>
 </project>

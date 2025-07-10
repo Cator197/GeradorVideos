@@ -450,9 +450,9 @@ from modules import gerar_ASS
 @app.route("/generate_legenda")
 def generate_legenda():
     """Página para criar legendas das narrações."""
-    path = gerar_ASS.get_paths()
+    path = os.path.join(os.getcwd(),"cenas.json")
 
-    with open(path["cenas"], "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8") as f:
         cenas = json.load(f)
 
     return render_template("generate_legenda.html", page_title="Gerar Legendas", cenas=cenas)
@@ -466,13 +466,15 @@ def gerar_legendas_ass():
     single = data.get("single_index")
     start  = data.get("from_index")
 
-    estilo = {
-        "nome": "Estilo",
+    estilo={
         "fonte": data.get("fonte", "Arial"),
         "tamanho": int(data.get("tamanho", 48)),
-        "cor": data.get("cor", "#FFFFFF"),
         "estilo": data.get("estilo", "simples"),
-        "animacao": data.get("animacao", "nenhuma")
+        "animacao": data.get("animacao", "nenhuma"),
+        "cor_primaria": data.get("cor_primaria"),
+        "cor_secundaria": data.get("cor_secundaria", "#00FFFF"),
+        "cor_outline": data.get("cor_outline", "#000000"),
+        "cor_back": data.get("cor_back", "#000000")  # mesmo campo usado
     }
 
     path=gerar_ASS.get_paths()
@@ -595,10 +597,6 @@ def salvar_arquivo_upload(request_file, destino):
         return destino
     return None
 
-# caminho para o JSON gerado em etapas anteriores
-def caminho_cenas_final():
-    return os.path.join(get_config("pasta_salvar") or ".", "cenas_com_imagens.json")
-
 @app.route("/generate_final")
 def generate_final():
     path = caminho_cenas_final()
@@ -623,6 +621,9 @@ def montar_cenas_stream():
         cenas_json = json.load(f)
         total = len(cenas_json)
 
+    print("o cenas json esta em: ", path)
+    print(cenas_json)
+
     if scope == "all":
         indices = list(range(total))
     elif scope == "single" and single and 1 <= single <= total:
@@ -638,12 +639,16 @@ def montar_cenas_stream():
         for idx in indices:
             try:
                 config = cenas_json[idx]
+                print(cenas_json)
+                print(cenas_json[idx])
+
                 caminho = montar_uma_cena(idx, config)
                 logs.append(f"✅ Cena {idx + 1} salva em {os.path.basename(caminho)}")
                 yield f"data: ✅ Cena {idx + 1} gerada com sucesso\n\n"
             except Exception as e:
                 logs.append(f"❌ Erro na cena {idx + 1}: {str(e)}")
                 yield f"data: ❌ Erro na cena {idx + 1}: {str(e)}\n\n"
+                yield f"data: ⚠️ Config usada: {json.dumps(cenas_json[idx], indent=2)}\n\n"
         yield "data: 🔚 Conclusão das cenas\n\n"
 
     return Response(stream_with_context(gerar()), mimetype='text/event-stream')
@@ -665,40 +670,41 @@ def atualizar_config_cenas():
 
 @app.route("/finalizar_stream", methods=["POST"])
 def finalizar_stream():
-    data = request.get_json(force=True)
-    acao        = data.get("acao", "video")
-    cenas_json  = json.dumps(data.get("cenas", []))
-    usar_trilha = bool(data.get("usar_trilha"))
-    trilha_path = data.get("trilha_path") if usar_trilha else None
-    usar_marca  = bool(data.get("usar_marca"))
-    marca_path  = data.get("marca_path")  if usar_marca  else None
+    try:
+        dados = request.get_json()
+        print("📦 Config final recebida:", dados)
 
-    def event_gen():
-        yield "data: 🚀 Iniciando montagem final...\n\n"
-        if usar_trilha and trilha_path:
-            yield f"data: 🎵 Trilha: {trilha_path}\n\n"
-        if usar_marca and marca_path:
-            yield f"data: 🌊 Marca d'água: {marca_path}\n\n"
+        base = get_config("pasta_salvar") or os.getcwd()
+        pasta_cenas = os.path.join(base, "videos_cenas")
+        pasta_final = os.path.join(base, "videos_final")
+        os.makedirs(pasta_final, exist_ok=True)
 
-        if acao == "video":
-            resultado = run_juntar_cenas(
-                cenas_param=cenas_json,
-                usar_musica=usar_trilha,
-                trilha_path=trilha_path,
-                volume=0.2,
-                usar_watermark=usar_marca,
-                marca_path=marca_path,
-                opacidade=0.3,
-                posicao="('right','bottom')"
-            )
+        escopo = dados.get("escopo", "all")
+        transicoes = dados.get("transicoes", [])  # lista de dicionários com tipo e duração
+        trilha = dados.get("trilha")  # opcional
+        marca = dados.get("marca")  # opcional
+        print("📋 Transições recebidas:", transicoes)
+        if escopo == "single":
+            idx = int(dados.get("idx", 1)) - 1
+            arquivos = [os.path.join(pasta_cenas, f"video{idx + 1}.mp4")]
         else:
-            resultado = {"logs": ["Exportação para CapCut desativada."]}
+            arquivos = sorted([
+                os.path.join(pasta_cenas, f) for f in os.listdir(pasta_cenas)
+                if f.startswith("video") and f.endswith(".mp4")
+            ], key=lambda x: int(re.search(r'video(\d+)', x).group(1)))
 
-        for log in resultado.get("logs", []):
-            yield f"data: {log}\n\n"
-        yield "data: 🔚 Finalização concluída\n\n"
+        print("🎬 Cenas encontradas:", arquivos)
+        print("🔁 Transições:", transicoes)
 
-    return Response(stream_with_context(event_gen()), mimetype='text/event-stream')
+        output_path = os.path.join(pasta_final, "video_final.mp4")
+
+        from modules.juntar_cenas import unir_cenas_com_transicoes
+        unir_cenas_com_transicoes(arquivos, transicoes, output_path)
+
+        return jsonify({"status": "ok", "output": output_path})
+    except Exception as e:
+        print("❌ Erro ao finalizar vídeo:", e)
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 @app.route('/preview_video/<int:idx>')
 def preview_video(idx):

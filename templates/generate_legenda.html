@@ -109,46 +109,46 @@
           <!-- Estilo -->
           <div>
             <label for="estilo" class="block font-semibold text-slate-700">Estilo Visual</label>
-            <select id="estilo" name="estilo" class="w-full border rounded p-2">
-              <option value="simples">Cor Simples</option>
-              <option value="borda">Com Borda</option>
-              <option value="sombra">Esfumaçada (Sombra)</option>
-              <option value="glow">Brilho (Glow)</option>
-              <option value="tv">Estilo TV</option>
-              <option value="retro">Retrô</option>
-              <option value="cartoon">Cartoon</option>
-              <option value="inverso">Inverso</option>
-              <option value="fundo">Fundo Translúcido</option>
-            </select>
+              <select id="estilo" name="estilo" class="w-full border rounded p-2">
+                <option value="simples">Cor Simples</option>
+                <option value="borda">Com Borda</option>
+                <option value="sombra">Sombra</option>
+                <option value="glow">Glow</option>
+                <option value="tv">Estilo TV</option>
+              </select>
+
           </div>
 
           <!-- Cor do Estilo Visual (borda, sombra etc.) -->
-          <div id="cor_estilo_visual_container" class="hidden">
-            <label for="cor_estilo_visual" class="block font-semibold text-slate-700">Cor do Estilo Visual</label>
-            <input type="color" id="cor_estilo_visual" name="cor_estilo_visual" value="#000000"
+          <div id="cor_outline_container" class="hidden">
+            <label for="cor_outline" class="block font-semibold text-slate-700">Cor da Borda</label>
+            <input type="color" id="cor_outline" name="cor_outline" value="#000000"
+                   class="w-full h-10 border rounded p-1">
+          </div>
+
+          <div id="cor_back_container" class="hidden">
+            <label for="cor_back" class="block font-semibold text-slate-700">Cor da Sombra</label>
+            <input type="color" id="cor_back" name="cor_back" value="#000000"
                    class="w-full h-10 border rounded p-1">
           </div>
 
           <!-- Animação -->
           <div>
             <label for="animacao" class="block font-semibold text-slate-700">Animação</label>
-            <select id="animacao" name="animacao" class="w-full border rounded p-2">
-              <option value="nenhuma">Nenhuma</option>
-              <option value="fade">Fade-in</option>
-              <option value="karaoke">Karaokê</option>
-              <option value="palavra acumulativa">Palavra Acumulativa</option>
-              <option value="zoom">Zoom</option>
-              <option value="deslizar">Deslizar</option>
-              <option value="piscar">Piscar</option>
-              <option value="pulsar">Pulsar</option>
-            </select>
+              <select id="animacao" name="animacao" class="w-full border rounded p-2">
+                <option value="nenhuma">Nenhuma</option>
+                <option value="fade">Fade-in</option>
+                <option value="karaoke">Karaokê</option>
+                <option value="zoom">Zoom</option>
+                <option value="deslizar">Deslizar</option>
+              </select>
           </div>
         </div>
 
         <!-- Cor do Karaokê -->
         <div id="cor_karaoke_container" class="hidden">
           <label for="cor_karaoke" class="block font-semibold text-slate-700">Cor do Karaokê</label>
-          <input type="color" id="cor_karaoke" name="cor_karaoke" value="#00ffff"
+          <input type="color" id="cor_secundaria" name="cor_secundaria" value="#00ffff"
                  class="w-full h-10 border rounded p-1">
         </div>
 

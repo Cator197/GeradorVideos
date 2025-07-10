@@ -12,10 +12,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const tamanho = document.getElementById("tamanho");
   const estilo = document.getElementById("estilo");
   const animacao = document.getElementById("animacao");
-  const cor = document.getElementById("cor");
-  const corEstiloVisual = document.getElementById("cor_estilo_visual");
-  const corKaraoke = document.getElementById("cor_karaoke");
-  const corEstiloVisualContainer = document.getElementById("cor_estilo_visual_container");
+
+  const corPrimaria = document.getElementById("cor");
+  const corOutline = document.getElementById("cor_outline");
+  const corBack = document.getElementById("cor_back");
+  const corSecundaria = document.getElementById("cor_secundaria");
+
+  const corOutlineContainer = document.getElementById("cor_outline_container");
+  const corBackContainer = document.getElementById("cor_back_container");
   const corKaraokeContainer = document.getElementById("cor_karaoke_container");
 
   const modo = document.getElementById("modo_legenda");
@@ -31,12 +35,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let indiceSelecionado = null;
 
   const estilosClasse = [
-    "estilo-simples", "estilo-borda", "estilo-sombra", "estilo-glow",
-    "estilo-tv", "estilo-retro", "estilo-cartoon", "estilo-inverso", "estilo-fundo"
+    "estilo-simples", "estilo-borda", "estilo-sombra", "estilo-glow", "estilo-tv"
   ];
   const animacoesClasse = [
-    "animacao-fade", "animacao-karaoke", "animacao-zoom", "animacao-deslizar",
-    "animacao-piscar", "animacao-pulsar"
+    "animacao-fade", "animacao-karaoke", "animacao-zoom", "animacao-deslizar"
   ];
 
   function iniciarProgresso() {
@@ -57,15 +59,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     preview.style.fontFamily = fonte.value;
     preview.style.fontSize = `${tamanho.value}px`;
-    preview.style.color = cor.value;
+    preview.style.color = corPrimaria.value;
   }
 
   function atualizarCamposExtras() {
-    corEstiloVisualContainer.classList.toggle("hidden", estilo.value === "simples");
+    const val = estilo.value;
+    corOutlineContainer.classList.toggle("hidden", !["borda", "glow", "tv"].includes(val));
+    corBackContainer.classList.toggle("hidden", val !== "sombra");
     corKaraokeContainer.classList.toggle("hidden", animacao.value !== "karaoke");
   }
 
-  [fonte, tamanho, estilo, animacao, cor].forEach(el => {
+  [fonte, tamanho, estilo, animacao, corPrimaria].forEach(el => {
     el?.addEventListener("change", () => {
       atualizarPreview();
       atualizarCamposExtras();
@@ -112,9 +116,10 @@ document.addEventListener("DOMContentLoaded", () => {
           tamanho: parseInt(tamanho.value),
           estilo: estilo.value,
           animacao: animacao.value,
-          cor: cor.value,
-          cor_estilo_visual: corEstiloVisual.value,
-          cor_karaoke: corKaraoke.value
+          cor_primaria: corPrimaria.value,
+          cor_outline: corOutline.value,
+          cor_back: "#000000",
+          cor_secundaria: corSecundaria.value
         });
       } else if (tipo === "srt") {
         endpoint = "/legendas_srt";

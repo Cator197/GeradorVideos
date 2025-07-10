@@ -35,7 +35,6 @@
 
       <!-- Itens do menu lateral -->
       <ul class="flex flex-col gap-1 text-sm">
-        <!-- <li><a href="{{ url_for('complete') }}" class="group flex items-center gap-3 px-4 py-2 rounded hover:bg-white/10 transition relative"><svg class="w-5 h-5 text-gray-400 group-hover:text-white transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14"/><rect x="3" y="5" width="12" height="14" rx="2"/></svg><span>Vídeo Completo</span></a></li>-->
         <li><a href="{{ url_for('imagens_page') }}" class="group flex items-center gap-3 px-4 py-2 rounded hover:bg-white/10 transition relative"><svg class="w-5 h-5 text-gray-400 group-hover:text-white transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 5h18M3 19h18M4 15l4-4 4 4 4-4 4 4"/></svg><span>Gerar Imagem</span></a></li>
         <li><a href="{{ url_for('generate_narracao') }}" class="group flex items-center gap-3 px-4 py-2 rounded hover:bg-white/10 transition relative"><svg class="w-5 h-5 text-gray-400 group-hover:text-white transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v14m0 0a4 4 0 004-4V5a4 4 0 10-8 0v6a4 4 0 004 4zm0 0v4m-4 0h8"/></svg><span>Gerar Narração</span></a></li>
         <li><a href="{{ url_for('generate_legenda') }}" class="group flex items-center gap-3 px-4 py-2 rounded hover:bg-white/10 transition relative"><svg class="w-5 h-5 text-gray-400 group-hover:text-white transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 12h2M14 12h2"/></svg><span>Gerar Legendas</span></a></li>
@@ -47,10 +46,20 @@
 
   <!-- CONTEÚDO + HEADER -->
   <div class="flex-1 flex flex-col">
-    <!-- HEADER deslocado para dentro do conteúdo principal -->
+    <!-- HEADER -->
     <header class="h-16 bg-[rgba(220,220,220,0.6)] backdrop-blur-md text-black flex items-center px-6 shadow z-50 border-b border-white/10">
       <h1 class="text-xl font-semibold flex-1">{{ page_title }}</h1>
 
+      <!-- Créditos restantes -->
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 19v2m0-18v2m-7 7H3m18 0h-2"/>
+        </svg>
+        <span class="text-sm font-medium text-indigo-700">
+          Créditos: {{ creditos_restantes }}
+        </span>
+      </div>
     </header>
 
     <!-- CONTEÚDO PRINCIPAL -->
@@ -61,8 +70,6 @@
 
   <!-- SCRIPTS -->
   <script src="{{ url_for('static', filename='js/novo_prompt.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/toggle.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
   {% block scripts %}{% endblock %}
 
   <!-- MODAL DE CONFIRMAÇÃO -->
@@ -76,6 +83,5 @@
       </div>
     </div>
   </div>
-
 </body>
 </html>
