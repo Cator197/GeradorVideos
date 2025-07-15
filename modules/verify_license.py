@@ -1,4 +1,4 @@
-import sys
+
 import json
 import base64
 import hashlib

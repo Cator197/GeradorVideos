@@ -1,12 +1,6 @@
-import os
-import ctypes
-import shutil
-import zipfile
-import requests
-from pathlib import Path
+
 from faster_whisper import WhisperModel
-from modules.config import get_config
-import matplotlib.font_manager as fm
+import os
 
 def carregar_modelo():
     return WhisperModel("small", device="cpu", compute_type="int8")
@@ -17,23 +11,6 @@ def formatar_tempo(segundos):
     s = int(segundos % 60)
     cs = int((segundos - int(segundos)) * 100)
     return f"{h}:{m:02}:{s:02}.{cs:02}"
-
-def get_paths():
-
-    """Obtém os diretórios utilizados para salvar arquivos de áudio e cenas."""
-    base = get_config("pasta_salvar") or os.getcwd()
-    # Diretório da pasta modules (onde está este arquivo)
-    BASE_DIR=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    ARQUIVO_JSON=os.path.join(BASE_DIR, "cenas.json")
-    return {
-        "audios": os.path.join(base, "audios_narracoes"),
-        "legendas": os.path.join(base, "legendas_ass"),
-        "cenas": os.path.join(os.getcwd(), "cenas.json"),
-    }
-
-
-import os
-import re
 
 def hex_ass(cor_hex: str) -> str:
     """
@@ -63,8 +40,6 @@ def hex_ass(cor_hex: str) -> str:
     except Exception as e:
         print(f"❌ Erro ao processar cor: {e}")
         return "&H00FFFF00"
-
-
 
 def gerar_ass_com_whisper(modelo, path_audio, path_saida, estilo, modo="linha2"):
     segments, _ = modelo.transcribe(path_audio, word_timestamps=True)

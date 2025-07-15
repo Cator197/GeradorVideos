@@ -1,18 +1,9 @@
 import os
 import json
-from pydub import AudioSegment
 from faster_whisper import WhisperModel
-from modules.config import get_config
+from modules.paths import get_paths
 
-def get_paths():
-    base = get_config("pasta_salvar") or os.getcwd()
-    BASE_DIR = os.path.join(os.getcwd(), "cenas.json")
-    return {
-        "base": base,
-        "audios": os.path.join(base, "audios_narracoes"),
-        "srts": os.path.join(base, "legendas_srt"),
-        "cenas": os.path.join(os.getcwd(), "cenas.json"),
-    }
+path = get_paths()
 
 def formatar_tempo(segundos):
     h = int(segundos // 3600)
@@ -30,14 +21,14 @@ def gerar_srt_com_bloco(indices, palavras_por_bloco=4):
     model = carregar_modelo()
     logs = []
 
-    with open(paths["cenas"], encoding="utf-8") as f:
+    with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
-    os.makedirs(paths["srts"], exist_ok=True)
+    os.makedirs(path["legendas_srt"], exist_ok=True)
 
     for i in indices:
-        audio_path = os.path.join(paths["audios"], f"narracao{i + 1}.mp3")
-        srt_path = os.path.join(paths["srts"], f"legenda{i + 1}.srt")
+        audio_path = os.path.join(path["audios"], f"narracao{i + 1}.mp3")
+        srt_path = os.path.join(path["legendas_srt"], f"legenda{i + 1}.srt")
 
         if not os.path.exists(audio_path):
             logs.append(f"⚠️ Áudio {i + 1} não encontrado.")
@@ -69,7 +60,7 @@ def gerar_srt_com_bloco(indices, palavras_por_bloco=4):
         cenas[i]["srt_path"] = srt_path
         logs.append(f"✅ Legenda {i + 1} gerada com {palavras_por_bloco} palavras por bloco.")
 
-    with open(paths["cenas"], "w", encoding="utf-8") as f:
+    with open(path["cenas"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)
 
     return logs

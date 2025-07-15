@@ -1,19 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AnalysisUIOptions">
+    <option name="ANALYZE_INJECTED_CODE" value="false" />
+    <option name="SCOPE_TYPE" value="3" />
+  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="COMMIT antes de iniciar a refatoção do gerar legendas com ASS">
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="Commit antes da revisão completa 10.07.2025 - final para lançamento">
+      <change afterPath="$PROJECT_DIR$/modules/paths.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/gerar_ASS.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_ASS.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_SRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_SRT.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_imagens.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_imagens.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/google_tts.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/juntar_cenas.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_final.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_final.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_legenda.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_legenda.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_final.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_final.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/generate_legenda.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_legenda.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/montar_cenas.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/parser_prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/parser_prompts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/remover_silencio.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/remover_silencio.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/verify_license.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/verify_license.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,7 +74,7 @@
     &quot;Python.gerar_SRT.executor&quot;: &quot;Run&quot;,
     &quot;Python.gerar_imagens (1).executor&quot;: &quot;Run&quot;,
     &quot;Python.gerar_imagens.executor&quot;: &quot;Run&quot;,
-    &quot;Python.gerar_narracao.executor&quot;: &quot;Run&quot;,
+    &quot;Python.gerar_narracao.executor&quot;: &quot;Debug&quot;,
     &quot;Python.juntar_cenas.executor&quot;: &quot;Run&quot;,
     &quot;Python.main.executor&quot;: &quot;Run&quot;,
     &quot;Python.montar_cenas.executor&quot;: &quot;Run&quot;,
@@ -81,7 +89,8 @@
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;D:/PycharmProjects/geradorVideo/static/vozes/elevenlabs&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
 }</component>
   <component name="RecentsManager">
@@ -214,10 +223,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.run" />
+        <item itemvalue="Python.gerar_narracao" />
         <item itemvalue="Python.juntar_cenas" />
         <item itemvalue="Python.app" />
         <item itemvalue="Python.parser_prompts" />
-        <item itemvalue="Python.gerar_narracao" />
       </list>
     </recent_temporary>
   </component>
@@ -405,7 +414,15 @@
       <option name="project" value="LOCAL" />
       <updated>1751986255244</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="Commit antes da revisão completa 10.07.2025 - final para lançamento">
+      <option name="closed" value="true" />
+      <created>1752167786463</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1752167786463</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -465,6 +482,7 @@
     <MESSAGE value="COMMIT durante de iniciar funções de instalador e ativação -" />
     <MESSAGE value="COMMIT antes de iniciar a refatoção do juntar_cenas unindo com o montar_cenas" />
     <MESSAGE value="COMMIT antes de iniciar a refatoção do gerar legendas com ASS" />
-    <option name="LAST_COMMIT_MESSAGE" value="COMMIT antes de iniciar a refatoção do gerar legendas com ASS" />
+    <MESSAGE value="Commit antes da revisão completa 10.07.2025 - final para lançamento" />
+    <option name="LAST_COMMIT_MESSAGE" value="Commit antes da revisão completa 10.07.2025 - final para lançamento" />
   </component>
 </project>

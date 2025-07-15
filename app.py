@@ -1,32 +1,28 @@
 """Aplicação Flask para orquestrar as etapas de geração de vídeos."""
 
-import json
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory, send_file, Response, stream_with_context
-from pydub import AudioSegment, silence
-from modules.config import salvar_config, carregar_config
 import tkinter as tk
 from tkinter import filedialog
-from modules.config import get_config
-import os
-import time
+from modules.config import salvar_config, carregar_config, get_config
+from modules.parser_prompts import parse_prompts_txt, salvar_prompt_txt
+from modules.gerar_imagens import run_gerar_imagens, calcular_indices, gerar_eventos_para_stream, gerar_imagens_async
+from modules.gerar_narracao import iniciar_driver, login, gerar_e_baixar
+from modules.gerar_ASS import gerar_ass_com_whisper, carregar_modelo
+from modules.gerar_SRT import gerar_srt_com_bloco
+from modules.paths import get_paths
+import re, os, json, asyncio, time
+from modules.juntar_cenas import montar_uma_cena
 from modules.verify_license import verify_license
 
-# Importe sua função refatorada de geração de imagens
-
-
-
+path = get_paths()
 
 app = Flask(__name__)
 app.config['USUARIO_CONFIG'] = carregar_config()
+
 @app.route("/")
 def index():
     """Página inicial da aplicação."""
     return render_template("generate_prompt.html", page_title="Início")
-
-@app.route("/complete")
-def complete():
-    """Tela para executar o fluxo completo de geração."""
-    return render_template("complete.html", page_title="Gerar Vídeo Completo")
 
 #----- Novo prompt ----------------------------------------------------------------------------------------------------
 
@@ -37,8 +33,6 @@ def prompt_page():
     return render_template("generate_prompt.html",
                            page_title="Gerar Prompt")
 
-from modules.parser_prompts import parse_prompts_txt, salvar_prompt_txt
-import re
 @app.route("/processar_prompt", methods=["POST"])
 def processar_prompt():
     try:
@@ -75,14 +69,12 @@ def processar_prompt():
 
 
         # Salva o cenas.json
-        cenas_path = os.path.join(os.getcwd(),"cenas.json")
-        #print(cenas_path)
-        with open(cenas_path, "w", encoding="utf-8") as f:
+        with open(path["cenas"], "w", encoding="utf-8") as f:
             import json
             json.dump(cenas, f, ensure_ascii=False, indent=4)
 
         # Salvar nome do vídeo
-        with open(os.path.join(os.getcwd(),"ultimo_nome_video.txt"), "w", encoding="utf-8") as f:
+        with open(path["nome_video"], "w", encoding="utf-8") as f:
             f.write(nome_video)
         limpar_pastas_saida()
         return jsonify({"status": "ok"})
@@ -93,17 +85,16 @@ def processar_prompt():
 #----------------------------------------------------------------------------------------------------------------------
 
 #----- IMAGENS --------------------------------------------------------------------------------------------------------
-from modules.gerar_imagens import run_gerar_imagens, calcular_indices, gerar_eventos_para_stream
-
 
 @app.route("/imagens", methods=["GET"])
 def imagens_page():
-    path = os.path.join(os.getcwd(),"cenas.json")
-    with open(path, encoding="utf-8") as f:
+
+    #path = os.path.join(os.getcwd(),"cenas.json")
+    with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
-    pasta_imagens = os.path.join(get_config("pasta_salvar"), "imagens")
-    arquivos = os.listdir(pasta_imagens)
+    #pasta_imagens = os.path.join(get_config("pasta_salvar"), "imagens")
+    arquivos = os.listdir(path["imagens"])
 
     # Mapeia imagem1.jpg, imagem2.mp4 etc.
     arquivos_dict = {}
@@ -118,8 +109,6 @@ def imagens_page():
                            cenas=cenas,
                            arquivos_midia=arquivos_dict)
 
-
-
 @app.route("/imagens", methods=["POST"])
 def imagens_run():
     """Endpoint que inicia a geração das imagens."""
@@ -129,8 +118,8 @@ def imagens_run():
     start     = request.form.get("from_index", type=int)
     selected  = request.form.get("selected_indices")
 
-    path = os.path.join(os.getcwd(),"cenas.json")
-    with open(path, encoding="utf-8") as f:
+    #path = os.path.join(os.getcwd(),"cenas.json")
+    with open(path["cenas"], encoding="utf-8") as f:
         total = len(json.load(f))
 
     try:
@@ -146,15 +135,12 @@ def imagens_run():
         "logs": resultado["logs"]
     })
 
-
-
 @app.route("/modules/imagens/<path:filename>")
 def serve_module_images(filename):
     """Retorna arquivos de imagem gerados na pasta de saída."""
-    pasta_salvar = get_config("pasta_salvar")
-    pasta_imagens = os.path.join(pasta_salvar, "imagens")
-    return send_from_directory(pasta_imagens, filename)
-
+    # pasta_salvar = get_config("pasta_salvar")
+    # pasta_imagens = os.path.join(pasta_salvar, "imagens")
+    return send_from_directory(path["imagens"], filename)
 
 @app.route("/imagens_stream", methods=["GET"])
 def imagens_stream():
@@ -170,7 +156,6 @@ def imagens_stream():
         mimetype='text/event-stream'
     )
 
-
 from modules import gerar_imagens
 @app.route("/editar_prompt", methods=["POST"])
 def editar_prompt():
@@ -178,40 +163,37 @@ def editar_prompt():
     index = int(data["index"])
     novo = data["novo_prompt"]
 
-    paths = gerar_imagens.get_paths()
-    with open(paths["entrada_json"], encoding="utf-8") as f:
+    #paths = gerar_imagens.get_paths()
+    with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
     cenas[index]["prompt_imagem"] = novo
 
-    with open(paths["entrada_json"], "w", encoding="utf-8") as f:
+    with open(path["cenas"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)
 
     return jsonify({"status": "ok"})
-import asyncio
 
-
-from modules.gerar_imagens import gerar_imagens_async
 @app.route("/substituir_imagem", methods=["POST"])
 def substituir_imagem():
     data = request.get_json()
     index = int(data["index"])
     novo = data["novo_prompt"]
 
-    paths = gerar_imagens.get_paths()
-    with open(paths["entrada_json"], encoding="utf-8") as f:
+    #paths = gerar_imagens.get_paths()
+    with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
     cenas[index]["prompt_imagem"] = novo
 
     # Atualiza JSON temporariamente e gera imagem
-    with open(paths["entrada_json"], "w", encoding="utf-8") as f:
+    with open(path["cenas"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)
 
     logs = []
     asyncio.run(gerar_imagens_async(cenas, [index], logs))
 
-    with open(paths["saida_json"], "w", encoding="utf-8") as f:
+    with open(path["cenas_com_imagens"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)
 
     return jsonify({"status": "ok"})
@@ -228,29 +210,29 @@ def upload_imagem():
         if ext not in [".jpg", ".jpeg", ".png", ".mp4"]:
             return jsonify({"status": "erro", "msg": "Formato não suportado"}), 400
 
-        paths = gerar_imagens.get_paths()
-        pasta = paths["pasta_imagens"]
-        os.makedirs(pasta, exist_ok=True)
+        # paths = gerar_imagens.get_paths()
+        # pasta = paths["pasta_imagens"]
+        os.makedirs(path["imagens"], exist_ok=True)
 
         # 🗑️ Excluir arquivos antigos
         nome_base = f"imagem{index+1}"
         for old_ext in [".jpg", ".png", ".mp4"]:
-            caminho_antigo = os.path.join(pasta, nome_base + old_ext)
+            caminho_antigo = os.path.join(path["imagens"], nome_base + old_ext)
             if os.path.exists(caminho_antigo):
                 os.remove(caminho_antigo)
 
         # 💾 Salvar o novo
-        caminho = os.path.join(pasta, nome_base + ext)
+        caminho = os.path.join(path["imagens"], nome_base + ext)
         imagem.save(caminho)
 
         # Atualizar JSON
-        with open(paths["entrada_json"], encoding="utf-8") as f:
+        with open(path["cenas"], encoding="utf-8") as f:
             cenas = json.load(f)
 
         cenas[index]["arquivo_local"] = caminho
         cenas[index]["image_url"] = f"/modules/imagens/{nome_base}{ext}"
 
-        with open(paths["saida_json"], "w", encoding="utf-8") as f:
+        with open(path["cenas_com_imagens"], "w", encoding="utf-8") as f:
             json.dump(cenas, f, ensure_ascii=False, indent=2)
 
         return jsonify({"status": "ok"})
@@ -259,69 +241,59 @@ def upload_imagem():
         print(f"❌ Erro em upload_imagem: {e}")
         return jsonify({"status": "erro", "msg": str(e)}), 500
 
-
-
-
 #----------------------------------------------------------------------------------------------------------------------
 
 #----- NARRAÇÃO -------------------------------------------------------------------------------------------------------
-from modules.gerar_narracao import run_gerar_narracoes, iniciar_driver, login, gerar_e_baixar, get_paths
-from modules import gerar_narracao
 
 @app.route("/generate_narracao")
 def generate_narracao():
     """Exibe a tela de geração de narrações."""
-    path = os.path.join(os.getcwd(),"cenas.json")
-    if not os.path.exists(path):
+    #path = os.path.join(os.getcwd(),"cenas.json")
+    if not os.path.exists(path["cenas"]):
         return "Arquivo cenas.json não encontrado", 500
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path["cenas"], "r", encoding="utf-8") as f:
         cenas = json.load(f)
     return render_template("generate_narracao.html",page_title="Gerar Narração", cenas=cenas)
-
-
-@app.route("/narracoes", methods=["POST"])
-def narracoes_run():
-    """Gera narrações para as cenas selecionadas."""
-    scope  = request.form.get("scope", "all")
-    single = request.form.get("single_index", type=int)
-    start  = request.form.get("from_index", type=int)
-    custom = request.form.get("custom_indices", "")
-    voz    = request.form.get("voz", "Brian")
-    fonte  = request.form.get("fonte", "elevenlabs")
-
-    path = gerar_narracao.get_paths()["cenas"]
-    with open(path, encoding="utf-8") as f:
-        total = len(json.load(f))
-
-    # Definir os índices com base no escopo
-    if scope == "custom" and custom:
-        try:
-            indices = [int(i.strip()) - 1 for i in custom.split(",") if i.strip().isdigit()]
-            indices = [i for i in indices if 0 <= i < total]
-        except:
-            return jsonify({"error": "Índices inválidos."}), 400
-    elif scope == "all":
-        indices = list(range(total))
-    elif scope == "single" and single and 1 <= single <= total:
-        indices = [single - 1]
-    elif scope == "from" and start and 1 <= start <= total:
-        indices = list(range(start - 1, total))
-    else:
-        return jsonify({"error": "Parâmetros inválidos"}), 400
-
-    try:
-        resultado = run_gerar_narracoes(indices, voz=voz, fonte=fonte)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-    return jsonify({
-        "status": "ok",
-        "logs": resultado["logs"],
-        "cenas": resultado["cenas"]
-    })
-
-
-
+# @app.route("/narracoes", methods=["POST"])
+# def narracoes_run():
+#     """Gera narrações para as cenas selecionadas."""
+#     scope  = request.form.get("scope", "all")
+#     single = request.form.get("single_index", type=int)
+#     start  = request.form.get("from_index", type=int)
+#     custom = request.form.get("custom_indices", "")
+#     voz    = request.form.get("voz", "Brian")
+#     fonte  = request.form.get("fonte", "elevenlabs")
+#
+#     path = gerar_narracao.get_paths()["cenas"]
+#     with open(path, encoding="utf-8") as f:
+#         total = len(json.load(f))
+#
+#     # Definir os índices com base no escopo
+#     if scope == "custom" and custom:
+#         try:
+#             indices = [int(i.strip()) - 1 for i in custom.split(",") if i.strip().isdigit()]
+#             indices = [i for i in indices if 0 <= i < total]
+#         except:
+#             return jsonify({"error": "Índices inválidos."}), 400
+#     elif scope == "all":
+#         indices = list(range(total))
+#     elif scope == "single" and single and 1 <= single <= total:
+#         indices = [single - 1]
+#     elif scope == "from" and start and 1 <= start <= total:
+#         indices = list(range(start - 1, total))
+#     else:
+#         return jsonify({"error": "Parâmetros inválidos"}), 400
+#
+#     try:
+#         resultado = run_gerar_narracoes(indices, voz=voz, fonte=fonte)
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+#
+#     return jsonify({
+#         "status": "ok",
+#         "logs": resultado["logs"],
+#         "cenas": resultado["cenas"]
+#     })
 @app.route("/narracao_stream", methods=["GET"])
 def gerar_narracoes_stream():
     """Versão com feedback em tempo real das narrações."""
@@ -332,8 +304,8 @@ def gerar_narracoes_stream():
     voz     = request.args.get("voz", "Brian")
     fonte   = request.args.get("fonte", "elevenlabs")
 
-    path = gerar_narracao.get_paths()["cenas"]
-    with open(path, encoding="utf-8") as f:
+    # path = gerar_narracao.get_paths()["cenas"]
+    with open(path["cenas"], encoding="utf-8") as f:
         total = len(json.load(f))
 
     if scope == "custom" and custom:
@@ -352,7 +324,7 @@ def gerar_narracoes_stream():
         return Response("data: ❌ Parâmetros inválidos\n\n", mimetype='text/event-stream')
 
     def gerar_eventos():
-        with open(path, encoding="utf-8") as f:
+        with open(path["cenas"], encoding="utf-8") as f:
             cenas = json.load(f)
 
         yield f"data: 🚀 Iniciando geração de narrações...\n\n"
@@ -370,7 +342,7 @@ def gerar_narracoes_stream():
                 cenas[i]["audio_path"] = path_audio
                 yield f"data: ✅ Narração {i+1} salva\n\n"
 
-                with open(path, "w", encoding="utf-8") as f:
+                with open(path["cenas"], "w", encoding="utf-8") as f:
                     json.dump(cenas, f, ensure_ascii=False, indent=2)
 
                 time.sleep(0.2)
@@ -381,13 +353,11 @@ def gerar_narracoes_stream():
 
     return Response(stream_with_context(gerar_eventos()), mimetype='text/event-stream')
 
-
-
 @app.route("/modules/audio/<path:filename>")
 def serve_module_audio(filename):
     """Fornece os arquivos de áudio gerados."""
     pasta = get_paths()["audios"]
-    return send_from_directory(pasta, filename)
+    return send_from_directory(path["audios"], filename)
 
 @app.route("/editar_narracao", methods=["POST"])
 def editar_narracao():
@@ -396,14 +366,13 @@ def editar_narracao():
     index = int(data["index"])
     novo = data["novo_texto"]
 
-
-    paths = gerar_narracao.get_paths()
-    with open(paths["cenas"], encoding="utf-8") as f:
+    #paths = gerar_narracao.get_paths()
+    with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
     cenas[index]["narracao"] = novo
 
-    with open(paths["cenas"], "w", encoding="utf-8") as f:
+    with open(path["cenas"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)
 
     return jsonify({"status": "ok"})
@@ -412,14 +381,13 @@ def editar_narracao():
 def get_narracao():
     index = int(request.args.get("index", 0))
 
-    paths = gerar_narracao.get_paths()
+    #paths = gerar_narracao.get_paths()
 
-    with open(paths["cenas"], encoding="utf-8") as f:
+    with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
     texto = cenas[index].get("narracao", "")
     return jsonify({"texto": texto})
-
 
 @app.route("/remover_silencio")
 def remover_silencio_route():
@@ -437,26 +405,19 @@ def remover_silencio_route():
         return jsonify(resultado), 400
 
     return jsonify(resultado)
-
-
 #---------------------------------------------------------------------------------------------------------------------
 
 #----- LEGENDAS (versão .ASS) ---------------------------------------------------------------------------------------
 
-from modules.gerar_ASS import get_paths, gerar_ass_com_whisper, carregar_modelo
-from modules.config import get_config
-from modules import gerar_ASS
-
 @app.route("/generate_legenda")
 def generate_legenda():
     """Página para criar legendas das narrações."""
-    path = os.path.join(os.getcwd(),"cenas.json")
+    #path = os.path.join(os.getcwd(),"cenas.json")
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path["cenas"], "r", encoding="utf-8") as f:
         cenas = json.load(f)
 
     return render_template("generate_legenda.html", page_title="Gerar Legendas", cenas=cenas)
-
 
 @app.route("/legendas_ass", methods=["POST"])
 def gerar_legendas_ass():
@@ -477,7 +438,7 @@ def gerar_legendas_ass():
         "cor_back": data.get("cor_back", "#000000")  # mesmo campo usado
     }
 
-    path=gerar_ASS.get_paths()
+    #path=gerar_ASS.get_paths()
 
     with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
@@ -497,10 +458,10 @@ def gerar_legendas_ass():
     modo = data.get("modo", "linha2")  # ← CORREÇÃO AQUI
 
     try:
-        paths = gerar_ASS.get_paths()
+        #paths = gerar_ASS.get_paths()
         for idx in indices:
-            path_audio = os.path.join(paths["audios"], f"narracao{idx + 1}.mp3")
-            path_ass   = os.path.join(paths["legendas"], f"legenda{idx + 1}.ass")
+            path_audio = os.path.join(path["audios"], f"narracao{idx + 1}.mp3")
+            path_ass   = os.path.join(path["legendas_ass"], f"legenda{idx + 1}.ass")
 
             if not os.path.exists(path_audio):
                 logs.append(f"⚠️ Áudio {idx + 1} não encontrado")
@@ -519,8 +480,6 @@ def gerar_legendas_ass():
 
     return jsonify({"status": "ok", "logs": logs, "cenas": cenas})
 
-from modules.gerar_SRT import gerar_srt_com_bloco, get_paths
-from modules import gerar_SRT
 @app.route("/legendas_srt", methods=["POST"])
 def gerar_legendas_srt():
     data = request.get_json()
@@ -530,7 +489,7 @@ def gerar_legendas_srt():
     single = data.get("single_index")
     start = data.get("from_index")
 
-    with open(gerar_SRT.get_paths()["cenas"], encoding="utf-8") as f:
+    with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
     if scope == "single" and single is not None:
@@ -543,14 +502,13 @@ def gerar_legendas_srt():
     resultado = gerar_srt_com_bloco(indices, qtde_palavras)
     return jsonify({"status": "ok", "logs": resultado})
 
-
 @app.route("/get_legenda")
 def get_legenda():
     index = int(request.args.get("index", 0))
     from modules.gerar_narracao import get_paths
-    paths = gerar_ASS.get_paths()
+    #paths = gerar_ASS.get_paths()
 
-    with open(paths["cenas"], encoding="utf-8") as f:
+    with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
     texto = cenas[index].get("legenda") or cenas[index].get("narracao", "")
@@ -563,39 +521,18 @@ def editar_legenda():
     novo = data["novo_texto"]
 
 
-    paths = gerar_ASS.get_paths()
-    with open(paths["cenas"], encoding="utf-8") as f:
+    #paths = gerar_ASS.get_paths()
+    with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
     cenas[index]["legenda"] = novo
 
-    with open(paths["cenas"], "w", encoding="utf-8") as f:
+    with open(path["cenas"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)
 
     return jsonify({"status": "ok"})
 
-
-
 #---------------------------------------------------------------------------------------------------------------------
-
-
-import os, json
-from flask import (
-    request, render_template, jsonify,
-    Response, stream_with_context, send_from_directory, send_file
-)
-from modules.config import get_config
-
-# caminho para o JSON gerado em etapas anteriores
-def caminho_cenas_final():
-    return os.path.join(get_config("pasta_salvar") or ".", "cenas_com_imagens.json")
-
-def salvar_arquivo_upload(request_file, destino):
-    if request_file:
-        os.makedirs(os.path.dirname(destino), exist_ok=True)
-        request_file.save(destino)
-        return destino
-    return None
 
 @app.route("/generate_final")
 def generate_final():
@@ -609,21 +546,20 @@ def generate_final():
     except json.JSONDecodeError:
         return "Erro ao ler o arquivo JSON de cenas", 500
 
-from modules.juntar_cenas import montar_uma_cena
 @app.route("/montar_cenas_stream", methods=["GET"])
 def montar_cenas_stream():
     scope   = request.args.get("scope", "all")
     single  = request.args.get("single_index", type=int)
     start   = request.args.get("from_index", type=int)
-
-    path = caminho_cenas_final()
-    with open(path, encoding="utf-8") as f:
+    print(f"📥 scope={scope} | single={single} | from={start}")
+    #path = caminho_cenas_final()
+    with open(path["cenas_com_imagens"], encoding="utf-8") as f:
         cenas_json = json.load(f)
         total = len(cenas_json)
 
-    print("o cenas json esta em: ", path)
+    print("o cenas json esta em: ", path["cenas"])
     print(cenas_json)
-
+    print(f"📥 scope={scope} | single={single} | from={start}")
     if scope == "all":
         indices = list(range(total))
     elif scope == "single" and single and 1 <= single <= total:
@@ -642,7 +578,9 @@ def montar_cenas_stream():
                 print(cenas_json)
                 print(cenas_json[idx])
 
+
                 caminho = montar_uma_cena(idx, config)
+                print("chegou aqui")
                 logs.append(f"✅ Cena {idx + 1} salva em {os.path.basename(caminho)}")
                 yield f"data: ✅ Cena {idx + 1} gerada com sucesso\n\n"
             except Exception as e:
@@ -656,14 +594,14 @@ def montar_cenas_stream():
 @app.route("/atualizar_config_cenas", methods=["POST"])
 def atualizar_config_cenas():
     cenas_config = request.get_json()
-    path = caminho_cenas_final()
-    with open(path, encoding="utf-8") as f:
+    #path = caminho_cenas_final()
+    with open(path["cenas_com_imagens"], encoding="utf-8") as f:
         cenas_existentes = json.load(f)
 
     for i, cena in enumerate(cenas_config):
         cenas_existentes[i].update(cena)
 
-    with open(path, "w", encoding="utf-8") as f:
+    with open(path["cenas_com_imagens"], "w", encoding="utf-8") as f:
         json.dump(cenas_existentes, f, indent=2, ensure_ascii=False)
 
     return jsonify({"status": "ok"})
@@ -677,7 +615,7 @@ def finalizar_stream():
         base = get_config("pasta_salvar") or os.getcwd()
         pasta_cenas = os.path.join(base, "videos_cenas")
         pasta_final = os.path.join(base, "videos_final")
-        os.makedirs(pasta_final, exist_ok=True)
+        os.makedirs(path["videos_final"], exist_ok=True)
 
         escopo = dados.get("escopo", "all")
         transicoes = dados.get("transicoes", [])  # lista de dicionários com tipo e duração
@@ -708,8 +646,8 @@ def finalizar_stream():
 
 @app.route('/preview_video/<int:idx>')
 def preview_video(idx):
-    base      = get_config("pasta_salvar") or "default"
-    video_path = os.path.join(base, "videos_cenas", f"video{idx+1}.mp4")
+    #base      = get_config("pasta_salvar") or "default"
+    video_path = os.path.join(path["base"], "videos_cenas", f"video{idx+1}.mp4")
     if not os.path.isfile(video_path):
         return "Vídeo não encontrado", 404
     return send_file(video_path, mimetype='video/mp4')
@@ -731,6 +669,17 @@ def serve_videos_cenas(filename):
 def pagina_configuracoes():
     """Exibe a tela de configurações do usuário."""
     return render_template("configuracoes.html", page_title="Configurações")
+
+# caminho para o JSON gerado em etapas anteriores
+def caminho_cenas_final():
+    return os.path.join(get_config("pasta_salvar") or ".", "cenas_com_imagens.json")
+
+def salvar_arquivo_upload(request_file, destino):
+    if request_file:
+        os.makedirs(os.path.dirname(destino), exist_ok=True)
+        request_file.save(destino)
+        return destino
+    return None
 
 @app.route("/api/configuracoes", methods=["GET"])
 def obter_configuracoes():
@@ -779,7 +728,6 @@ def salvar_configuracoes():
         print("❌ Erro ao salvar config:", e)
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-
 @app.route('/selecionar_pasta')
 def selecionar_pasta():
     """Abre diálogo para o usuário escolher uma pasta local."""
@@ -797,7 +745,6 @@ def selecionar_pasta():
 
     except Exception as e:
         return jsonify({"error": str(e), "pasta": None})
-
 
 def limpar_pastas_saida():
     pasta_base = get_config("pasta_salvar") or os.getcwd()
@@ -831,8 +778,3 @@ def checar_configuracao():
 
 
 
-
-
-# if __name__ == "__main__":
-#   verify_license()
-#     app.run(debug=True, port=5000)

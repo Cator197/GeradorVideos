@@ -1,21 +1,16 @@
-import os
-import subprocess
+
+from modules.paths import get_paths
+import json, subprocess, os
 from modules.config import get_config
-import shlex
-import subprocess
-import shutil
+
+path = get_paths()
 
 def montar_uma_cena(idx, config):
-    base = get_config("pasta_salvar") or os.getcwd()
-    pasta_imagens  = os.path.join(base, "imagens")
-    pasta_audios   = os.path.join(base, "audios_narracoes")
-    pasta_legendas = os.path.join(base, "legendas_ass")
-    pasta_saida    = os.path.join(base, "videos_cenas")
 
-    imagem_path   = os.path.join(pasta_imagens,  f"imagem{idx + 1}.jpg")
-    audio_path    = os.path.join(pasta_audios,   f"narracao{idx + 1}.mp3")
-    legenda_path  = os.path.join(pasta_legendas, f"legenda{idx + 1}.ass")
-    video_efeito  = os.path.join(pasta_saida,    f"temp_efeito_{idx}.mp4")
+    imagem_path   = os.path.join(path["imagens"],  f"imagem{idx + 1}.jpg")
+    audio_path    = os.path.join(path["audios"],   f"narracao{idx + 1}.mp3")
+    legenda_path  = os.path.join(path["legendas_ass"], f"legenda{idx + 1}.ass")
+    video_efeito  = os.path.join(path["videos_cenas"],    f"temp_efeito_{idx}.mp4")
 
     usar_legenda  = config.get("usarLegenda", False)
     pos_legenda   = config.get("posicaoLegenda", "inferior")
@@ -37,7 +32,7 @@ def montar_uma_cena(idx, config):
 
     # 2️⃣ Aplicar legenda (se habilitada)
     if usar_legenda and os.path.exists(legenda_path):
-        video_legenda = os.path.join(pasta_saida, f"temp_legenda_{idx}.mp4")
+        video_legenda = os.path.join(path["videos_cenas"], f"temp_legenda_{idx}.mp4")
         adicionar_legenda_ass(video_efeito, legenda_path, pos_legenda, video_legenda)
     else:
         video_legenda = video_efeito
@@ -48,12 +43,10 @@ def montar_uma_cena(idx, config):
 
     # 4️⃣ Adicionar o áudio final
     print("vai gerar o video final")
-    video_final = os.path.join(pasta_saida, f"video{idx + 1}.mp4")
+    video_final = os.path.join(path["videos_cenas"], f"video{idx + 1}.mp4")
     adicionar_audio(video_legenda, audio_path, video_final)
 
     return video_final
-
-
 
 def unir_cenas_com_transicoes(lista_videos, transicoes, output_path):
     """
@@ -131,10 +124,8 @@ def unir_cenas_com_transicoes(lista_videos, transicoes, output_path):
 
     print(f"✅ Vídeo final gerado: {output_path}")
 
-
-
-
 # ---------------------- FUNÇÕES AUXILIARES -----------------------------------------------------------------------
+
 def verificar_tem_audio(video_path):
     """Verifica se um arquivo de vídeo contém trilha de áudio."""
     try:
@@ -147,8 +138,6 @@ def verificar_tem_audio(video_path):
     except Exception as e:
         print(f"⚠️ Erro ao verificar áudio em {video_path}: {e}")
         return False
-
-
 
 def adicionar_legenda_ass(input_path, legenda_path, posicao, output_path):
     # Corrigir e escapar caminho da legenda
@@ -174,7 +163,6 @@ def adicionar_legenda_ass(input_path, legenda_path, posicao, output_path):
     print("DEBUG comando ffmpeg:", " ".join(cmd))
     subprocess.run(cmd, check=True)
 
-
 def obter_duracao_em_segundos(path):
     """Usa ffprobe para obter a duração do vídeo/áudio em segundos."""
     cmd = [
@@ -191,14 +179,7 @@ def obter_duracao_em_segundos(path):
             pass
     return 5  # valor padrão de segurança
 
-import os
-import subprocess
-import json
-from modules.config import get_config
-
 def aplicar_efeito_na_imagem(imagem_path, audio_path, output_path, efeito, config_efeito):
-    import subprocess
-    import os
 
     fator = float(config_efeito.get("fator", 1.2))
     modo = config_efeito.get("modo", "in")
@@ -289,7 +270,6 @@ def aplicar_efeito_na_imagem(imagem_path, audio_path, output_path, efeito, confi
 
     return output_path
 
-
 def montar_video_com_audio(base_visual_path, audio_path, output_path):
     ext = os.path.splitext(base_visual_path)[-1].lower()
     if ext == ".jpg":
@@ -324,7 +304,6 @@ def montar_video_com_audio(base_visual_path, audio_path, output_path):
 
     return output_path
 
-
 def adicionar_audio(video_path, audio_path, output_path):
     """
     Adiciona um arquivo de áudio a um vídeo (sem reencodar o vídeo).
@@ -353,3 +332,51 @@ def adicionar_audio(video_path, audio_path, output_path):
     subprocess.run(cmd, check=True)
 
     print(f"✅ Vídeo final com áudio salvo em: {output_path}")
+
+def adicionar_trilha_sonora(video_path, trilha_path, output_path):
+    """
+    Adiciona uma trilha sonora ao vídeo, repetindo a trilha se necessário para cobrir a duração total.
+    """
+    dur_video = obter_duracao_em_segundos(video_path)
+    dur_trilha = obter_duracao_em_segundos(trilha_path)
+
+    if dur_trilha <= 0:
+        raise ValueError("Duração da trilha inválida.")
+
+    # Cria filtro de loop com concat se a trilha for menor que o vídeo
+    if dur_trilha < dur_video:
+        loops = int(dur_video // dur_trilha) + 1
+        lista = [f"file '{os.path.abspath(trilha_path)}'\n"] * loops
+        with open("trilha_concat.txt", "w", encoding="utf-8") as f:
+            f.writelines(lista)
+
+        trilha_expandida = "trilha_expandida.mp3"
+        cmd_concat = [
+            "ffmpeg", "-y", "-f", "concat", "-safe", "0",
+            "-i", "trilha_concat.txt",
+            "-c", "copy", trilha_expandida
+        ]
+        subprocess.run(cmd_concat, check=True)
+    else:
+        trilha_expandida = trilha_path
+
+    # Mescla trilha com vídeo
+    cmd_mix = [
+        "ffmpeg", "-y",
+        "-i", video_path,
+        "-i", trilha_expandida,
+        "-filter_complex", "[0:a][1:a]amix=inputs=2:duration=first[aout]",
+        "-map", "0:v",
+        "-map", "[aout]",
+        "-c:v", "copy",
+        "-c:a", "aac", "-b:a", "192k", "-shortest",
+        output_path
+    ]
+    subprocess.run(cmd_mix, check=True)
+
+    # Limpeza
+    if trilha_expandida == "trilha_expandida.mp3":
+        os.remove("trilha_expandida.mp3")
+        os.remove("trilha_concat.txt")
+
+    print(f"🎵 Trilha sonora adicionada com sucesso: {output_path}")

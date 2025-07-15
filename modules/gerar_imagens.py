@@ -5,19 +5,11 @@ import json
 import aiohttp
 import asyncio
 from modules.config import get_config
+from modules.paths import get_paths
+
+paths = get_paths()
 
 BASE_URL = "https://api.piapi.ai"
-
-def get_paths():
-    """Retorna os caminhos de trabalho utilizados pelo módulo."""
-    pasta_base = get_config("pasta_salvar") or os.getcwd()
-
-    return {
-        "pasta_base": pasta_base,
-        "pasta_imagens": os.path.join(pasta_base, "imagens"),
-        "entrada_json": os.path.join(os.getcwd(), "cenas.json"),
-        "saida_json": os.path.join(pasta_base, "cenas_com_imagens.json"),
-    }
 
 def get_headers():
     """Cabeçalhos padrão para autenticar as requisições HTTP."""
@@ -73,7 +65,7 @@ async def processar_cena(session, i, cenas, logs, paths):
         logs.append(f"⏳ Aguardando conclusão da tarefa {task_id}...")
         resultado = await checar_status(session, task_id)
         url = resultado["data"].get("output", {}).get("image_url")
-        caminho_local = os.path.join(paths["pasta_imagens"], f"imagem{i+1}.jpg")
+        caminho_local = os.path.join(paths["imagens"], f"imagem{i+1}.jpg")
         await baixar_imagem(session, url, caminho_local)
         cenas[i].update({
             "task_id_imagem": task_id,
@@ -86,8 +78,8 @@ async def processar_cena(session, i, cenas, logs, paths):
 
 async def gerar_imagens_async(cenas, indices, logs):
     """Processa a geração das imagens de forma paralela."""
-    paths = get_paths()
-    os.makedirs(paths["pasta_imagens"], exist_ok=True)
+
+    os.makedirs(paths["imagens"], exist_ok=True)
 
     async with aiohttp.ClientSession(headers=get_headers()) as session:
         tarefas = [
@@ -99,8 +91,8 @@ async def gerar_imagens_async(cenas, indices, logs):
     return cenas
 
 def run_gerar_imagens(indices):
-    paths = get_paths()
-    with open(paths["entrada_json"], encoding="utf-8") as f:
+
+    with open(paths["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
     logs = []
@@ -115,12 +107,11 @@ def run_gerar_imagens(indices):
         if "legenda" not in cenas[i] and "narracao" in cenas[i]:
             cenas[i]["legenda"] = cenas[i]["narracao"]
 
-    with open(paths["saida_json"], "w", encoding="utf-8") as f:
+    with open(paths["cenas_com_imagens"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=4)
-        logs.append(f"✅ JSON atualizado salvo em {paths['saida_json']}")
+        logs.append(f"✅ JSON atualizado salvo em {paths['cenas_com_imagens']}")
 
     return {"cenas": cenas_atualizadas, "logs": logs}
-
 
 def calcular_indices(scope, single, start, total, selected=None):
     """Calcula os índices das cenas com base nos parâmetros da interface."""
@@ -130,7 +121,9 @@ def calcular_indices(scope, single, start, total, selected=None):
         return [single - 1]
     elif scope == "from" and start and 1 <= start <= total:
         return list(range(start - 1, total))
-    elif scope == "selected" and selected:
+    elif scope == "selected":
+        if not selected:
+            raise ValueError("Nenhum índice selecionado.")
         indices=[int(x.strip()) - 1 for x in selected.split(",") if x.strip().isdigit()]
         return [i for i in indices if 0 <= i < total]
     else:
@@ -139,16 +132,16 @@ def calcular_indices(scope, single, start, total, selected=None):
 def gerar_eventos_para_stream(scope, single, start, selected=None):
     import time
 
-    paths = get_paths()
-    with open(paths["entrada_json"], encoding="utf-8") as f:
+
+    with open(paths["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
     total = len(cenas)
 
     try:
         indices = calcular_indices(scope, single, start, total, selected)
         logs=excluir_arquivos(indices)
-    except Exception:
-        yield "data: ❌ Parâmetros inválidos\n\n"
+    except Exception as e:
+        yield f"data: ❌ Erro ao calcular índices: {str(e)}\n\n"
         return
 
     logs = []
@@ -158,7 +151,7 @@ def gerar_eventos_para_stream(scope, single, start, selected=None):
 
     asyncio.run(executar())
 
-    with open(paths["saida_json"], "w", encoding="utf-8") as f:
+    with open(paths["cenas_com_imagens"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)
 
     for log in logs:
@@ -168,12 +161,12 @@ def gerar_eventos_para_stream(scope, single, start, selected=None):
     yield "data: 🔚 Geração de imagens finalizada\n\n"
 
 def excluir_arquivos(indices):
-    paths = get_paths()
+
     logs = []
     for i in indices:
         nome_base = f"imagem{i+1}"
         for ext in [".jpg", ".png", ".mp4"]:
-            caminho = os.path.join(paths["pasta_imagens"], nome_base + ext)
+            caminho = os.path.join(paths["imagens"], nome_base + ext)
             if os.path.exists(caminho):
                 try:
                     os.remove(caminho)

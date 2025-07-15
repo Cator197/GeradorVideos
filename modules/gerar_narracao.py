@@ -3,27 +3,26 @@
 import os
 import json
 import time
-
+from modules.paths import get_paths
 from modules.config import get_config
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+path = get_paths()
 
-
-def get_paths():
-    """Obtém os diretórios utilizados para salvar arquivos de áudio e cenas."""
-    base = get_config("pasta_salvar") or os.getcwd()
-    # Diretório da pasta modules (onde está este arquivo)
-    BASE_DIR=os.path.join(os.getcwd(), "cenas.json")
-    ARQUIVO_JSON=os.path.join(os.getcwd(), "cenas.json")
-    return {
-        "base": base,
-        "audios": os.path.join(base, "audios_narracoes"),
-        "cenas": os.path.join(os.getcwd(), "cenas.json"),
-    }
-
+# def get_paths():
+#     """Obtém os diretórios utilizados para salvar arquivos de áudio e cenas."""
+#     base = get_config("pasta_salvar") or os.getcwd()
+#     # Diretório da pasta modules (onde está este arquivo)
+#     BASE_DIR=os.path.join(os.getcwd(), "cenas.json")
+#     ARQUIVO_JSON=os.path.join(os.getcwd(), "cenas.json")
+#     return {
+#         "base": base,
+#         "audios": os.path.join(base, "audios_narracoes"),
+#         "cenas": os.path.join(os.getcwd(), "cenas.json"),
+#     }
 
 def iniciar_driver():
     """Inicia o Chrome configurado para download automático dos áudios."""
@@ -42,13 +41,11 @@ def iniciar_driver():
     )
     return webdriver.Chrome(options=chrome_options)
 
-
 def esperar(driver, selector, by=By.XPATH, clickable=False, timeout=20):
     """Aguarda um elemento estar visível ou clicável."""
     wait = WebDriverWait(driver, timeout)
     cond = EC.element_to_be_clickable if clickable else EC.visibility_of_element_located
     return wait.until(cond((by, selector)))
-
 
 def login(driver, voz="Brian"):
     """Realiza o login e seleciona a voz desejada no site da ElevenLabs."""
@@ -97,7 +94,7 @@ def login(driver, voz="Brian"):
 
 def gerar_e_baixar(driver, texto, index):
     """Gera a narração no site e faz o download do arquivo gerado."""
-    paths = get_paths()
+
     wait = WebDriverWait(driver, 20)
 
     textarea = esperar(driver, "//textarea")
@@ -107,12 +104,12 @@ def gerar_e_baixar(driver, texto, index):
     esperar(driver, '//button[@aria-label="Generate speech Ctrl+Enter"]', clickable=True).click()
     download_btn = esperar(driver, '//button[@aria-label="Download latest"]', clickable=True)
 
-    before = set(os.listdir(paths["audios"]))
+    before = set(os.listdir(path["audios"]))
     download_btn.click()
     time.sleep(1)
     for _ in range(30):
         time.sleep(1)
-        after = set(os.listdir(paths["audios"]))
+        after = set(os.listdir(path["audios"]))
         new_files = after - before
         if new_files:
             break
@@ -121,21 +118,17 @@ def gerar_e_baixar(driver, texto, index):
 
     filename = new_files.pop()
     ext = os.path.splitext(filename)[1]
-    src = os.path.join(paths["audios"], filename)
-    dst = os.path.join(paths["audios"], f"narracao{index + 1}{ext}")
+    src = os.path.join(path["audios"], filename)
+    dst = os.path.join(path["audios"], f"narracao{index + 1}{ext}")
     if os.path.exists(dst):
         os.remove(dst)
     os.rename(src, dst)
     return dst
 
-
-from modules.google_tts import gerar_google_audio  # ⬅️ no topo
-
 def run_gerar_narracoes(indices, voz="Brian", fonte="elevenlabs"):
     """Processa a geração de todas as narrações solicitadas."""
-    paths = get_paths()
 
-    with open(paths["cenas"], encoding="utf-8") as f:
+    with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
     logs = [f"🚀 Iniciando geração de narrações via {fonte}..."]
@@ -151,9 +144,9 @@ def run_gerar_narracoes(indices, voz="Brian", fonte="elevenlabs"):
                     continue
 
                 logs.append(f"🎙️ Gerando narração {i+1}: {texto[:30]}...")
-                path = gerar_e_baixar(driver, texto, i)
-                cenas[i]["audio_path"] = path
-                logs.append(f"✅ Narração {i+1} salva em {path}")
+                pathx = gerar_e_baixar(driver, texto, i)
+                cenas[i]["audio_path"] = pathx
+                logs.append(f"✅ Narração {i+1} salva em {pathx}")
         finally:
             driver.quit()
 
@@ -167,8 +160,8 @@ def run_gerar_narracoes(indices, voz="Brian", fonte="elevenlabs"):
                     continue
 
                 logs.append(f"🤖 Gerando via Gemini TTS: cena {i + 1}")
-                path=gerar_com_gemini_selenium(driver, texto, i)
-                cenas[i]["audio_path"]=path
+                pathx=gerar_com_gemini_selenium(driver, texto, i)
+                cenas[i]["audio_path"]=pathx
                 logs.append(f"✅ Gemini TTS: cena {i + 1} salva")
         finally:
             driver.quit()
@@ -176,16 +169,14 @@ def run_gerar_narracoes(indices, voz="Brian", fonte="elevenlabs"):
     else:
         raise ValueError(f"Fonte de narração '{fonte}' não suportada.")
 
-    with open(paths["cenas"], "w", encoding="utf-8") as f:
+    with open(path["cenas"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)
 
     return {"logs": logs, "cenas": cenas}
 
-
-
 def gerar_com_gemini_selenium(driver, texto, index):
     """Gera narração no site TTS do Google Cloud (ou Gemini Studio) e baixa o áudio."""
-    paths = get_paths()
+
     wait = WebDriverWait(driver, 20)
 
     driver.get("https://aistudio.google.com/generate-speech")
@@ -208,13 +199,13 @@ def gerar_com_gemini_selenium(driver, texto, index):
     download_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Download')]")))
 
     # Antes do clique, captura lista de arquivos existentes
-    before = set(os.listdir(paths["audios"]))
+    before = set(os.listdir(path["audios"]))
     download_btn.click()
 
     # Espera aparecer novo arquivo
     for _ in range(30):
         time.sleep(1)
-        after = set(os.listdir(paths["audios"]))
+        after = set(os.listdir(path["audios"]))
         new_files = after - before
         if new_files:
             break
@@ -224,8 +215,8 @@ def gerar_com_gemini_selenium(driver, texto, index):
     # Renomeia o arquivo para padronizar
     filename = new_files.pop()
     ext = os.path.splitext(filename)[1]
-    src = os.path.join(paths["audios"], filename)
-    dst = os.path.join(paths["audios"], f"narracao{index + 1}{ext}")
+    src = os.path.join(path["audios"], filename)
+    dst = os.path.join(path["audios"], f"narracao{index + 1}{ext}")
     if os.path.exists(dst):
         os.remove(dst)
     os.rename(src, dst)
