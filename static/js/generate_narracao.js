@@ -24,6 +24,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const vozSelect = document.getElementById("voz");
   const btnPreviewVoz = document.getElementById("preview_voz");
 
+  // NOVOS elementos
+  const checkboxPausar = document.getElementById("pausar_checkbox");
+  const modalPausa = document.getElementById("modal_pausa");
+  const btnContinuar = document.getElementById("btn_continuar");
+
   let indiceSelecionado = null;
 
   const vozesPorFonte = {
@@ -191,6 +196,11 @@ document.addEventListener("DOMContentLoaded", () => {
         query += `&custom_indices=${lista}`;
       }
 
+      // Se o checkbox de pausa estiver ativado, faz requisição para ativar pausa
+      if (checkboxPausar && checkboxPausar.checked) {
+        fetch("/ativar_pausa", { method: "POST" });
+      }
+
       logArea.textContent = "🎤 Iniciando geração de narrações...\n";
       barraIndeterminada.classList.remove("hidden");
 
@@ -198,6 +208,11 @@ document.addEventListener("DOMContentLoaded", () => {
       stream.onmessage = (event) => {
         logArea.textContent += event.data + "\n";
         logArea.scrollTop = logArea.scrollHeight;
+
+        // Mostrar modal de pausa se backend enviar esse sinal
+        if (event.data.includes("⏸️ Pausado")) {
+          modalPausa.classList.remove("hidden");
+        }
 
         if (event.data.includes("✅ Geração de narrações finalizada") || event.data.includes("🔚 Fim do processo")) {
           barraIndeterminada.classList.add("hidden");
@@ -209,6 +224,14 @@ document.addEventListener("DOMContentLoaded", () => {
         barraIndeterminada.classList.add("hidden");
         stream.close();
       };
+    });
+  }
+
+  if (btnContinuar) {
+    btnContinuar.addEventListener("click", () => {
+      fetch("/continuar_narracao", { method: "POST" }).then(() => {
+        modalPausa.classList.add("hidden");
+      });
     });
   }
 

@@ -22,6 +22,22 @@
         </div>
       </div>
 
+      <div class="flex items-center gap-4 mb-4">
+        <label class="flex items-center gap-2 text-sm">
+          <input type="checkbox" id="checkbox_legenda_global"> Incluir legendas em todas as cenas
+        </label>
+        <label class="flex items-center gap-2 text-sm">
+          Posição:
+          <select id="select_posicao_global" class="border rounded px-2 py-1 text-sm">
+            <option value="inferior">Inferior</option>
+            <option value="central">Centralizada</option>
+            <option value="central-1">Centralizada -1</option>
+            <option value="central-2">Centralizada -2</option>
+            <option value="central-3">Centralizada -3</option>
+          </select>
+        </label>
+      </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {% for cena in cenas %}
         <div class="flex items-start gap-4 scene-row" data-idx="{{ loop.index0 }}">
@@ -50,7 +66,9 @@
               <select name="posicao_legenda_{{ loop.index0 }}" class="w-full border rounded text-xs px-2 py-1">
                 <option value="inferior">Inferior</option>
                 <option value="central">Centralizada</option>
-                <option value="superior">Superior</option>
+                <option value="central-1">Centralizada -1</option>
+                <option value="central-2">Centralizada -2</option>
+                <option value="central-3">Centralizada -3</option>
               </select>
             </div>
           </div>
@@ -86,9 +104,24 @@
 
         <label class="block"><input type="checkbox" id="usar_trilha"> Usar trilha sonora</label>
         <input type="file" id="input_trilha" accept="audio/*" class="w-full border rounded p-2 mt-2" disabled>
+        <div id="config_trilha" class="mt-2 hidden">
+          <label class="block text-sm text-gray-700">Volume da trilha sonora:</label>
+          <input type="range" id="volume_trilha" min="0" max="100" value="25" class="w-full">
+          <div class="text-xs text-gray-600 mt-1">Volume atual: <span id="volume_valor">25%</span></div>
+
+          <button id="btn_preview_audio" type="button"
+            class="mt-2 bg-gray-800 hover:bg-black text-white text-sm px-3 py-1 rounded">
+            🔊 Preview da trilha com a 1ª cena
+          </button>
+        </div>
 
         <label class="block"><input type="checkbox" id="usar_marca"> Adicionar marca d'água</label>
         <input type="file" id="input_marca" accept="image/*" class="w-full border rounded p-2 mt-2" disabled>
+        <div id="config_marca" class="mt-2 hidden">
+          <label class="block text-sm text-gray-700">Opacidade da marca d'água:</label>
+          <input type="range" id="opacidade_marca" min="0" max="100" value="100" class="w-full">
+          <div class="text-xs text-gray-600 mt-1">Opacidade atual: <span id="opacidade_valor">100%</span></div>
+        </div>
 
         <div class="flex flex-col gap-3 mt-4">
           <button id="btn_gerar_video" type="button" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow">

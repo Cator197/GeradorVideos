@@ -24,6 +24,7 @@ def parse_prompts_txt(caminho_txt=ARQUIVO_TXT):
 
     # Cada bloco representa uma cena descrita no arquivo
     for bloco in blocos:
+        bloco=bloco.replace("image:", "imagem:")  # Faz a substituição antes da extração
         cena = {}
         img = re.search(r"Imagem:\s*(.+?)(?:\n|$)", bloco, re.DOTALL)
         anim = re.search(r"Animação:\s*(.+?)(?:\n|$)", bloco, re.DOTALL)

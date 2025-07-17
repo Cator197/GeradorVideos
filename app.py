@@ -10,11 +10,17 @@ from modules.gerar_narracao import iniciar_driver, login, gerar_e_baixar
 from modules.gerar_ASS import gerar_ass_com_whisper, carregar_modelo
 from modules.gerar_SRT import gerar_srt_com_bloco
 from modules.paths import get_paths
-import re, os, json, asyncio, time
-from modules.juntar_cenas import montar_uma_cena
+import re, os, json, asyncio, time, subprocess, threading
+from modules.juntar_cenas import montar_uma_cena, adicionar_trilha_sonora, adicionar_marca_dagua, unir_cenas_com_transicoes
 from modules.verify_license import verify_license
+from werkzeug.utils import secure_filename
 
 path = get_paths()
+
+estado_pausa = {
+    "pausado": False,
+    "cond": threading.Condition()
+}
 
 app = Flask(__name__)
 app.config['USUARIO_CONFIG'] = carregar_config()
@@ -331,6 +337,12 @@ def gerar_narracoes_stream():
         driver = iniciar_driver()
         try:
             login(driver, voz=voz)
+            #--------------confirmar se a pausa é aqui----------------
+            if estado_pausa["pausado"]:
+                yield f"data: ⏸️ Pausado . Aguarde liberação do usuário.\n\n"
+                with estado_pausa["cond"]:
+                    estado_pausa["cond"].wait()
+
             for i in indices:
                 texto = cenas[i].get("narracao")
                 if not texto:
@@ -405,6 +417,20 @@ def remover_silencio_route():
         return jsonify(resultado), 400
 
     return jsonify(resultado)
+
+@app.route("/ativar_pausa", methods=["POST"])
+def ativar_pausa():
+    with estado_pausa["cond"]:
+        estado_pausa["pausado"] = True
+    return jsonify({"status": "ok"})
+
+@app.route("/continuar_narracao", methods=["POST"])
+def continuar_narracao():
+    with estado_pausa["cond"]:
+        estado_pausa["pausado"] = False
+        estado_pausa["cond"].notify()
+    return jsonify({"status": "ok"})
+
 #---------------------------------------------------------------------------------------------------------------------
 
 #----- LEGENDAS (versão .ASS) ---------------------------------------------------------------------------------------
@@ -460,8 +486,8 @@ def gerar_legendas_ass():
     try:
         #paths = gerar_ASS.get_paths()
         for idx in indices:
-            path_audio = os.path.join(path["audios"], f"narracao{idx + 1}.mp3")
-            path_ass   = os.path.join(path["legendas_ass"], f"legenda{idx + 1}.ass")
+            path_audio = os.path.join(path["audios"], f"narracao{idx+1}.mp3")
+            path_ass   = os.path.join(path["legendas_ass"], f"legenda{idx+1}.ass")
 
             if not os.path.exists(path_audio):
                 logs.append(f"⚠️ Áudio {idx + 1} não encontrado")
@@ -497,7 +523,7 @@ def gerar_legendas_srt():
     elif scope == "from" and start is not None:
         indices = list(range(start, len(cenas)))
     else:
-        indices = list(range(len(cenas)))
+        indices = list(range(1, len(cenas)))
 
     resultado = gerar_srt_com_bloco(indices, qtde_palavras)
     return jsonify({"status": "ok", "logs": resultado})
@@ -531,6 +557,17 @@ def editar_legenda():
         json.dump(cenas, f, ensure_ascii=False, indent=2)
 
     return jsonify({"status": "ok"})
+
+@app.route("/verificar_legendas_ass")
+def verificar_legendas_ass():
+    from glob import glob
+    from modules.paths import get_paths
+    import os
+
+    legenda_dir = get_paths()["legendas_ass"]
+    arquivos = glob(os.path.join(legenda_dir, "*.ass"))
+    return jsonify({"tem": bool(arquivos)})
+
 
 #---------------------------------------------------------------------------------------------------------------------
 
@@ -609,40 +646,116 @@ def atualizar_config_cenas():
 @app.route("/finalizar_stream", methods=["POST"])
 def finalizar_stream():
     try:
-        dados = request.get_json()
-        print("📦 Config final recebida:", dados)
+        # 📥 Parâmetros recebidos
+        escopo = request.form.get("escopo", "all")
+        idx_str = request.form.get("idx", "")
+        idx = int(idx_str) - 1 if idx_str.isdigit() else 0
+        transicoes = json.loads(request.form.get("transicoes", "[]"))
 
-        base = get_config("pasta_salvar") or os.getcwd()
-        pasta_cenas = os.path.join(base, "videos_cenas")
-        pasta_final = os.path.join(base, "videos_final")
+        usar_trilha = request.form.get("usar_trilha") == "true"
+        trilha_file = request.files.get("trilha")
+        volume_pct = int(request.form.get("volume_trilha", 100))
+        volume = max(0.0, min(volume_pct / 100.0, 1.0))
+
+        usar_marca = request.form.get("usar_marca") == "true"
+        marca_file = request.files.get("marca")
+        opacidade_pct = int(request.form.get("opacidade_marca", 100))
+        opacidade = max(0.0, min(opacidade_pct / 100.0, 1.0))
+
+        # 📁 Pastas?
+
         os.makedirs(path["videos_final"], exist_ok=True)
 
-        escopo = dados.get("escopo", "all")
-        transicoes = dados.get("transicoes", [])  # lista de dicionários com tipo e duração
-        trilha = dados.get("trilha")  # opcional
-        marca = dados.get("marca")  # opcional
-        print("📋 Transições recebidas:", transicoes)
+        # 🎬 Arquivos a unir
         if escopo == "single":
-            idx = int(dados.get("idx", 1)) - 1
-            arquivos = [os.path.join(pasta_cenas, f"video{idx + 1}.mp4")]
+            arquivos = [os.path.join(path["videos_cenas"], f"video{idx + 1}.mp4")]
         else:
             arquivos = sorted([
-                os.path.join(pasta_cenas, f) for f in os.listdir(pasta_cenas)
+                os.path.join(path["videos_cenas"], f) for f in os.listdir(path["videos_cenas"])
                 if f.startswith("video") and f.endswith(".mp4")
             ], key=lambda x: int(re.search(r'video(\d+)', x).group(1)))
 
         print("🎬 Cenas encontradas:", arquivos)
-        print("🔁 Transições:", transicoes)
 
-        output_path = os.path.join(pasta_final, "video_final.mp4")
+        # 🧩 Etapa 1: Unir cenas com transições
+        # 📄 Nome do vídeo final vindo do txt
+        try:
+            with open("ultimo_nome_video.txt", encoding="utf-8") as f:
+                nome_video=f.read().strip()
+            nome_arquivo=f"{nome_video}.mp4"
+        except Exception:
+            nome_arquivo="video_final.mp4"  # fallback
+            print("⚠️ Não foi possível ler o nome do vídeo, usando padrão.")
 
-        from modules.juntar_cenas import unir_cenas_com_transicoes
+        output_path=os.path.join(path["videos_final"], nome_arquivo)
+
         unir_cenas_com_transicoes(arquivos, transicoes, output_path)
 
-        return jsonify({"status": "ok", "output": output_path})
+        # 🔊 Etapa 2: Adicionar trilha sonora (com volume)
+        if usar_trilha and trilha_file:
+            trilha_path = os.path.join(path["videos_final"], secure_filename(trilha_file.filename))
+            trilha_file.save(trilha_path)
+            adicionar_trilha_sonora(output_path, trilha_path, output_path, volume)
+
+        # 🖼️ Etapa 3: Adicionar marca d’água (com opacidade)
+        if usar_marca and marca_file:
+            marca_path = os.path.join(path["videos_final"], secure_filename(marca_file.filename))
+            marca_file.save(marca_path)
+            adicionar_marca_dagua(output_path, marca_path, output_path, opacidade)
+
+        # 🧹 Etapa 4: Limpar temporários (_step_X.mp4)
+        for f in os.listdir(path["videos_final"]):
+            if "_step_" in f and f.endswith(".mp4"):
+                os.remove(os.path.join(path["videos_final"], f))
+
+        return jsonify({
+            "status": "ok",
+            "output": output_path,
+            "nome_arquivo": nome_arquivo
+        })
+
     except Exception as e:
         print("❌ Erro ao finalizar vídeo:", e)
-        return jsonify({"status": "erro", "mensagem": str(e)}), 500
+        return jsonify({
+            "status": "ok",
+            "output": output_path,
+            "nome_arquivo": nome_arquivo
+        })
+
+
+@app.route("/preview_audio_trilha", methods=["POST"])
+def preview_audio_trilha():
+
+    try:
+        from flask import send_file
+        trilha_file = request.files.get("trilha")
+        volume_pct = int(request.form.get("volume", 25))
+        volume = max(0.0, min(volume_pct / 100.0, 1.0))
+
+        base = get_config("pasta_salvar") or os.getcwd()
+        audio1_path = os.path.abspath(os.path.join(path["audios"], "narracao1.mp3"))
+        if not trilha_file or not os.path.exists(audio1_path):
+            return "Arquivo ausente", 400
+
+        trilha_temp = os.path.abspath(os.path.join(path["base"], "trilha_temp.mp3"))
+        trilha_file.save(trilha_temp)
+        output = os.path.abspath(os.path.join(path["base"], "preview_mix.m4a"))
+
+        subprocess.run([
+            "ffmpeg", "-y",
+            "-i", audio1_path,
+            "-i", trilha_temp,
+            "-filter_complex",
+            f"[1:a]volume={volume}[trilha];[0:a][trilha]amix=inputs=2:duration=first[a]",
+            "-map", "[a]", "-c:a", "aac", "-b:a", "192k", output
+        ], check=True)
+
+        return send_file(output, mimetype="audio/mp4")
+
+    except Exception as e:
+        print("❌ Erro no preview:", e)
+        return "Erro ao gerar preview", 500
+
 
 @app.route('/preview_video/<int:idx>')
 def preview_video(idx):
@@ -658,6 +771,12 @@ def serve_videos_cenas(filename):
         os.path.join(app.root_path, 'modules', 'videos_cenas'),
         filename
     )
+
+@app.route("/video_final/<nome>")
+def servir_video_final(nome):
+    from flask import send_from_directory
+    return send_from_directory(path["videos_final"], nome)
+
 
 #--------------------------------------------------------------------------------------------------------------------
 

@@ -8,20 +8,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="Commit antes da revisão completa 10.07.2025 - final para lançamento">
-      <change afterPath="$PROJECT_DIR$/modules/paths.py" afterDir="false" />
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="Commit antes de implementar trilha sonora">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/gerar_ASS.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_ASS.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/gerar_SRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_SRT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_imagens.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_imagens.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/google_tts.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/juntar_cenas.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/montar_cenas.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/parser_prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/parser_prompts.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/remover_silencio.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/remover_silencio.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/verify_license.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/verify_license.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_final.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_final.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/generate_narracao.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_narracao.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_final.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_final.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_narracao.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_narracao.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -422,7 +420,15 @@
       <option name="project" value="LOCAL" />
       <updated>1752167786463</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="Commit antes de implementar trilha sonora">
+      <option name="closed" value="true" />
+      <created>1752582324743</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1752582324743</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -483,6 +489,7 @@
     <MESSAGE value="COMMIT antes de iniciar a refatoção do juntar_cenas unindo com o montar_cenas" />
     <MESSAGE value="COMMIT antes de iniciar a refatoção do gerar legendas com ASS" />
     <MESSAGE value="Commit antes da revisão completa 10.07.2025 - final para lançamento" />
-    <option name="LAST_COMMIT_MESSAGE" value="Commit antes da revisão completa 10.07.2025 - final para lançamento" />
+    <MESSAGE value="Commit antes de implementar trilha sonora" />
+    <option name="LAST_COMMIT_MESSAGE" value="Commit antes de implementar trilha sonora" />
   </component>
 </project>

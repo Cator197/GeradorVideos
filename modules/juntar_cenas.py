@@ -30,9 +30,22 @@ def montar_uma_cena(idx, config):
         config_efeito=config.get("config", {})
     )
 
+    # Redimensionar para 1080x1920 se necessário
+    video_resized=os.path.join(path["videos_cenas"], f"temp_resized_{idx}.mp4")
+    comando_resize=[
+        "ffmpeg", "-y", "-i", video_efeito,
+        "-vf", "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2",
+        "-c:a", "copy",
+        video_resized
+    ]
+    print("🔁 Redimensionando vídeo para 1080x1920...")
+
     # 2️⃣ Aplicar legenda (se habilitada)
     if usar_legenda and os.path.exists(legenda_path):
+        # Ajustar a altura da legenda com base na posição selecionada
+        ajustar_marginv_ass(legenda_path, pos_legenda)
         video_legenda = os.path.join(path["videos_cenas"], f"temp_legenda_{idx}.mp4")
+        print("posição da legenda é: ", pos_legenda)
         adicionar_legenda_ass(video_efeito, legenda_path, pos_legenda, video_legenda)
     else:
         video_legenda = video_efeito
@@ -201,74 +214,37 @@ def aplicar_efeito_na_imagem(imagem_path, audio_path, output_path, efeito, confi
             f"d=25:fps={fps}:s=1080x1920,"
             "format=yuv420p"
         )
-
-        cmd = [
-            "ffmpeg", "-y",
-            "-loop", "1", "-framerate", str(fps),
-            "-i", imagem_path,
-            "-vf", filtro,
-            "-t", str(duracao),
-            "-c:v", "libx264", "-preset", "ultrafast", "-crf", "20",
-            output_path
-        ]
-
-
-
-    elif efeito in ["espelho", "escurecer", "preto_branco"]:
-
-        filtro={
-
-            "espelho": "hflip",
-
-            "escurecer": "eq=brightness=-0.3",
-
-            "preto_branco": "format=gray"
-
-        }[efeito]
-
-        # Como padronizamos para .mp4 com duração do áudio, aplicamos com loop:
-
-        filtro+=",format=yuv420p"
-
-
+    elif efeito == "espelho":
+        filtro = "hflip,format=yuv420p"
+    elif efeito == "escurecer":
+        filtro = "eq=brightness=-0.3,format=yuv420p"
+    elif efeito == "preto_branco":
+        filtro = "format=gray,format=yuv420p"
     else:
+        filtro = "format=yuv420p"
 
-        filtro="format=yuv420p"
-
-    cmd=[
-
+    cmd = [
         "ffmpeg", "-y",
-
         "-loop", "1",
-
         "-framerate", str(fps),
-
         "-i", imagem_path,
-
         "-vf", filtro,
-
         "-t", str(duracao),
-
         "-c:v", "libx264",
-
         "-preset", "ultrafast",
-
         "-crf", "20",
-
         output_path
-
     ]
 
     print("🎬 FFmpeg aplicando efeito:", " ".join(cmd))
-
-    result=subprocess.run(cmd, capture_output=True, text=True)
-
+    result = subprocess.run(cmd, capture_output=True, text=True)
     print("STDERR FFmpeg:", result.stderr)
 
     if result.returncode != 0:
         raise RuntimeError(f"❌ Erro ao aplicar efeito: {result.stderr}")
 
     return output_path
+
 
 def montar_video_com_audio(base_visual_path, audio_path, output_path):
     ext = os.path.splitext(base_visual_path)[-1].lower()
@@ -333,50 +309,147 @@ def adicionar_audio(video_path, audio_path, output_path):
 
     print(f"✅ Vídeo final com áudio salvo em: {output_path}")
 
-def adicionar_trilha_sonora(video_path, trilha_path, output_path):
-    """
-    Adiciona uma trilha sonora ao vídeo, repetindo a trilha se necessário para cobrir a duração total.
-    """
+def adicionar_trilha_sonora(video_path, trilha_path, output_path, volume=1.0):
     dur_video = obter_duracao_em_segundos(video_path)
     dur_trilha = obter_duracao_em_segundos(trilha_path)
 
     if dur_trilha <= 0:
         raise ValueError("Duração da trilha inválida.")
 
-    # Cria filtro de loop com concat se a trilha for menor que o vídeo
     if dur_trilha < dur_video:
         loops = int(dur_video // dur_trilha) + 1
-        lista = [f"file '{os.path.abspath(trilha_path)}'\n"] * loops
         with open("trilha_concat.txt", "w", encoding="utf-8") as f:
-            f.writelines(lista)
+            f.writelines([f"file '{os.path.abspath(trilha_path)}'\n"] * loops)
 
         trilha_expandida = "trilha_expandida.mp3"
-        cmd_concat = [
+        subprocess.run([
             "ffmpeg", "-y", "-f", "concat", "-safe", "0",
-            "-i", "trilha_concat.txt",
-            "-c", "copy", trilha_expandida
-        ]
-        subprocess.run(cmd_concat, check=True)
+            "-i", "trilha_concat.txt", "-c", "copy", trilha_expandida
+        ], check=True)
     else:
         trilha_expandida = trilha_path
 
-    # Mescla trilha com vídeo
-    cmd_mix = [
+    temp_output=output_path.replace(".mp4", "_temp.mp4")
+
+    subprocess.run([
         "ffmpeg", "-y",
         "-i", video_path,
         "-i", trilha_expandida,
-        "-filter_complex", "[0:a][1:a]amix=inputs=2:duration=first[aout]",
-        "-map", "0:v",
-        "-map", "[aout]",
-        "-c:v", "copy",
-        "-c:a", "aac", "-b:a", "192k", "-shortest",
-        output_path
-    ]
-    subprocess.run(cmd_mix, check=True)
+        "-filter_complex",
+        f"[1:a]volume={volume}[trilha];[0:a][trilha]amix=inputs=2:duration=first[a]",
+        "-map", "0:v", "-map", "[a]",
+        "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+        "-shortest", temp_output
+    ], check=True)
 
-    # Limpeza
+    os.replace(temp_output, output_path)
+
     if trilha_expandida == "trilha_expandida.mp3":
-        os.remove("trilha_expandida.mp3")
         os.remove("trilha_concat.txt")
+        os.remove(trilha_expandida)
 
-    print(f"🎵 Trilha sonora adicionada com sucesso: {output_path}")
+
+    print(f"🎵 Trilha adicionada com volume {volume*100:.0f}% → {output_path}")
+
+def adicionar_marca_dagua(video_path, imagem_path, output_path, opacidade=1.0):
+    """
+    Sobrepõe uma imagem PNG com opacidade sobre o vídeo.
+    A imagem deve ser 1080x1920 com fundo transparente.
+    """
+    temp_output = output_path.replace(".mp4", "_temp.mp4")
+    print("Opacidade selecionada:> ", opacidade)
+
+    video_w, video_h=get_resolution(video_path)
+    marca_w, marca_h=get_resolution(imagem_path)
+
+    # Redimensiona a marca d’água para o mesmo tamanho
+    marca_path_redimensionada=imagem_path.replace(".png", "_resize.png")
+    redimensionar_marca(imagem_path, video_w, video_h, marca_path_redimensionada)
+
+    print(f"📹 Resolução do vídeo: {video_w}x{video_h}")
+    print(f"🖼️ Resolução da marca d'água: {marca_w}x{marca_h}")
+
+
+    cmd=[
+        "ffmpeg", "-y",
+        "-i", video_path,
+        "-i", marca_path_redimensionada,
+        "-filter_complex",
+        f"[1:v]format=argb,colorchannelmixer=aa={opacidade},format=rgba[marca];"
+        "[0:v][marca]overlay=0:0",
+        "-map", "0:a?",
+        "-c:v", "libx264", "-preset", "ultrafast", "-crf", "18",
+        "-c:a", "copy",
+        "-pix_fmt", "yuv420p",
+        temp_output
+    ]
+
+    subprocess.run(cmd, check=True)
+    os.replace(temp_output, output_path)
+
+    print(f"🖼️ Marca d'água aplicada com opacidade {opacidade:.2f}")
+
+def get_resolution(path):
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe", "-v", "error",
+                "-select_streams", "v:0",
+                "-show_entries", "stream=width,height",
+                "-of", "json", path
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+        info = json.loads(result.stdout)
+        width = info["streams"][0]["width"]
+        height = info["streams"][0]["height"]
+        return width, height
+    except Exception as e:
+        print(f"Erro ao obter resolução de {path}: {e}")
+        return None, None
+
+def redimensionar_marca(marca_path, largura, altura, marca_redimensionada_path):
+    subprocess.run([
+        "ffmpeg", "-y",
+        "-i", marca_path,
+        "-vf", f"scale={largura}:{altura}",
+        "-q:v", "1",
+        marca_redimensionada_path
+    ], check=True)
+    print(f"🧩 Marca d'água redimensionada para {largura}x{altura}")
+
+def ajustar_marginv_ass(ass_path, posicao):
+    """Atualiza dinamicamente o MarginV do estilo principal no .ASS com Alignment=2 fixo."""
+    posicoes_marginv = {
+        "inferior": 100,
+        "central": 900,
+        "central-1": 700,
+        "central-2": 500,
+        "central-3": 300,
+    }
+
+    nova_marginv = posicoes_marginv.get(posicao)
+
+    try:
+        with open(ass_path, encoding="utf-8") as f:
+            linhas = f.readlines()
+
+        novas_linhas = []
+        for linha in linhas:
+            if linha.strip().startswith("Style:"):
+                partes = linha.strip().split(",")
+                if len(partes) >= 21:
+                    partes[21] = str(nova_marginv)  # MarginV
+                    partes[18] = "2"  # Alignment = 2 (central horizontal inferior)
+                    linha = ",".join(partes) + "\n"
+            novas_linhas.append(linha)
+
+        with open(ass_path, "w", encoding="utf-8") as f:
+            f.writelines(novas_linhas)
+
+    except Exception as e:
+        print(f"❌ Erro ao ajustar MarginV do .ASS: {e}")
+

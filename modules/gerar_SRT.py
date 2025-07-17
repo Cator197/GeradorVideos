@@ -17,7 +17,7 @@ def carregar_modelo():
 
 def gerar_srt_com_bloco(indices, palavras_por_bloco=4):
     """Gera arquivos SRT com blocos de N palavras por linha."""
-    paths = get_paths()
+
     model = carregar_modelo()
     logs = []
 
@@ -27,11 +27,11 @@ def gerar_srt_com_bloco(indices, palavras_por_bloco=4):
     os.makedirs(path["legendas_srt"], exist_ok=True)
 
     for i in indices:
-        audio_path = os.path.join(path["audios"], f"narracao{i + 1}.mp3")
-        srt_path = os.path.join(path["legendas_srt"], f"legenda{i + 1}.srt")
+        audio_path = os.path.join(path["audios"], f"narracao{i}.mp3")
+        srt_path = os.path.join(path["legendas_srt"], f"legenda{i}.srt")
 
         if not os.path.exists(audio_path):
-            logs.append(f"⚠️ Áudio {i + 1} não encontrado.")
+            logs.append(f"⚠️ Áudio {i} não encontrado.")
             continue
 
         segments, _ = model.transcribe(audio_path, word_timestamps=True)
@@ -58,7 +58,7 @@ def gerar_srt_com_bloco(indices, palavras_por_bloco=4):
             f.write("\n".join(linhas))
 
         cenas[i]["srt_path"] = srt_path
-        logs.append(f"✅ Legenda {i + 1} gerada com {palavras_por_bloco} palavras por bloco.")
+        logs.append(f"✅ Legenda {i} gerada com {palavras_por_bloco} palavras por bloco.")
 
     with open(path["cenas"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)

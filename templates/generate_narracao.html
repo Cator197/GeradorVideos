@@ -47,7 +47,7 @@
           <label class="block font-medium mb-1">Fonte:</label>
           <select class="w-full border rounded p-2" id="fonte" name="fonte">
             <option value="elevenlabs">Eleven Labs</option>
-            <option value="gemini">Gemini</option>
+
           </select>
         </div>
 
@@ -87,7 +87,12 @@
             <option value="Custom">Customizado</option>
           </select>
         </div>
-
+        <div class="mt-4">
+          <label class="inline-flex items-center">
+            <input type="checkbox" id="pausar_checkbox" class="mr-2 rounded text-blue-600">
+            <span class="text-sm text-slate-700">⏸️ Pausar para alterar configurações da voz</span>
+          </label>
+        </div>
         <button id="generate_narracoes" type="button"
                 class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow">
           🎙️ Gerar Narrações
@@ -118,6 +123,16 @@
     </div>
 
   </form>
+  <!-- Modal de Pausa -->
+  <div id="modal_pausa" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-xl p-6 text-center shadow-xl max-w-sm">
+      <p class="text-xl font-semibold mb-4">⏸️ Pausado</p>
+      <p class="mb-4 text-slate-700">A geração foi pausada para você ajustar as configurações. Clique abaixo para continuar.</p>
+      <button id="btn_continuar" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow">
+        Continuar
+      </button>
+    </div>
+  </div>
 </div>
 {% endblock %}
 

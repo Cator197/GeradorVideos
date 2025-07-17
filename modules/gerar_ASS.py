@@ -52,6 +52,8 @@ def gerar_ass_com_whisper(modelo, path_audio, path_saida, estilo, modo="linha2")
     cor_outline = hex_ass(estilo.get("cor_outline", "#000000"))
     cor_back = hex_ass(estilo.get("cor_back", "#000000"))
 
+    fonte = estilo.get("fonte", "Arial")
+
     # Cores para inline (sem &H)
     cor_primaria_inline = cor_primaria[2:]
     cor_secundaria_inline = cor_secundaria[2:]
@@ -119,7 +121,7 @@ def gerar_ass_com_whisper(modelo, path_audio, path_saida, estilo, modo="linha2")
         "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic,"
         "Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL,"
         "MarginR, MarginV, Encoding",
-        f"Style: {nome_estilo},Arial,{tamanho},{cor_primaria},{cor_secundaria},{cor_outline},{cor_back},0,0,0,0,100,100,0,0,1,{outline_val},{shadow_val},5,10,10,150,1",
+        f"Style: {nome_estilo},{fonte},{tamanho},{cor_primaria},{cor_secundaria},{cor_outline},{cor_back},0,0,0,0,100,100,0,0,1,{outline_val},{shadow_val},2,0,0,100,1",
         "",
         "[Events]",
         "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"

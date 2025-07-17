@@ -12,18 +12,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 path = get_paths()
 
-# def get_paths():
-#     """Obtém os diretórios utilizados para salvar arquivos de áudio e cenas."""
-#     base = get_config("pasta_salvar") or os.getcwd()
-#     # Diretório da pasta modules (onde está este arquivo)
-#     BASE_DIR=os.path.join(os.getcwd(), "cenas.json")
-#     ARQUIVO_JSON=os.path.join(os.getcwd(), "cenas.json")
-#     return {
-#         "base": base,
-#         "audios": os.path.join(base, "audios_narracoes"),
-#         "cenas": os.path.join(os.getcwd(), "cenas.json"),
-#     }
-
 def iniciar_driver():
     """Inicia o Chrome configurado para download automático dos áudios."""
     chrome_options = Options()
@@ -41,11 +29,17 @@ def iniciar_driver():
     )
     return webdriver.Chrome(options=chrome_options)
 
-def esperar(driver, selector, by=By.XPATH, clickable=False, timeout=20):
-    """Aguarda um elemento estar visível ou clicável."""
+def esperar(driver, selector, by=By.XPATH, clickable=False, timeout=20, seerroseguir=True):
+    """Espera por um elemento visível ou clicável. Se `seerroseguir` for True, não lança erro se falhar."""
     wait = WebDriverWait(driver, timeout)
     cond = EC.element_to_be_clickable if clickable else EC.visibility_of_element_located
-    return wait.until(cond((by, selector)))
+    try:
+        return wait.until(cond((by, selector)))
+    except:
+        if seerroseguir:
+            return None
+        else:
+            raise
 
 def login(driver, voz="Brian"):
     """Realiza o login e seleciona a voz desejada no site da ElevenLabs."""
@@ -63,33 +57,33 @@ def login(driver, voz="Brian"):
 
     try:
         #print("Clicando em: Get started")
-        esperar(driver, "//button[normalize-space()='Get started']", clickable=True, timeout=5).click()
+        esperar(driver, "//button[normalize-space()='Get started']", clickable=True, timeout=5, seerroseguir=True).click()
     except:
         pass
 
     #print("Clicando em: Select voice")
-    esperar(driver, "//button[starts-with(@aria-label, 'Select voice')]", clickable=True).click()
+    esperar(driver, "//button[starts-with(@aria-label, 'Select voice')]", clickable=True, seerroseguir=True).click()
 
     #print(f"Escrevendo: {voz}")
-    esperar(driver, '//input[@placeholder="Search voices..."]').send_keys(voz)
+    esperar(driver, '//input[@placeholder="Search voices..."]', seerroseguir=False).send_keys(voz)
 
     time.sleep(2)
 
     try:
         #print("verificando se tem voz escrita")
-        nome_voz = esperar(driver, f'//p/span[contains(text(), "{voz}")]', timeout=5).text.strip()
+        nome_voz = esperar(driver, f'//p/span[contains(text(), "{voz}")]', timeout=5, seerroseguir=True).text.strip()
         if nome_voz.lower() != voz.lower():
             print(f"⚠️ Voz encontrada diferente: {nome_voz}")
     except:
         print(f"❌ Voz '{voz}' não encontrada")
 
     #print("selecionando voz")
-    esperar(driver, f'//p/span[contains(text(), "{voz}")]', clickable=True).click()
+    esperar(driver, f'//p/span[contains(text(), "{voz}")]', clickable=True, seerroseguir=True).click()
 
     #print("clicar no seletor de modelo")
-    esperar(driver, "//button[starts-with(@aria-label, 'Select model')]", clickable=True).click()
+    esperar(driver, "//button[starts-with(@aria-label, 'Select model')]", clickable=True, seerroseguir=True).click()
     #print("selecionando V2")
-    esperar(driver, '//button[@value="eleven_multilingual_v2"]', clickable=True).click()
+    esperar(driver, '//button[@value="eleven_multilingual_v2"]', clickable=True, seerroseguir=True).click()
     time.sleep(3)
 
 def gerar_e_baixar(driver, texto, index):
@@ -101,8 +95,8 @@ def gerar_e_baixar(driver, texto, index):
     textarea.clear()
     textarea.send_keys(texto)
 
-    esperar(driver, '//button[@aria-label="Generate speech Ctrl+Enter"]', clickable=True).click()
-    download_btn = esperar(driver, '//button[@aria-label="Download latest"]', clickable=True)
+    esperar(driver, '//button[@aria-label="Generate speech Ctrl+Enter"]', clickable=True, seerroseguir=False).click()
+    download_btn = esperar(driver, '//button[@aria-label="Download latest"]', clickable=True, seerroseguir=False)
 
     before = set(os.listdir(path["audios"]))
     download_btn.click()

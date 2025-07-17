@@ -1,8 +1,5 @@
-// static/js/generate_final.js
-
 document.addEventListener('DOMContentLoaded', () => {
-  const listaTransicoes = [
-  { value: "", label: "Sem transição" },
+  const listaTransicoes = [  { value: "", label: "Sem transição" },
   { value: "fade", label: "Desvanecer (fade)" },
   { value: "wipeleft", label: "Corte para a esquerda (wipeleft)" },
   { value: "wiperight", label: "Corte para a direita (wiperight)" },
@@ -33,8 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   { value: "diagtl", label: "Diagonal topo-esquerda (diagtl)" },
   { value: "diagtr", label: "Diagonal topo-direita (diagtr)" },
   { value: "diagbl", label: "Diagonal baixo-esquerda (diagbl)" },
-  { value: "diagbr", label: "Diagonal baixo-direita (diagbr)" }
-  ];
+  { value: "diagbr", label: "Diagonal baixo-direita (diagbr)" }];
 
   const trilhaCheckbox      = document.getElementById('usar_trilha');
   const trilhaInput         = document.getElementById('input_trilha');
@@ -50,12 +46,62 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewSource       = document.getElementById('video_source');
   const closeModalBtn       = document.getElementById('close_modal_video');
 
+  const configTrilha        = document.getElementById("config_trilha");
+  const volumeSlider        = document.getElementById("volume_trilha");
+  const volumeValor         = document.getElementById("volume_valor");
+  const btnPreviewAudio     = document.getElementById("btn_preview_audio");
+
+  const configMarca         = document.getElementById("config_marca");
+  const opacidadeSlider     = document.getElementById("opacidade_marca");
+  const opacidadeValor      = document.getElementById("opacidade_valor");
+
+  trilhaInput.addEventListener("change", () => {
+    configTrilha.classList.toggle("hidden", !trilhaInput.files[0]);
+  });
+
+  volumeSlider.addEventListener("input", () => {
+    volumeValor.textContent = `${volumeSlider.value}%`;
+  });
+
+  marcaInput.addEventListener("change", () => {
+    configMarca.classList.toggle("hidden", !marcaInput.files[0]);
+  });
+
+  opacidadeSlider.addEventListener("input", () => {
+    opacidadeValor.textContent = `${opacidadeSlider.value}%`;
+  });
+
   trilhaCheckbox.addEventListener('change', () => {
     trilhaInput.disabled = !trilhaCheckbox.checked;
   });
 
   marcaCheckbox.addEventListener('change', () => {
     marcaInput.disabled = !marcaCheckbox.checked;
+  });
+
+  btnPreviewAudio.addEventListener("click", () => {
+    if (!trilhaInput.files[0]) {
+      alert("Selecione um arquivo de trilha sonora.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("trilha", trilhaInput.files[0]);
+    formData.append("volume", volumeSlider.value);
+
+    appendLog("🎧 Gerando preview de áudio...");
+
+    fetch("/preview_audio_trilha", {
+      method: "POST",
+      body: formData
+    })
+      .then(resp => resp.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.play();
+      })
+      .catch(err => appendLog("❌ Erro no preview: " + err.message));
   });
 
   function handleEfeitoChange(e) {
@@ -82,29 +128,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   sceneRows.forEach(row => {
-  const idx = row.dataset.idx;
+    const idx = row.dataset.idx;
+    const transicaoContainer = row.querySelector('.config-transicao');
+    if (transicaoContainer) {
+      const select = document.createElement('select');
+      select.name = `transicao_${idx}`;
+      select.className = "w-full border rounded text-xs px-2 py-1 mt-2";
 
-  // Adiciona dinamicamente o dropdown de transições
-  const transicaoContainer = row.querySelector('.config-transicao');
-  if (transicaoContainer) {
-    const select = document.createElement('select');
-    select.name = `transicao_${idx}`;
-    select.className = "w-full border rounded text-xs px-2 py-1 mt-2";
+      listaTransicoes.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.label;
+        select.appendChild(option);
+      });
 
-    listaTransicoes.forEach(opt => {
-      const option = document.createElement('option');
-      option.value = opt.value;
-      option.textContent = opt.label;
-      select.appendChild(option);
-    });
+      transicaoContainer.innerHTML = `<label class="block text-xs text-gray-600">Transição:</label>`;
+      transicaoContainer.appendChild(select);
+    }
 
-    transicaoContainer.innerHTML = `<label class="block text-xs text-gray-600">Transição:</label>`;
-    transicaoContainer.appendChild(select);
-  }
-
-  // evento do efeito zoom
-  const sel = row.querySelector(`select[name="efeito_${idx}"]`);
-  sel.addEventListener('change', handleEfeitoChange);
+    const sel = row.querySelector(`select[name="efeito_${idx}"]`);
+    sel.addEventListener('change', handleEfeitoChange);
   });
 
   function appendLog(msg) {
@@ -131,34 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function startStream(payload) {
-    appendLog('🚀 Iniciando geração...');
-    barraIndeterminada?.classList.remove("hidden");
-
-    fetch('/finalizar_stream', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    .then(resp => {
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      return resp.json();
-    })
-    .then(data => {
-      barraIndeterminada?.classList.add("hidden");
-      if (data.status === "ok") {
-        appendLog('✅ Vídeo final gerado com sucesso');
-        appendLog(data.output);
-      } else {
-        appendLog('❌ Erro: ' + data.mensagem);
-      }
-    })
-    .catch(err => {
-      appendLog('❌ Erro ao gerar vídeo final: ' + err.message);
-      barraIndeterminada?.classList.add("hidden");
-    });
-  }
-
   document.querySelectorAll('input[name="scope_cena"]').forEach(radio => {
     radio.addEventListener('change', () => {
       const single = document.querySelector('input[name="scope_cena"][value="single"]').checked;
@@ -181,6 +196,15 @@ document.addEventListener('DOMContentLoaded', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(coletarCenas())
     });
+
+    // 🧪 Verifica se há arquivos .ass
+    const resp = await fetch("/verificar_legendas_ass");
+    const resultado = await resp.json();
+    if (!resultado.tem) {
+      alert("⚠️ Gere as legendas embutidas antes de gerar as cenas.");
+      return;
+    }
+
 
     logEl.textContent = '';
     appendLog('🚧 Iniciando geração das cenas...');
@@ -211,18 +235,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const escopo = document.querySelector('input[name="scope_cena"]:checked').value;
     const inputIdx = document.getElementById('input_single_idx').value;
 
-    const payload = {
-      escopo,
-      trilha: trilhaCheckbox.checked ? trilhaInput.files[0]?.name : null,
-      marca: marcaCheckbox.checked ? marcaInput.files[0]?.name : null,
-      idx: inputIdx,
-      transicoes: cenas.slice(0, -1).map(cena => ({
-        tipo: cena.transicao,
-        duracao: cena.duracao
-      }))
-    };
+    const formData = new FormData();
+    formData.append("escopo", escopo);
+    formData.append("idx", inputIdx);
+    formData.append("transicoes", JSON.stringify(cenas.slice(0, -1).map(cena => ({
+      tipo: cena.transicao,
+      duracao: cena.duracao
+    }))));
 
-    startStream(payload);
+    if (trilhaCheckbox.checked && trilhaInput.files[0]) {
+      formData.append("usar_trilha", "true");
+      formData.append("trilha", trilhaInput.files[0]);
+      formData.append("volume_trilha", volumeSlider.value);
+    }
+
+    if (marcaCheckbox.checked && marcaInput.files[0]) {
+      formData.append("usar_marca", "true");
+      formData.append("marca", marcaInput.files[0]);
+      formData.append("opacidade_marca", opacidadeSlider.value);
+    }
+
+    appendLog('🚀 Iniciando geração...');
+    barraIndeterminada?.classList.remove("hidden");
+
+    fetch('/finalizar_stream', {
+      method: 'POST',
+      body: formData
+    })
+      .then(resp => resp.json())
+      .then(data => {
+        barraIndeterminada?.classList.add("hidden");
+        if (data.status === "ok") {
+          appendLog('✅ Vídeo final gerado com sucesso');
+          appendLog(data.output);
+          // ▶️ Mostrar modal de preview com vídeo final
+          previewSource.src = `/video_final/${data.nome_arquivo}`;
+          modal.classList.remove('hidden');
+          previewVideo.load();
+
+        } else {
+          appendLog('❌ Erro: ' + data.mensagem);
+        }
+      })
+      .catch(err => {
+        appendLog('❌ Erro ao gerar vídeo final: ' + err.message);
+        barraIndeterminada?.classList.add("hidden");
+      });
   });
 
   document.querySelectorAll('.scene-card').forEach(card => {
@@ -238,4 +296,21 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.classList.add('hidden');
     previewVideo.pause();
   });
+
+  document.getElementById('checkbox_legenda_global')?.addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      sceneRows.forEach(row => {
+        const checkbox = row.querySelector(`input[name^="usar_legenda_"]`);
+        if (checkbox) checkbox.checked = checked;
+      });
+    });
+
+    document.getElementById('select_posicao_global')?.addEventListener('change', (e) => {
+      const value = e.target.value;
+      sceneRows.forEach(row => {
+        const select = row.querySelector(`select[name^="posicao_legenda_"]`);
+        if (select) select.value = value;
+      });
+    });
+
 });
