@@ -193,10 +193,18 @@ def obter_duracao_em_segundos(path):
     return 5  # valor padrão de segurança
 
 def aplicar_efeito_na_imagem(imagem_path, audio_path, output_path, efeito, config_efeito):
+    import subprocess
+
+    def join_filters(*args):
+        return ",".join(filter(None, args))
 
     fator = float(config_efeito.get("fator", 1.2))
     modo = config_efeito.get("modo", "in")
     fps = int(config_efeito.get("fps", 25))
+    direcao = config_efeito.get("direcao", "left")
+    intensidade = int(config_efeito.get("intensidade", 3))
+    tempos_zoom = config_efeito.get("tempos", "")
+
     duracao = obter_duracao_em_segundos(audio_path)
     total_frames = duracao * fps
 
@@ -205,21 +213,88 @@ def aplicar_efeito_na_imagem(imagem_path, audio_path, output_path, efeito, confi
             z_expr = f"1+({fator}-1)*on/{total_frames}"
         else:
             z_expr = f"{fator}-({fator}-1)*on/{total_frames}"
-
-        filtro = (
-            "scale=8000:-1,"
-            f"zoompan=z='{z_expr}':"
-            f"x='iw/2-(iw/zoom/2)':"
-            f"y='ih/2-(ih/zoom/2)':"
-            f"d=25:fps={fps}:s=1080x1920,"
+        filtro = join_filters(
+            "scale=8000:-1",
+            f"zoompan=z='{z_expr}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=25:fps={fps}:s=1080x1920",
             "format=yuv420p"
         )
+
     elif efeito == "espelho":
         filtro = "hflip,format=yuv420p"
+
     elif efeito == "escurecer":
         filtro = "eq=brightness=-0.3,format=yuv420p"
+
     elif efeito == "preto_branco":
         filtro = "format=gray,format=yuv420p"
+
+    elif efeito == "fade_in":
+        filtro = f"fade=t=in:st=0:d=1,format=yuv420p"
+
+    elif efeito == "fade_out":
+        filtro = f"fade=t=out:st={duracao-1}:d=1,format=yuv420p"
+
+    elif efeito == "blur_pulse":
+        filtro = "gblur=sigma='abs(sin(t*2))*5',format=yuv420p"
+
+    elif efeito == "shake_horizontal":
+        filtro = "crop=iw-4:ih:x='mod(t*30\\,4)':y=0,format=yuv420p"
+
+    elif efeito == "shake_vertical":
+        filtro = "crop=iw:ih-4:x=0:y='mod(t*30\\,4)',format=yuv420p"
+
+    elif efeito == "pulsar_brilho":
+        filtro = "eq=brightness='sin(t*2)*0.2',format=yuv420p"
+
+    elif efeito == "cor_oscila":
+        filtro = "hue=s='abs(sin(t*2))',format=yuv420p"
+
+    elif efeito == "giro_leve":
+        filtro = "rotate='0.05*sin(t*1.5)':ow=rotw(iw):oh=roth(ih),format=yuv420p"
+
+    elif efeito == "loop_colorido":
+        filtro = "hue=s='0.5+0.5*sin(t)',format=yuv420p"
+
+    elif efeito == "transparente_pulse":
+        filtro = "format=yuva420p,fade=in:st=0:d=0.5,fade=out:st=0.5:d=0.5,format=yuv420p"
+
+    elif efeito == "slide":
+        zoom = "scale=8000:-1"
+        if direcao == "left":
+            movimento = f"crop=iw:ih:x='-t*100':y=0"
+        elif direcao == "right":
+            movimento = f"crop=iw:ih:x='t*100':y=0"
+        elif direcao == "up":
+            movimento = f"crop=iw:ih:x=0:y='-t*100'"
+        elif direcao == "down":
+            movimento = f"crop=iw:ih:x=0:y='t*100'"
+        else:
+            movimento = ""
+        filtro = join_filters(zoom, movimento, "format=yuv420p")
+
+    elif efeito == "tremor":
+        shift = max(2, min(intensidade, 20))
+        filtro = f"crop=iw-{shift}:ih-{shift}:x='mod(t*60,{shift})':y='mod(t*60,{shift})',format=yuv420p"
+
+    elif efeito == "zoom_rapido_em_partes":
+        filtro = f"scale=8000:-1,format=yuv420p"
+        tempos = [t.strip() for t in tempos_zoom.split(",") if t.strip()]
+        if tempos:
+            overlays = []
+            for i, tempo in enumerate(tempos):
+                try:
+                    t = float(tempo)
+                    overlays.append(
+                        f"zoompan=z='{fator}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:fps={fps}:s=1080x1920:st={int(t*fps)}"
+                    )
+                except:
+                    continue
+            if overlays:
+                filtro = join_filters("scale=8000:-1", *overlays, "format=yuv420p")
+
+    elif efeito == "distorcao_tv":
+        filtro = "tblend=all_mode=difference,format=yuv420p"
+
     else:
         filtro = "format=yuv420p"
 
@@ -244,6 +319,7 @@ def aplicar_efeito_na_imagem(imagem_path, audio_path, output_path, efeito, confi
         raise RuntimeError(f"❌ Erro ao aplicar efeito: {result.stderr}")
 
     return output_path
+
 
 
 def montar_video_com_audio(base_visual_path, audio_path, output_path):

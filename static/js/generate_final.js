@@ -105,12 +105,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function handleEfeitoChange(e) {
-    const select = e.target;
-    const row = select.closest('.scene-row');
-    const idx = row.dataset.idx;
-    const container = row.querySelector('.config-efeito');
+  const select = e.target;
+  const row = select.closest('.scene-row');
+  const idx = row.dataset.idx;
+  const container = row.querySelector('.config-efeito');
+  container.innerHTML = '';
+  container.classList.remove('hidden');
 
-    if (select.value === 'zoom') {
+  switch (select.value) {
+    case 'zoom':
       container.innerHTML = `
         <label class="block text-xs text-gray-600 mt-2">Fator de Zoom:</label>
         <input type="number" min="1" max="3" step="0.1" value="1.2" name="zoom_fator_${idx}" class="w-full border rounded text-xs px-2 py-1">
@@ -120,12 +123,41 @@ document.addEventListener('DOMContentLoaded', () => {
           <option value="out">Afastar</option>
         </select>
       `;
-      container.classList.remove('hidden');
-    } else {
-      container.innerHTML = '';
+      break;
+
+    case 'slide':
+      container.innerHTML = `
+        <label class="block text-xs text-gray-600 mt-2">Direção do Slide:</label>
+        <select name="slide_direcao_${idx}" class="w-full border rounded text-xs px-2 py-1">
+          <option value="left">Esquerda</option>
+          <option value="right">Direita</option>
+          <option value="up">Cima</option>
+          <option value="down">Baixo</option>
+        </select>
+      `;
+      break;
+
+    case 'tremor':
+      container.innerHTML = `
+        <label class="block text-xs text-gray-600 mt-2">Intensidade (1 a 10):</label>
+        <input type="number" min="1" max="10" value="3" name="tremor_intensidade_${idx}" class="w-full border rounded text-xs px-2 py-1">
+      `;
+      break;
+
+    case 'zoom_rapido_em_partes':
+      container.innerHTML = `
+        <label class="block text-xs text-gray-600 mt-2">Tempos de Zoom (s):</label>
+        <input type="text" name="zoom_tempos_${idx}" placeholder="Ex: 0.5, 1.3, 2.7" class="w-full border rounded text-xs px-2 py-1">
+        <label class="block text-xs text-gray-600 mt-2">Fator de Zoom:</label>
+        <input type="number" min="1.1" max="3" step="0.1" value="1.4" name="zoom_fator_rapido_${idx}" class="w-full border rounded text-xs px-2 py-1">
+      `;
+      break;
+
+    default:
       container.classList.add('hidden');
-    }
+      break;
   }
+}
 
   sceneRows.forEach(row => {
     const idx = row.dataset.idx;
@@ -156,23 +188,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function coletarCenas() {
-    return Array.from(sceneRows).map(row => {
-      const idx = row.dataset.idx;
-      const efeito = row.querySelector(`select[name="efeito_${idx}"]`).value;
-      const transicao = row.querySelector(`select[name="transicao_${idx}"]`)?.value || '';
-      const duracao = parseFloat(row.querySelector(`input[name="duracao_${idx}"]`)?.value) || 0.5;
-      const usarLegenda = row.querySelector(`input[name="usar_legenda_${idx}"]`)?.checked || false;
-      const posicaoLegenda = row.querySelector(`select[name="posicao_legenda_${idx}"]`)?.value || 'inferior';
+  return Array.from(document.querySelectorAll('.scene-row')).map(row => {
+    const idx = row.dataset.idx;
+    const efeito = row.querySelector(`select[name="efeito_${idx}"]`).value;
+    const transicao = row.querySelector(`select[name="transicao_${idx}"]`)?.value || '';
+    const duracao = parseFloat(row.querySelector(`input[name="duracao_${idx}"]`)?.value) || 0.5;
+    const usarLegenda = row.querySelector(`input[name="usar_legenda_${idx}"]`)?.checked || false;
+    const posicaoLegenda = row.querySelector(`select[name="posicao_legenda_${idx}"]`)?.value || 'inferior';
 
-      const config = {};
-      if (efeito === 'zoom') {
-        config.fator = row.querySelector(`input[name="zoom_fator_${idx}"]`)?.value || '1.2';
-        config.modo  = row.querySelector(`select[name="zoom_tipo_${idx}"]`)?.value || 'in';
-      }
+    const config = {};
+    if (efeito === 'zoom') {
+      config.fator = row.querySelector(`input[name="zoom_fator_${idx}"]`)?.value || '1.2';
+      config.modo  = row.querySelector(`select[name="zoom_tipo_${idx}"]`)?.value || 'in';
+    }
+    if (efeito === 'slide') {
+      config.direcao = row.querySelector(`select[name="slide_direcao_${idx}"]`)?.value || 'left';
+    }
+    if (efeito === 'tremor') {
+      config.intensidade = row.querySelector(`input[name="tremor_intensidade_${idx}"]`)?.value || '3';
+    }
+    if (efeito === 'zoom_rapido_em_partes') {
+      config.tempos = row.querySelector(`input[name="zoom_tempos_${idx}"]`)?.value || '';
+      config.fator = row.querySelector(`input[name="zoom_fator_rapido_${idx}"]`)?.value || '1.4';
+    }
 
-      return { efeito, transicao, duracao, config, usarLegenda, posicaoLegenda };
-    });
-  }
+    return { efeito, transicao, duracao, config, usarLegenda, posicaoLegenda };
+  });
+}
 
   document.querySelectorAll('input[name="scope_cena"]').forEach(radio => {
     radio.addEventListener('change', () => {
