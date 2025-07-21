@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  atualizarCreditosUI();
   const list       = document.getElementById('image_list');
   const barFill    = document.getElementById('progress_fill');
   const logArea    = document.getElementById('log');
@@ -28,6 +29,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewUpload      = document.getElementById('preview_upload');
 
   let indiceSelecionado = null;
+
+function atualizarCreditosUI() {
+  fetch("/api/creditos")
+    .then(res => res.json())
+    .then(data => {
+      const el = document.getElementById("creditos_valor");
+      if (el) el.textContent = data.creditos;
+    })
+    .catch(() => {
+      console.warn("⚠️ Não foi possível atualizar os créditos.");
+    });
+}
 
   function iniciarProgressoGenerico() {
   document.getElementById('barra_indeterminada').classList.remove('hidden');
@@ -214,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (linha.includes("finalizada")) {
         source.close();
         pararProgressoGenerico();
+        atualizarCreditosUI();
         fetch("/imagens", { method: "GET" })
           .then(resp => resp.text())
           .then(html => {

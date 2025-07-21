@@ -6,16 +6,16 @@ import aiohttp
 import asyncio
 from modules.config import get_config
 from modules.paths import get_paths
+from modules.licenca import get_creditos, debitar_creditos, get_api_key
 
 paths = get_paths()
 
 BASE_URL = "https://api.piapi.ai"
 
 def get_headers():
-    """Cabeçalhos padrão para autenticar as requisições HTTP."""
     return {
-        "x-api-key": get_config("api_key"),
-        "Content-Type": "application/json",
+        "x-api-key": get_api_key(),
+        "Content-Type": "application/json"
     }
 
 async def criar_imagem(session, prompt):
@@ -57,6 +57,9 @@ async def baixar_imagem(session, url, caminho_local):
 
 async def processar_cena(session, i, cenas, logs, paths):
     """Processa individualmente uma cena para gerar a imagem."""
+    if get_creditos() < 10:
+        logs.append(f"❌ Créditos insuficientes para gerar imagem {i + 1}.")
+        return
     try:
         prompt = cenas[i].get("prompt_imagem", "")
         logs.append(f"🎨 Gerando imagem {i+1}: {prompt[:50]}...")
@@ -73,6 +76,8 @@ async def processar_cena(session, i, cenas, logs, paths):
             "arquivo_local": caminho_local
         })
         logs.append(f"✅ Imagem {i+1} salva em {caminho_local}")
+        debitar_creditos(10)
+        logs.append(f"💳 10 créditos debitados com sucesso.")
     except Exception as e:
         logs.append(f"❌ Erro ao gerar imagem {i+1}: {e}")
 

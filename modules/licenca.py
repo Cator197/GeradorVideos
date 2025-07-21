@@ -9,6 +9,7 @@ import base64
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
+
 # Caminhos dos arquivos
 CONFIG_LICENCIADA_PATH = "configuracoes/config_licenciado.json"
 FERNET_KEY_PATH = resource_path("fernet.key")

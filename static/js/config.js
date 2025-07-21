@@ -2,12 +2,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('form_config');
   const pastaInput = document.getElementById('pasta_salvar');
   const btnEscolherPasta = document.getElementById('btn_escolher_pasta');
+  const uploadInput = document.getElementById('upload_config');
+  const btnEnviar = document.getElementById('btn_enviar_config');
 
   // Carregar configurações salvas
   fetch('/api/configuracoes')
     .then(res => res.json())
     .then(data => {
-      document.getElementById('api_key').value = data.api_key || '';
+
       document.getElementById('eleven_email').value = data.eleven_email || '';
       document.getElementById('eleven_senha').value = data.eleven_senha || '';
       pastaInput.value = data.pasta_salvar || '';
@@ -32,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
 
     const configData = {
-      api_key: document.getElementById('api_key').value,
+
       eleven_email: document.getElementById('eleven_email').value,
       eleven_senha: document.getElementById('eleven_senha').value,
       pasta_salvar: pastaInput.value
@@ -53,4 +55,33 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .catch(() => alert('❌ Falha ao enviar configurações.'));
   });
+
+  btnEnviar.addEventListener('click', () => {
+  const file = uploadInput.files[0];
+  if (!file) {
+    alert("❌ Nenhum arquivo selecionado.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("arquivo", file);
+
+  fetch("/upload_config_licenciada", {
+    method: "POST",
+    body: formData
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        alert("✅ Configuração atualizada com sucesso!");
+        atualizarCreditosUI();
+      } else {
+        alert("❌ Erro: " + data.mensagem);
+      }
+    })
+    .catch(() => {
+      alert("❌ Erro na comunicação com o servidor.");
+    });
+  });
+
 });

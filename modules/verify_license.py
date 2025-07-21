@@ -13,13 +13,15 @@ import sys
 
 def resource_path(rel_path: str) -> str:
     """
-    Retorna o caminho absoluto de um arquivo empacotado (fernet.key, public_key.pem)
-    ou, em dev, relativo ao script.
+    Resolve caminhos relativos, mesmo quando o script estiver congelado (PyInstaller).
+    Se o arquivo for externo (como cliente.lic), ele estará ao lado do executável.
     """
     if getattr(sys, "frozen", False):
-        base = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
+        # Executável compilado: usa pasta do executável (não _MEIPASS)
+        base = os.path.dirname(sys.executable)
     else:
-        base = os.path.dirname(os.path.abspath(__file__))
+        # Modo desenvolvimento: usa raiz do projeto
+        base = os.path.abspath(".")
     return os.path.join(base, rel_path)
 
 # caminhos empacotados
@@ -60,7 +62,9 @@ def verify_license():
     # 1) Leia e decifre o blob
     try:
         blob = open(LICENSE_PATH, "rb").read()
+        print(LICENSE_PATH)
     except FileNotFoundError:
+        print(LICENSE_PATH)
         sys.exit("❌ Arquivo cliente.lic não encontrado ao lado do exe.")
     f = load_fernet()
     try:

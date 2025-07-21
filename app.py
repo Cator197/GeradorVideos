@@ -10,10 +10,12 @@ from modules.gerar_narracao import iniciar_driver, login, gerar_e_baixar
 from modules.gerar_ASS import gerar_ass_com_whisper, carregar_modelo
 from modules.gerar_SRT import gerar_srt_com_bloco
 from modules.paths import get_paths
-import re, os, json, asyncio, time, subprocess, threading
+import re, os, json, asyncio, time, subprocess, threading, sys
 from modules.juntar_cenas import montar_uma_cena, adicionar_trilha_sonora, adicionar_marca_dagua, unir_cenas_com_transicoes
 from modules.verify_license import verify_license
 from werkzeug.utils import secure_filename
+from modules.licenca import get_creditos
+
 
 path = get_paths()
 
@@ -246,6 +248,12 @@ def upload_imagem():
     except Exception as e:
         print(f"❌ Erro em upload_imagem: {e}")
         return jsonify({"status": "erro", "msg": str(e)}), 500
+
+@app.route("/api/creditos")
+def api_creditos():
+
+    return {"creditos": get_creditos()}
+
 
 #----------------------------------------------------------------------------------------------------------------------
 
@@ -895,5 +903,55 @@ def checar_configuracao():
         print("🔒 Redirecionando: configuração não encontrada ou pasta inválida")
         return redirect(url_for("pagina_configuracoes"))  # Use o nome correto da view
 
+from flask import request, jsonify
+from modules.licenca import carregar_config_licenciada, salvar_config_licenciada, carregar_fernet
+import json
+
+from flask import request, jsonify
+from modules.licenca import (
+    carregar_config_licenciada,
+    salvar_config_licenciada,
+    carregar_fernet,
+    get_hardware_id
+)
+import json
+
+@app.route("/upload_config_licenciada", methods=["POST"])
+def upload_config_licenciada():
+    if "arquivo" not in request.files:
+        return jsonify({"status": "erro", "mensagem": "Arquivo ausente."})
+
+    arquivo = request.files["arquivo"]
+    if not arquivo.filename.endswith(".json") and not arquivo.filename.endswith(".txt"):
+        return jsonify({"status": "erro", "mensagem": "Formato inválido."})
+
+    try:
+        conteudo = arquivo.read()
+        fernet = carregar_fernet()
+        dados = fernet.decrypt(conteudo).decode()
+        novo_config = json.loads(dados)
+
+        # Carrega configuração atual
+        atual = carregar_config_licenciada()
+
+        # Verifica se pertence ao mesmo hardware
+        if novo_config.get("hardware_id") != get_hardware_id():
+            return jsonify({"status": "erro", "mensagem": "Arquivo não pertence a este computador."})
+
+        # Soma os créditos
+        creditos_novos = novo_config.get("creditos", 0)
+        atual["creditos"] += creditos_novos
+
+        # Atualiza api_key se presente
+        if "api_key" in novo_config:
+            atual["api_key"] = novo_config["api_key"]
+
+        # Salva nova configuração
+        salvar_config_licenciada(atual)
+
+        return jsonify({"status": "ok", "mensagem": f"{creditos_novos} créditos adicionados com sucesso."})
+
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)})
 
 
