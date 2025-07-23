@@ -96,15 +96,16 @@ def processar_prompt():
 
 @app.route("/imagens", methods=["GET"])
 def imagens_page():
-
-    #path = os.path.join(os.getcwd(),"cenas.json")
+    # Carrega as cenas
     with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
-    #pasta_imagens = os.path.join(get_config("pasta_salvar"), "imagens")
+    # Garante que a pasta de imagens existe
+    os.makedirs(path["imagens"], exist_ok=True)
+
     arquivos = os.listdir(path["imagens"])
 
-    # Mapeia imagem1.jpg, imagem2.mp4 etc.
+    # Mapeia os arquivos existentes para cada imagem
     arquivos_dict = {}
     for nome in arquivos:
         if nome.startswith("imagem") and (nome.endswith(".jpg") or nome.endswith(".png") or nome.endswith(".mp4")):
@@ -116,6 +117,7 @@ def imagens_page():
                            page_title="Gerar Imagens",
                            cenas=cenas,
                            arquivos_midia=arquivos_dict)
+
 
 @app.route("/imagens", methods=["POST"])
 def imagens_run():
@@ -821,19 +823,19 @@ def obter_configuracoes():
 
 @app.route("/salvar_config", methods=["POST"])
 def salvar_configuracoes():
-    """Persiste as configurações enviadas pelo frontend e garante subpastas."""
+    """Persiste as configurações enviadas pelo frontend e garante subpastas e arquivos base."""
     dados = request.get_json()
-    #print("📝 Config recebido do front-end:", dados)
 
     try:
         # Salva a configuração criptografada
         salvar_config(dados)
         app.config['USUARIO_CONFIG'] = dados  # Atualiza config em tempo real
-        print("🔐 Gravado com sucesso.")
+        print("🔐 Configurações gravadas com sucesso.")
 
         # Verifica se foi fornecido o caminho da pasta de salvamento
         pasta_salvar = dados.get("pasta_salvar")
         if pasta_salvar:
+            # Garante subpastas de trabalho
             subpastas = [
                 "imagens",
                 "audios_narracoes",
@@ -845,15 +847,42 @@ def salvar_configuracoes():
             for nome in subpastas:
                 caminho = os.path.join(pasta_salvar, nome)
                 os.makedirs(caminho, exist_ok=True)
-            print("📁 Pastas de salvamento verificadas/criadas com sucesso.")
+            print("📁 Subpastas criadas/verificadas.")
+
+            # Agora garantimos os arquivos JSON iniciais
+            from modules.paths import get_paths
+            import json
+
+            paths = get_paths()
+
+            os.makedirs(os.path.dirname(paths["cenas"]), exist_ok=True)
+            os.makedirs(os.path.dirname(paths["cenas_com_imagens"]), exist_ok=True)
+
+            if not os.path.exists(paths["cenas"]):
+                with open(paths["cenas"], "w", encoding="utf-8") as f:
+                    json.dump([], f, ensure_ascii=False, indent=2)
+                print("📝 cenas.json criado.")
+
+            if not os.path.exists(paths["cenas_com_imagens"]):
+                with open(paths["cenas_com_imagens"], "w", encoding="utf-8") as f:
+                    json.dump([], f, ensure_ascii=False, indent=2)
+                print("📝 cenas_com_imagens.json criado.")
+
+            # Opcional: criar ultimo_nome_video.txt com valor inicial
+            if not os.path.exists(paths["nome_video"]):
+                with open(paths["nome_video"], "w", encoding="utf-8") as f:
+                    f.write("video1")
+                print("🆕 ultimo_nome_video.txt criado com valor 'video1'.")
+
         else:
             print("⚠️ Nenhum caminho de pasta_salvar fornecido.")
 
         return jsonify({"status": "ok"})
 
     except Exception as e:
-        print("❌ Erro ao salvar config:", e)
+        print("❌ Erro ao salvar configurações:", e)
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
 
 @app.route('/selecionar_pasta')
 def selecionar_pasta():
@@ -918,10 +947,15 @@ import json
 
 @app.route("/upload_config_licenciada", methods=["POST"])
 def upload_config_licenciada():
+    print("🔁 Recebendo upload de config_licenciado.json")
+
     if "arquivo" not in request.files:
+        print("❌ Nenhum arquivo foi recebido.")
         return jsonify({"status": "erro", "mensagem": "Arquivo ausente."})
 
     arquivo = request.files["arquivo"]
+    print("📁 Nome do arquivo recebido:", arquivo.filename)
+
     if not arquivo.filename.endswith(".json") and not arquivo.filename.endswith(".txt"):
         return jsonify({"status": "erro", "mensagem": "Formato inválido."})
 
@@ -931,27 +965,43 @@ def upload_config_licenciada():
         dados = fernet.decrypt(conteudo).decode()
         novo_config = json.loads(dados)
 
-        # Carrega configuração atual
-        atual = carregar_config_licenciada()
+        print("🔓 Arquivo descriptografado com sucesso:", novo_config)
 
-        # Verifica se pertence ao mesmo hardware
-        if novo_config.get("hardware_id") != get_hardware_id():
+        # Carrega ou inicializa a configuração atual
+        caminho_destino = os.path.join("configuracoes", "config_licenciado.json")
+        if os.path.exists(caminho_destino):
+            atual = carregar_config_licenciada()
+        else:
+            atual = {
+                "hardware_id": novo_config["hardware_id"],
+                "creditos": 0,
+                "api_key": ""
+            }
+
+        # Verifica se pertence à mesma máquina
+        if novo_config.get("hardware_id") != atual.get("hardware_id"):
             return jsonify({"status": "erro", "mensagem": "Arquivo não pertence a este computador."})
 
-        # Soma os créditos
+        # Soma os créditos e atualiza API key
         creditos_novos = novo_config.get("creditos", 0)
         atual["creditos"] += creditos_novos
 
-        # Atualiza api_key se presente
         if "api_key" in novo_config:
             atual["api_key"] = novo_config["api_key"]
 
-        # Salva nova configuração
+        print("💾 Salvando config licenciada atualizada:", atual)
         salvar_config_licenciada(atual)
+
+        # Agora sim salva o original criptografado se não existia
+        if not os.path.exists(caminho_destino):
+            os.makedirs("configuracoes", exist_ok=True)
+            with open(caminho_destino, "wb") as f:
+                f.write(conteudo)
+            print("🆕 Arquivo original criptografado salvo.")
 
         return jsonify({"status": "ok", "mensagem": f"{creditos_novos} créditos adicionados com sucesso."})
 
     except Exception as e:
+        print("❌ Erro ao processar upload:", e)
         return jsonify({"status": "erro", "mensagem": str(e)})
-
 

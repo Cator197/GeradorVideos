@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     })
       .then(res => res.json())
       .then(data => {
+        console.log("📥 Resposta do servidor:", data);
         if (data.status === 'ok') {
           alert('✅ Configurações salvas com sucesso!');
         } else {
@@ -58,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnEnviar.addEventListener('click', () => {
   const file = uploadInput.files[0];
+  console.log("📤 Enviando arquivo:", uploadInput.files[0]?.name);
   if (!file) {
     alert("❌ Nenhum arquivo selecionado.");
     return;

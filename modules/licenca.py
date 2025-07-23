@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 
 
 # Caminhos dos arquivos
-CONFIG_LICENCIADA_PATH = "configuracoes/config_licenciado.json"
+CONFIG_LICENCIADA_PATH = resource_path("config_licenciado.json")
 FERNET_KEY_PATH = resource_path("fernet.key")
 LICENSE_PATH = resource_path("cliente.lic")
 
@@ -41,25 +41,39 @@ def carregar_licenca():
 
 # Carregar configuração licenciada (criptografada e validada)
 def carregar_config_licenciada():
+    print("📥 Tentando carregar config_licenciado.json")
+
     if not os.path.exists(CONFIG_LICENCIADA_PATH):
+        print(f"❌ Arquivo não encontrado: {CONFIG_LICENCIADA_PATH}")
         raise Exception("Arquivo de configuração licenciada não encontrado.")
 
-    fernet = carregar_fernet()
-    dados = fernet.decrypt(open(CONFIG_LICENCIADA_PATH, "rb").read()).decode()
-    config = json.loads(dados)
+    try:
+        fernet = carregar_fernet()
+        with open(CONFIG_LICENCIADA_PATH, "rb") as f:
+            dados = f.read()
+        print("🔐 Lendo e tentando descriptografar o conteúdo...")
+        dados_json = fernet.decrypt(dados).decode()
+        config = json.loads(dados_json)
+    except Exception as e:
+        print("❌ Erro ao descriptografar:", e)
+        raise Exception("Erro ao ler a configuração licenciada.")
 
-    # Valida hardware_id
     hw_local = gerar_hardware_id()
+    print("🔍 Verificando hardware_id...")
     if config.get("hardware_id") != hw_local:
+        print(f"❌ HWID incorreto. Esperado: {hw_local}, Recebido: {config.get('hardware_id')}")
         raise Exception("Configuração não autorizada para este dispositivo.")
 
+    print("✅ Configuração licenciada carregada com sucesso.")
     return config
+
 
 # Salvar config licenciada
 def salvar_config_licenciada(config_dict):
     fernet = carregar_fernet()
     dados = json.dumps(config_dict).encode()
     criptografado = fernet.encrypt(dados)
+    os.makedirs(os.path.dirname(CONFIG_LICENCIADA_PATH), exist_ok=True)
     with open(CONFIG_LICENCIADA_PATH, "wb") as f:
         f.write(criptografado)
 

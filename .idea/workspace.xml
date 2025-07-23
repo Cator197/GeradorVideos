@@ -8,12 +8,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="Commit antes de implementar implementar sistema de créditos">
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="commit depois das alterações sem o funcionamento via pyintaller">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/gerar_imagens.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_imagens.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/generate_imagem.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/generate_imagem.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/licenca.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/licenca.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/config.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/configuracoes.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/configuracoes.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -438,7 +439,15 @@
       <option name="project" value="LOCAL" />
       <updated>1752926909968</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="commit depois das alterações sem o funcionamento via pyintaller">
+      <option name="closed" value="true" />
+      <created>1753091679080</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1753091679094</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -502,6 +511,7 @@
     <MESSAGE value="Commit antes de implementar trilha sonora" />
     <MESSAGE value="Commit antes de implementar mais efeitos" />
     <MESSAGE value="Commit antes de implementar implementar sistema de créditos" />
-    <option name="LAST_COMMIT_MESSAGE" value="Commit antes de implementar implementar sistema de créditos" />
+    <MESSAGE value="commit depois das alterações sem o funcionamento via pyintaller" />
+    <option name="LAST_COMMIT_MESSAGE" value="commit depois das alterações sem o funcionamento via pyintaller" />
   </component>
 </project>
