@@ -2,7 +2,7 @@ import os
 from modules.config import get_config
 
 def get_paths() -> dict:
-    base = get_config("pasta_salvar") or os.getcwd()
+    base = get_config("pasta_salvar")
     paths = {
         "base": base,
         "imagens": os.path.join(base, "imagens"),
