@@ -15,9 +15,9 @@ from modules.juntar_cenas import montar_uma_cena, adicionar_trilha_sonora, adici
 from modules.verify_license import verify_license
 from werkzeug.utils import secure_filename
 from modules.licenca import get_creditos
+path = get_paths()  # ← cria o dicionário de caminhos ao iniciar o app
 
 
-path = get_paths()
 
 estado_pausa = {
     "pausado": False,
@@ -531,10 +531,12 @@ def gerar_legendas_srt():
     if scope == "single" and single is not None:
         indices = [single]
     elif scope == "from" and start is not None:
-        indices = list(range(start, len(cenas)))
+        indices = list(range(start, len(cenas)+1))
     else:
-        indices = list(range(1, len(cenas)))
+        indices = list(range(1, len(cenas)+1))
 
+    print("Quantidade de cenas: ", len(cenas))
+    print("Quantidade de indices: ", indices)
     resultado = gerar_srt_com_bloco(indices, qtde_palavras)
     return jsonify({"status": "ok", "logs": resultado})
 
@@ -853,24 +855,26 @@ def salvar_configuracoes():
             from modules.paths import get_paths
             import json
 
-            paths = get_paths()
+            # 🔹 Atualiza o path global
+            global path
+            path = get_paths()
 
-            os.makedirs(os.path.dirname(paths["cenas"]), exist_ok=True)
-            os.makedirs(os.path.dirname(paths["cenas_com_imagens"]), exist_ok=True)
+            os.makedirs(os.path.dirname(path["cenas"]), exist_ok=True)
+            os.makedirs(os.path.dirname(path["cenas_com_imagens"]), exist_ok=True)
 
-            if not os.path.exists(paths["cenas"]):
-                with open(paths["cenas"], "w", encoding="utf-8") as f:
+            if not os.path.exists(path["cenas"]):
+                with open(path["cenas"], "w", encoding="utf-8") as f:
                     json.dump([], f, ensure_ascii=False, indent=2)
                 print("📝 cenas.json criado.")
 
-            if not os.path.exists(paths["cenas_com_imagens"]):
-                with open(paths["cenas_com_imagens"], "w", encoding="utf-8") as f:
+            if not os.path.exists(path["cenas_com_imagens"]):
+                with open(path["cenas_com_imagens"], "w", encoding="utf-8") as f:
                     json.dump([], f, ensure_ascii=False, indent=2)
                 print("📝 cenas_com_imagens.json criado.")
 
             # Opcional: criar ultimo_nome_video.txt com valor inicial
-            if not os.path.exists(paths["nome_video"]):
-                with open(paths["nome_video"], "w", encoding="utf-8") as f:
+            if not os.path.exists(path["nome_video"]):
+                with open(path["nome_video"], "w", encoding="utf-8") as f:
                     f.write("video1")
                 print("🆕 ultimo_nome_video.txt criado com valor 'video1'.")
 
@@ -882,6 +886,7 @@ def salvar_configuracoes():
     except Exception as e:
         print("❌ Erro ao salvar configurações:", e)
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
 
 
 @app.route('/selecionar_pasta')

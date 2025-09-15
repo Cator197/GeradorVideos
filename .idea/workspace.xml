@@ -8,9 +8,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="commit depois antes dos testes no selenium narrações">
+    <list default="true" id="b787001c-e8e2-4205-812a-408f070ff8d5" name="Changes" comment="commit antes de implementar cookies para logar no elevenlabs">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/gerar_SRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_SRT.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/gerar_narracao.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/gerar_narracao.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/juntar_cenas.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/juntar_cenas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/paths.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/paths.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,37 +55,37 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "Python.00.parser_prompts.executor": "Run",
-    "Python.01.gerar_imagens.executor": "Run",
-    "Python.02.gerar_animacao.executor": "Run",
-    "Python.03.gerar_narracao.executor": "Run",
-    "Python.adicionar_marcadagua.executor": "Run",
-    "Python.app.executor": "Run",
-    "Python.gerar_SRT.executor": "Run",
-    "Python.gerar_imagens (1).executor": "Run",
-    "Python.gerar_imagens.executor": "Run",
-    "Python.gerar_narracao.executor": "Debug",
-    "Python.juntar_cenas.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.montar_cenas.executor": "Run",
-    "Python.parser_prompts.executor": "Run",
-    "Python.preview_legendas_ffmpeg.executor": "Run",
-    "Python.run.executor": "Run",
-    "Python.teste_combinacoes_legenda.executor": "Run",
-    "Python.teste_ffmpeg_legenda_ass.executor": "Run",
-    "Python.teste_google_tts.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "<unknown>",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/PycharmProjects/geradorVideo/static/vozes/elevenlabs",
-    "run.code.analysis.last.selected.profile": "aDefault",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;Python.00.parser_prompts.executor&quot;: &quot;Run&quot;,
+    &quot;Python.01.gerar_imagens.executor&quot;: &quot;Run&quot;,
+    &quot;Python.02.gerar_animacao.executor&quot;: &quot;Run&quot;,
+    &quot;Python.03.gerar_narracao.executor&quot;: &quot;Run&quot;,
+    &quot;Python.adicionar_marcadagua.executor&quot;: &quot;Run&quot;,
+    &quot;Python.app.executor&quot;: &quot;Run&quot;,
+    &quot;Python.gerar_SRT.executor&quot;: &quot;Run&quot;,
+    &quot;Python.gerar_imagens (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.gerar_imagens.executor&quot;: &quot;Run&quot;,
+    &quot;Python.gerar_narracao.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.juntar_cenas.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.montar_cenas.executor&quot;: &quot;Run&quot;,
+    &quot;Python.parser_prompts.executor&quot;: &quot;Run&quot;,
+    &quot;Python.preview_legendas_ffmpeg.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run.executor&quot;: &quot;Run&quot;,
+    &quot;Python.teste_combinacoes_legenda.executor&quot;: &quot;Run&quot;,
+    &quot;Python.teste_ffmpeg_legenda_ass.executor&quot;: &quot;Run&quot;,
+    &quot;Python.teste_google_tts.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/PycharmProjects/geradorVideo/static/vozes/elevenlabs&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\PycharmProjects\geradorVideo\static\vozes\elevenlabs" />
@@ -451,7 +455,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753277821172</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="commit antes de implementar cookies para logar no elevenlabs">
+      <option name="closed" value="true" />
+      <created>1753380640689</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1753380640689</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -492,7 +504,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="commit inicial com todos os modulos sem alteracoes" />
     <MESSAGE value="v1 funcionando" />
     <MESSAGE value="v2 com interface parte inicial" />
     <MESSAGE value="commit antes de iniciar as alterações no gerador de SRT" />
@@ -517,6 +528,7 @@
     <MESSAGE value="Commit antes de implementar implementar sistema de créditos" />
     <MESSAGE value="commit depois das alterações sem o funcionamento via pyintaller" />
     <MESSAGE value="commit depois antes dos testes no selenium narrações" />
-    <option name="LAST_COMMIT_MESSAGE" value="commit depois antes dos testes no selenium narrações" />
+    <MESSAGE value="commit antes de implementar cookies para logar no elevenlabs" />
+    <option name="LAST_COMMIT_MESSAGE" value="commit antes de implementar cookies para logar no elevenlabs" />
   </component>
 </project>

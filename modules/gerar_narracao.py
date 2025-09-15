@@ -27,6 +27,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 def iniciar_driver():
     """Inicia o Chrome com configurações otimizadas e atualização automática do ChromeDriver."""
     logging.info("🔍 Verificando compatibilidade do ChromeDriver com o navegador...")
+    logging.info(f"📁 Caminho definido para salvar os áudios: {os.path.abspath(path['audios'])}")
 
     chrome_options = Options()
     chrome_options.add_argument("--start-maximized")
@@ -78,24 +79,22 @@ def esperar(driver, selector, by=By.XPATH, clickable=False, timeout=20, seerrose
         else:
             raise
 
-
 def login(driver, voz="Brian"):
     """Realiza o login e seleciona a voz desejada no site da ElevenLabs."""
 
     driver.get("https://elevenlabs.io/app/sign-in")
+    driver.execute_script("document.body.style.zoom='50%'")  # 🔍 Aplicando zoom para garantir visibilidade
 
     wait = WebDriverWait(driver, 20)
-    email_input=wait.until(EC.presence_of_element_located((By.NAME, "email")))
-    email_input.send_keys(get_config("eleven_email"))
     #driver.find_element(By.NAME, "email").send_keys(get_config("eleven_email"))
-    #wait.until(EC.presence_of_element_located((By.NAME, "email"))).send_keys(get_config("eleven_email"))
+    wait.until(EC.presence_of_element_located((By.NAME, "email"))).send_keys(get_config("eleven_email"))
     driver.find_element(By.NAME, "password").send_keys(get_config("eleven_senha"))
     driver.find_element(By.NAME, "password").submit()
 
     time.sleep(3)
     driver.get("https://elevenlabs.io/app/speech-synthesis/text-to-speech")
     wait.until(EC.url_contains("/text-to-speech"))
-
+    driver.execute_script("document.body.style.zoom='50%'")  # 🔍 Aplicando zoom para garantir visibilidade
     try:
         #print("Clicando em: Get started")
         esperar(driver, "//button[normalize-space()='Get started']", clickable=True, timeout=5, seerroseguir=True).click()

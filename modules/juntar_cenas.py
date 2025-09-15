@@ -2,26 +2,64 @@
 from modules.paths import get_paths
 import json, subprocess, os
 from modules.config import get_config
+from pathlib import Path
+import shutil
 
 path = get_paths()
 
-def montar_uma_cena(idx, config):
+import os
+import shutil
+import subprocess
+from pathlib import Path
+from modules.config import get_config
 
-    imagem_path   = os.path.join(path["imagens"],  f"imagem{idx + 1}.jpg")
-    audio_path    = os.path.join(path["audios"],   f"narracao{idx + 1}.mp3")
-    legenda_path  = os.path.join(path["legendas_ass"], f"legenda{idx + 1}.ass")
-    video_efeito  = os.path.join(path["videos_cenas"],    f"temp_efeito_{idx}.mp4")
+def montar_uma_cena(idx, config):
+    print(f"\n🔍 Iniciando montagem da cena {idx + 1}")
+
+    # Caminhos de destino internos
+    imagem_path   = os.path.join(path["imagens"],       f"imagem{idx + 1}.jpg")
+    audio_path    = os.path.join(path["audios"],        f"narracao{idx + 1}.mp3")
+    legenda_path  = os.path.join(path["legendas_ass"],  f"legenda{idx + 1}.ass")
+    video_efeito  = os.path.join(path["videos_cenas"],  f"temp_efeito_{idx}.mp4")
 
     usar_legenda  = config.get("usarLegenda", False)
     pos_legenda   = config.get("posicaoLegenda", "inferior")
 
-    print("Pasta salvar:", get_config("pasta_salvar"))
-    print("JSON cenas:", os.path.join(get_config("pasta_salvar") or ".", "cenas_com_imagens.json"))
+    print(f"[DEBUG] Config recebida: {config}")
+    print(f"[DEBUG] Caminhos alvo internos:")
+    print(f"        - Imagem:  {imagem_path}")
+    print(f"        - Áudio:   {audio_path}")
+    print(f"        - Legenda: {legenda_path}")
+    print(f"        - Efeito:  {video_efeito}")
 
-    print(f"[DEBUG] Cena {idx + 1} - config recebido:", config)
+    # 1️⃣ Garantir que imagem existe (copia do caminho original, se necessário)
+    origem_imagem = config.get("arquivo_local", imagem_path)
+    if not os.path.exists(imagem_path):
+        if not os.path.exists(origem_imagem):
+            raise FileNotFoundError(f"🛑 Imagem não encontrada: {origem_imagem}")
+        shutil.copy(origem_imagem, imagem_path)
+        print(f"[✔] Imagem copiada para pasta local: {imagem_path}")
 
-    # 1️⃣ Aplicar efeito visual (zoom, pb, escurecer, etc.)
-    print("🌀 Efeito:", config.get("efeito"))
+    # 2️⃣ Garantir que áudio existe
+    origem_audio = config.get("arquivo_audio", audio_path)
+    if not os.path.exists(audio_path):
+        if not os.path.exists(origem_audio):
+            raise FileNotFoundError(f"🛑 Áudio não encontrado: {origem_audio}")
+        shutil.copy(origem_audio, audio_path)
+        print(f"[✔] Áudio copiado para pasta local: {audio_path}")
+
+    # 3️⃣ Garantir que legenda existe, se habilitada
+    origem_legenda = config.get("arquivo_legenda", legenda_path)
+    if usar_legenda and not os.path.exists(legenda_path):
+        if not os.path.exists(origem_legenda):
+            print(f"[⚠️] Legenda habilitada, mas não encontrada: {origem_legenda}")
+            usar_legenda = False
+        else:
+            shutil.copy(origem_legenda, legenda_path)
+            print(f"[✔] Legenda copiada para pasta local: {legenda_path}")
+
+    # 4️⃣ Aplicar efeito visual
+    print(f"🌀 Aplicando efeito visual na imagem...")
     aplicar_efeito_na_imagem(
         imagem_path=imagem_path,
         audio_path=audio_path,
@@ -29,36 +67,41 @@ def montar_uma_cena(idx, config):
         efeito=config.get("efeito"),
         config_efeito=config.get("config", {})
     )
+    print(f"[OK] Efeito aplicado: {video_efeito} (esperado)")
 
-    # Redimensionar para 1080x1920 se necessário
-    video_resized=os.path.join(path["videos_cenas"], f"temp_resized_{idx}.mp4")
-    comando_resize=[
+    # 5️⃣ Redimensionar para 1080x1920
+    video_resized = os.path.join(path["videos_cenas"], f"temp_resized_{idx}.mp4")
+    comando_resize = [
         "ffmpeg", "-y", "-i", video_efeito,
         "-vf", "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2",
         "-c:a", "copy",
         video_resized
     ]
     print("🔁 Redimensionando vídeo para 1080x1920...")
+    print(f"[CMD] {' '.join(comando_resize)}")
+    subprocess.run(comando_resize, check=True)
+    print(f"[OK] Redimensionamento concluído: {video_resized}")
 
-    # 2️⃣ Aplicar legenda (se habilitada)
+    # 6️⃣ Aplicar legenda (se habilitada)
     if usar_legenda and os.path.exists(legenda_path):
-        # Ajustar a altura da legenda com base na posição selecionada
+        print(f"📝 Aplicando legenda (posição: {pos_legenda})...")
         ajustar_marginv_ass(legenda_path, pos_legenda)
         video_legenda = os.path.join(path["videos_cenas"], f"temp_legenda_{idx}.mp4")
-        print("posição da legenda é: ", pos_legenda)
-        adicionar_legenda_ass(video_efeito, legenda_path, pos_legenda, video_legenda)
+        adicionar_legenda_ass(video_resized, legenda_path, pos_legenda, video_legenda)
     else:
-        video_legenda = video_efeito
+        video_legenda = video_resized
+        print("💬 Legenda não aplicada (desativada ou inexistente)")
 
-    # 3️⃣ Verificação se vídeo com legenda existe
+    # 7️⃣ Verificação final antes de audio
     if not os.path.exists(video_legenda):
-        raise FileNotFoundError(f"❌ Arquivo não criado: {video_legenda}")
+        raise FileNotFoundError(f"❌ Arquivo não criado após legenda: {video_legenda}")
 
-    # 4️⃣ Adicionar o áudio final
-    print("vai gerar o video final")
+    # 8️⃣ Adicionar áudio final
+    print(f"🎧 Adicionando áudio final ao vídeo...")
     video_final = os.path.join(path["videos_cenas"], f"video{idx + 1}.mp4")
     adicionar_audio(video_legenda, audio_path, video_final)
 
+    print(f"✅ Cena {idx + 1} finalizada: {video_final}\n")
     return video_final
 
 def unir_cenas_com_transicoes(lista_videos, transicoes, output_path):
