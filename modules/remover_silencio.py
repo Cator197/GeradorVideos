@@ -8,7 +8,14 @@ from modules.paths import get_paths
 path = get_paths()
 
 def remover_silencios(min_silence: float = 0.5):
-    """Remove trechos silenciosos de todos os áudios MP3 encontrados."""
+    """Remove trechos silenciosos dos áudios de narração.
+
+    Parâmetros:
+        min_silence (float): Duração mínima do silêncio em segundos para ser removido.
+
+    Retorna:
+        dict: Resultado contendo status, quantidade de arquivos e logs.
+    """
     base_path = get_config("pasta_salvar") or os.path.join(os.getcwd(), "modules")
     pasta = path["audios_narracoes"]
 

@@ -12,9 +12,13 @@ import os
 import sys
 
 def resource_path(rel_path: str) -> str:
-    """
-    Resolve caminhos relativos, mesmo quando o script estiver congelado (PyInstaller).
-    Se o arquivo for externo (como cliente.lic), ele estará ao lado do executável.
+    """Resolve caminhos relativos mesmo em ambientes empacotados.
+
+    Parâmetros:
+        rel_path (str): Caminho relativo ao diretório base do aplicativo.
+
+    Retorna:
+        str: Caminho absoluto adequado ao modo de execução atual.
     """
     if getattr(sys, "frozen", False):
         # Executável compilado: usa pasta do executável (não _MEIPASS)
@@ -37,6 +41,14 @@ LICENSE_PATH     = os.path.join(exe_dir, "cliente.lic")
 
 
 def get_disk_serial():
+    """Obtém o número de série do disco principal do sistema.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        str: Número de série utilizado para compor o hardware ID.
+    """
     output = subprocess.check_output(
         ['wmic', 'diskdrive', 'get', 'SerialNumber'], stderr=subprocess.DEVNULL, text=True
     ).splitlines()
@@ -47,18 +59,50 @@ def get_disk_serial():
     raise RuntimeError("Não conseguiu ler SerialNumber do disco")
 
 def gerar_hardware_id():
+    """Gera o identificador de hardware baseado no MAC e no serial do disco.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        str: Hash SHA-256 representando o dispositivo atual.
+    """
     mac = uuid.getnode()
     serial = get_disk_serial()
     return hashlib.sha256(f"{mac}-{serial}".encode()).hexdigest()
 
 def load_fernet():
+    """Carrega a chave simétrica utilizada para descriptografar a licença.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        Fernet: Instância configurada com a chave embutida.
+    """
     return Fernet(open(FERNET_KEY_PATH, "rb").read())
 
 def load_public_key():
+    """Carrega a chave pública empregada na validação da assinatura da licença.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        cryptography.hazmat.primitives.asymmetric.rsa.RSAPublicKey: Chave pronta para verificação.
+    """
     data = open(PUBLIC_KEY_PATH, "rb").read()
     return serialization.load_pem_public_key(data)
 
 def verify_license():
+    """Valida a licença do cliente verificando assinatura, hardware e expiração.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        None: Encerra o processo com mensagem em caso de falha, imprime sucesso em caso positivo.
+    """
     # 1) Leia e decifre o blob
     try:
         blob = open(LICENSE_PATH, "rb").read()

@@ -56,20 +56,42 @@ app.register_blueprint(imagens_bp)
 
 @app.route("/")
 def index():
-    """Página inicial da aplicação."""
+    """Renderiza a página inicial da aplicação.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        flask.Response: Página inicial com o template de geração de prompt.
+    """
     return render_template("generate_prompt.html", page_title="Início")
 
 #----- Novo prompt ----------------------------------------------------------------------------------------------------
 
 @app.route("/generate_prompt", methods=["GET"])
 def prompt_page():
-    """Página para solicitar a geração de prompts."""
+    """Exibe a página responsável por solicitar a geração de prompts.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        flask.Response: Template HTML com o formulário de prompts.
+    """
 
     return render_template("generate_prompt.html",
                            page_title="Gerar Prompt")
 
 @app.route("/processar_prompt", methods=["POST"])
 def processar_prompt():
+    """Processa o prompt enviado pelo usuário e gera os arquivos iniciais.
+
+    Parâmetros:
+        Nenhum: os dados são extraídos do corpo JSON da requisição.
+
+    Retorna:
+        flask.Response: Resposta JSON indicando sucesso ou o motivo do erro.
+    """
     try:
         data = request.get_json()
         prompt = data.get("prompt", "").strip()
@@ -120,6 +142,14 @@ def processar_prompt():
 
 @app.route("/api/creditos")
 def api_creditos():
+    """Expõe o total de créditos disponíveis para o usuário.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        dict: Quantidade atual de créditos.
+    """
 
     return {"creditos": get_creditos()}
 
@@ -130,7 +160,14 @@ def api_creditos():
 
 @app.route("/generate_narracao")
 def generate_narracao():
-    """Exibe a tela de geração de narrações."""
+    """Exibe a interface de geração de narrações para as cenas disponíveis.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        flask.Response: Página HTML com a lista de cenas e opções de narração.
+    """
     #path = os.path.join(os.getcwd(),"cenas.json")
     if not os.path.exists(path["cenas"]):
         return "Arquivo cenas.json não encontrado", 500
@@ -179,7 +216,14 @@ def generate_narracao():
 #     })
 @app.route("/narracao_stream", methods=["GET"])
 def gerar_narracoes_stream():
-    """Versão com feedback em tempo real das narrações."""
+    """Gera narrações com retorno contínuo via Server-Sent Events.
+
+    Parâmetros:
+        Nenhum: os filtros são obtidos dos parâmetros de consulta.
+
+    Retorna:
+        flask.Response: Stream com mensagens de progresso do processamento.
+    """
     scope   = request.args.get("scope", "all")
     single  = request.args.get("single_index", type=int)
     start   = request.args.get("from_index", type=int)
@@ -207,6 +251,14 @@ def gerar_narracoes_stream():
         return Response("data: ❌ Parâmetros inválidos\n\n", mimetype='text/event-stream')
 
     def gerar_eventos():
+        """Produz eventos em tempo real conforme cada narração é concluída.
+
+        Parâmetros:
+            Nenhum.
+
+        Retorna:
+            Generator[str, None, None]: Mensagens formatadas para SSE.
+        """
         with open(path["cenas"], encoding="utf-8") as f:
             cenas = json.load(f)
 
@@ -244,12 +296,27 @@ def gerar_narracoes_stream():
 
 @app.route("/modules/audio/<path:filename>")
 def serve_module_audio(filename):
-    """Fornece os arquivos de áudio gerados."""
+    """Entrega arquivos de áudio gerados pela aplicação.
+
+    Parâmetros:
+        filename (str): Nome do arquivo localizado na pasta de áudios.
+
+    Retorna:
+        flask.Response: Resposta de envio do arquivo solicitado.
+    """
     pasta = get_paths()["audios"]
     return send_from_directory(path["audios"], filename)
 
 @app.route("/editar_narracao", methods=["POST"])
 def editar_narracao():
+    """Atualiza o texto de narração de uma cena específica.
+
+    Parâmetros:
+        Nenhum: o índice e o novo texto são obtidos do corpo JSON.
+
+    Retorna:
+        flask.Response: Resultado em JSON indicando o sucesso da operação.
+    """
     data = request.get_json()
     #print("🚨 Dados recebidos:", data)  # 👈 Adicione isso
     index = int(data["index"])
@@ -268,6 +335,14 @@ def editar_narracao():
 
 @app.route("/get_narracao")
 def get_narracao():
+    """Recupera o texto da narração associado a uma cena.
+
+    Parâmetros:
+        Nenhum: o índice é lido dos parâmetros da requisição.
+
+    Retorna:
+        flask.Response: Conteúdo JSON contendo o texto da narração.
+    """
     index = int(request.args.get("index", 0))
 
     #paths = gerar_narracao.get_paths()
@@ -280,7 +355,14 @@ def get_narracao():
 
 @app.route("/remover_silencio")
 def remover_silencio_route():
-    """Endpoint para remover silêncios dos áudios."""
+    """Remove silêncios dos áudios de narração via endpoint HTTP.
+
+    Parâmetros:
+        Nenhum: o tempo mínimo de silêncio é fornecido como query string.
+
+    Retorna:
+        flask.Response: Resultado JSON com logs ou mensagem de erro.
+    """
     try:
         min_silence = float(request.args.get("min_silence", "0.3"))
     except ValueError:
@@ -295,12 +377,28 @@ def remover_silencio_route():
 
 @app.route("/ativar_pausa", methods=["POST"])
 def ativar_pausa():
+    """Ativa o estado de pausa para interromper a geração de narrações.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        flask.Response: Resposta JSON confirmando a alteração do estado.
+    """
     with estado_pausa["cond"]:
         estado_pausa["pausado"] = True
     return jsonify({"status": "ok"})
 
 @app.route("/continuar_narracao", methods=["POST"])
 def continuar_narracao():
+    """Retoma a geração de narrações previamente pausada.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        flask.Response: Resposta JSON confirmando a retomada do processo.
+    """
     with estado_pausa["cond"]:
         estado_pausa["pausado"] = False
         estado_pausa["cond"].notify()
@@ -312,7 +410,14 @@ def continuar_narracao():
 
 @app.route("/generate_legenda")
 def generate_legenda():
-    """Página para criar legendas das narrações."""
+    """Exibe a interface para geração de legendas das narrações.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        flask.Response: Página HTML com a listagem de cenas e opções de legenda.
+    """
     #path = os.path.join(os.getcwd(),"cenas.json")
 
     with open(path["cenas"], "r", encoding="utf-8") as f:
@@ -322,7 +427,14 @@ def generate_legenda():
 
 @app.route("/legendas_ass", methods=["POST"])
 def gerar_legendas_ass():
-    """Gera arquivos .ASS estilizados para as cenas."""
+    """Gera arquivos .ASS estilizados para as cenas selecionadas.
+
+    Parâmetros:
+        Nenhum: a seleção e o estilo são recebidos no corpo JSON.
+
+    Retorna:
+        flask.Response: Resposta JSON com logs e dados atualizados das cenas.
+    """
     data = request.get_json()
     scope  = data.get("scope", "all")
     single = data.get("single_index")
@@ -383,6 +495,14 @@ def gerar_legendas_ass():
 
 @app.route("/legendas_srt", methods=["POST"])
 def gerar_legendas_srt():
+    """Gera legendas no formato SRT conforme os parâmetros enviados.
+
+    Parâmetros:
+        Nenhum: escopo e configurações são lidos do corpo JSON.
+
+    Retorna:
+        flask.Response: Resposta JSON com logs do processamento.
+    """
     data = request.get_json()
     scope = data.get("scope", "all")
     qtde_palavras = int(data.get("qtde_palavras", 4))
@@ -407,6 +527,14 @@ def gerar_legendas_srt():
 
 @app.route("/get_legenda")
 def get_legenda():
+    """Retorna o texto de legenda associado a uma cena específica.
+
+    Parâmetros:
+        Nenhum: o índice desejado é informado na query string.
+
+    Retorna:
+        flask.Response: JSON com o texto de legenda ou narração.
+    """
     index = int(request.args.get("index", 0))
     #paths = gerar_ASS.get_paths()
 
@@ -418,6 +546,14 @@ def get_legenda():
 
 @app.route("/editar_legenda", methods=["POST"])
 def editar_legenda():
+    """Atualiza o conteúdo de legenda de uma cena específica.
+
+    Parâmetros:
+        Nenhum: recebe índice e texto pelo corpo JSON.
+
+    Retorna:
+        flask.Response: Resposta JSON sinalizando sucesso da atualização.
+    """
     data = request.get_json()
     index = int(data["index"])
     novo = data["novo_texto"]
@@ -436,6 +572,14 @@ def editar_legenda():
 
 @app.route("/verificar_legendas_ass")
 def verificar_legendas_ass():
+    """Verifica se há arquivos de legendas ASS gerados.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        flask.Response: JSON indicando a existência de arquivos na pasta.
+    """
     legenda_dir = get_paths()["legendas_ass"]
     arquivos = glob(os.path.join(legenda_dir, "*.ass"))
     return jsonify({"tem": bool(arquivos)})
@@ -517,6 +661,14 @@ def atualizar_config_cenas():
 
 @app.route("/finalizar_stream", methods=["POST"])
 def finalizar_stream():
+    """Unifica cenas e aplica pós-processamentos para gerar o vídeo final.
+
+    Parâmetros:
+        Nenhum: dados da montagem são recebidos via formulário multipart.
+
+    Retorna:
+        flask.Response: JSON com caminho do arquivo final ou mensagem de erro.
+    """
     try:
         # 📥 Parâmetros recebidos
         escopo = request.form.get("escopo", "all")
@@ -597,6 +749,14 @@ def finalizar_stream():
 
 @app.route("/preview_audio_trilha", methods=["POST"])
 def preview_audio_trilha():
+    """Gera uma prévia mixada entre a narração e a trilha enviada.
+
+    Parâmetros:
+        Nenhum: arquivos e configurações são recebidos via formulário.
+
+    Retorna:
+        flask.Response: Arquivo de áudio resultante ou mensagem de erro.
+    """
 
     try:
         trilha_file = request.files.get("trilha")
@@ -630,6 +790,14 @@ def preview_audio_trilha():
 
 @app.route('/preview_video/<int:idx>')
 def preview_video(idx):
+    """Disponibiliza o vídeo de uma cena específica para pré-visualização.
+
+    Parâmetros:
+        idx (int): Índice da cena cujo vídeo deve ser exibido.
+
+    Retorna:
+        flask.Response: Arquivo de vídeo MP4 ou erro caso não exista.
+    """
     #base      = get_config("pasta_salvar") or "default"
     video_path = os.path.join(path["base"], "videos_cenas", f"video{idx+1}.mp4")
     if not os.path.isfile(video_path):
@@ -638,6 +806,14 @@ def preview_video(idx):
 
 @app.route('/modules/videos_cenas/<path:filename>')
 def serve_videos_cenas(filename):
+    """Serve arquivos de vídeo intermediários gerados para cada cena.
+
+    Parâmetros:
+        filename (str): Nome do arquivo localizado na pasta de vídeos de cenas.
+
+    Retorna:
+        flask.Response: Resposta de envio do arquivo requisitado.
+    """
     return send_from_directory(
         os.path.join(app.root_path, 'modules', 'videos_cenas'),
         filename
@@ -645,6 +821,14 @@ def serve_videos_cenas(filename):
 
 @app.route("/video_final/<nome>")
 def servir_video_final(nome):
+    """Entrega o arquivo final de vídeo montado para download.
+
+    Parâmetros:
+        nome (str): Nome do arquivo gerado na pasta de vídeos finais.
+
+    Retorna:
+        flask.Response: Resposta com o arquivo solicitado.
+    """
     return send_from_directory(path["videos_final"], nome)
 
 
@@ -656,14 +840,38 @@ def servir_video_final(nome):
 
 @app.route("/configuracoes")
 def pagina_configuracoes():
-    """Exibe a tela de configurações do usuário."""
+    """Renderiza a página de configurações gerais do aplicativo.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        flask.Response: Template HTML com o formulário de configurações.
+    """
     return render_template("configuracoes.html", page_title="Configurações")
 
 # caminho para o JSON gerado em etapas anteriores
 def caminho_cenas_final():
+    """Obtém o caminho completo para o arquivo de cenas com imagens.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        str: Caminho absoluto do arquivo ``cenas_com_imagens.json``.
+    """
     return os.path.join(get_config("pasta_salvar") or ".", "cenas_com_imagens.json")
 
 def salvar_arquivo_upload(request_file, destino):
+    """Salva um arquivo enviado pelo usuário no destino informado.
+
+    Parâmetros:
+        request_file (werkzeug.datastructures.FileStorage): Arquivo recebido da requisição.
+        destino (str): Caminho onde o arquivo deve ser persistido.
+
+    Retorna:
+        str | None: Caminho final do arquivo salvo ou ``None`` se não houver envio.
+    """
     if request_file:
         os.makedirs(os.path.dirname(destino), exist_ok=True)
         request_file.save(destino)
@@ -672,7 +880,14 @@ def salvar_arquivo_upload(request_file, destino):
 
 @app.route("/api/configuracoes", methods=["GET"])
 def obter_configuracoes():
-    """Retorna as configurações atuais em formato JSON."""
+    """Consulta as configurações persistidas para o usuário atual.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        flask.Response: JSON com as chaves de configuração relevantes.
+    """
     return jsonify({
         "api_key": get_config("api_key"),
         "eleven_email": get_config("eleven_email"),
@@ -682,7 +897,14 @@ def obter_configuracoes():
 
 @app.route("/salvar_config", methods=["POST"])
 def salvar_configuracoes():
-    """Persiste as configurações enviadas pelo frontend e garante subpastas e arquivos base."""
+    """Persiste as configurações enviadas e prepara a estrutura de trabalho.
+
+    Parâmetros:
+        Nenhum: os dados são fornecidos pelo corpo JSON da requisição.
+
+    Retorna:
+        flask.Response: JSON indicando sucesso ou mensagem de erro.
+    """
     dados = request.get_json()
 
     try:
@@ -746,7 +968,14 @@ def salvar_configuracoes():
 
 @app.route('/selecionar_pasta')
 def selecionar_pasta():
-    """Abre diálogo para o usuário escolher uma pasta local."""
+    """Abre um diálogo do sistema para seleção da pasta de salvamento.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        flask.Response: JSON contendo o caminho escolhido ou ``None``.
+    """
     try:
         root = tk.Tk()
         root.withdraw()
@@ -763,6 +992,14 @@ def selecionar_pasta():
         return jsonify({"error": str(e), "pasta": None})
 
 def limpar_pastas_saida():
+    """Remove arquivos temporários das principais pastas de saída.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        None: A limpeza é executada diretamente nas pastas configuradas.
+    """
     pasta_base = get_config("pasta_salvar") or os.getcwd()
     subpastas = ["audios_narracoes", "imagens", "legendas_ass", "legendas_srt"]
 
@@ -776,6 +1013,14 @@ def limpar_pastas_saida():
 
 @app.before_request
 def checar_configuracao():
+    """Garante que a pasta de salvamento esteja configurada antes das rotas protegidas.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        flask.Response | None: Redireciona para a página de configurações se necessário.
+    """
     caminho = request.path
 
     # Lista de rotas que não precisam da config (evita loop)
@@ -796,6 +1041,14 @@ def checar_configuracao():
 
 @app.route("/upload_config_licenciada", methods=["POST"])
 def upload_config_licenciada():
+    """Processa o upload de um arquivo de licença criptografado.
+
+    Parâmetros:
+        Nenhum: arquivo e dados são recebidos no corpo multipart.
+
+    Retorna:
+        flask.Response: JSON com o status da importação.
+    """
     print("🔁 Recebendo upload de config_licenciado.json")
 
     if "arquivo" not in request.files:
