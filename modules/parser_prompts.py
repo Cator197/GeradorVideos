@@ -10,12 +10,27 @@ ARQUIVO_TXT = os.path.join(PASTA_RAIZ, "prompts.txt")
 ARQUIVO_JSON = os.path.join(PASTA_RAIZ, "cenas.json")
 
 def salvar_prompt_txt(conteudo, caminho=ARQUIVO_TXT):
-    """Salva o conteúdo de prompts em um arquivo de texto."""
+    """Salva o conteúdo de prompts em um arquivo de texto.
+
+    Parâmetros:
+        conteudo (str): Texto completo contendo os prompts formatados.
+        caminho (str): Caminho do arquivo que receberá o conteúdo.
+
+    Retorna:
+        None: O conteúdo é gravado diretamente no disco.
+    """
     with open(caminho, "w", encoding="utf-8") as f:
         f.write(conteudo.strip())
 
 def parse_prompts_txt(caminho_txt=ARQUIVO_TXT):
-    """Lê o arquivo de prompts e devolve a lista de cenas."""
+    """Lê o arquivo de prompts e devolve a lista de cenas estruturadas.
+
+    Parâmetros:
+        caminho_txt (str): Caminho do arquivo ``prompts.txt`` a ser analisado.
+
+    Retorna:
+        list[dict]: Lista de cenas com prompts e metadados extraídos.
+    """
     with open(caminho_txt, "r", encoding="utf-8") as f:
         texto = f.read()
 
@@ -60,7 +75,14 @@ def parse_prompts_txt(caminho_txt=ARQUIVO_TXT):
     return cenas
 
 def limpar_pastas_de_saida():
-    """Remove os arquivos das pastas configuradas em pasta_salvar."""
+    """Remove arquivos temporários das pastas configuradas em ``pasta_salvar``.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        None: As pastas são limpas diretamente se existirem.
+    """
     base = get_config("pasta_salvar") or os.getcwd()
 
     pastas = [

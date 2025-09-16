@@ -3,9 +3,25 @@ from faster_whisper import WhisperModel
 import os
 
 def carregar_modelo():
+    """Carrega o modelo Whisper configurado para uso em CPU.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        WhisperModel: Instância pronta para realizar transcrições.
+    """
     return WhisperModel("small", device="cpu", compute_type="int8")
 
 def formatar_tempo(segundos):
+    """Converte um valor em segundos para o formato de tempo usado no ASS.
+
+    Parâmetros:
+        segundos (float): Tempo acumulado da palavra ou trecho.
+
+    Retorna:
+        str: Tempo formatado como ``HH:MM:SS.CS``.
+    """
     h = int(segundos // 3600)
     m = int((segundos % 3600) // 60)
     s = int(segundos % 60)
@@ -13,9 +29,13 @@ def formatar_tempo(segundos):
     return f"{h}:{m:02}:{s:02}.{cs:02}"
 
 def hex_ass(cor_hex: str) -> str:
-    """
-    Converte uma cor #RRGGBB para formato ASS: &HAABBGGRR
-    Assume alpha 00 (sem transparência).
+    """Converte uma cor hexadecimal para o formato ASS ``&HAABBGGRR``.
+
+    Parâmetros:
+        cor_hex (str): Cor informada no formato ``#RRGGBB``.
+
+    Retorna:
+        str: Cor convertida pronta para uso nos estilos ASS.
     """
     print(f"🎨 hex_ass recebida: {cor_hex}")
 
@@ -42,6 +62,18 @@ def hex_ass(cor_hex: str) -> str:
         return "&H00FFFF00"
 
 def gerar_ass_com_whisper(modelo, path_audio, path_saida, estilo, modo="linha2"):
+    """Transcreve o áudio e gera um arquivo ASS estilizado.
+
+    Parâmetros:
+        modelo (WhisperModel): Modelo responsável por gerar as transcrições.
+        path_audio (str): Caminho do arquivo de áudio da narração.
+        path_saida (str): Caminho onde o arquivo ASS será salvo.
+        estilo (dict): Configurações de estilo e cores definidas pelo usuário.
+        modo (str): Estratégia de agrupamento das palavras na legenda.
+
+    Retorna:
+        None: O arquivo ASS é criado diretamente no caminho informado.
+    """
     segments, _ = modelo.transcribe(path_audio, word_timestamps=True)
 
     # Cores recebidas do frontend
