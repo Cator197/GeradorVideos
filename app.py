@@ -1,20 +1,46 @@
 """Aplicação Flask para orquestrar as etapas de geração de vídeos."""
 
-from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory, send_file, Response, stream_with_context
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    jsonify,
+    send_from_directory,
+    send_file,
+    Response,
+    stream_with_context,
+)
 import tkinter as tk
 from tkinter import filedialog
+import re, os, json, asyncio, time, subprocess, threading, sys, glob
+
+from werkzeug.utils import secure_filename
+
 from modules.config import salvar_config, carregar_config, get_config
 from modules.parser_prompts import parse_prompts_txt, salvar_prompt_txt
-from modules.gerar_imagens import run_gerar_imagens, calcular_indices, gerar_eventos_para_stream, gerar_imagens_async
 from modules.gerar_narracao import iniciar_driver, login, gerar_e_baixar
 from modules.gerar_ASS import gerar_ass_com_whisper, carregar_modelo
 from modules.gerar_SRT import gerar_srt_com_bloco
 from modules.paths import get_paths
-import re, os, json, asyncio, time, subprocess, threading, sys
-from modules.juntar_cenas import montar_uma_cena, adicionar_trilha_sonora, adicionar_marca_dagua, unir_cenas_com_transicoes
+from modules.juntar_cenas import (
+    montar_uma_cena,
+    adicionar_trilha_sonora,
+    adicionar_marca_dagua,
+    unir_cenas_com_transicoes,
+)
 from modules.verify_license import verify_license
-from werkzeug.utils import secure_filename
-from modules.licenca import get_creditos
+from modules.licenca import (
+    get_creditos,
+    carregar_config_licenciada,
+    salvar_config_licenciada,
+    carregar_fernet,
+)
+from modules.remover_silencio import remover_silencios
+
+from blueprints.imagens import imagens_bp
+
 path = get_paths()  # ← cria o dicionário de caminhos ao iniciar o app
 
 
@@ -26,6 +52,7 @@ estado_pausa = {
 
 app = Flask(__name__)
 app.config['USUARIO_CONFIG'] = carregar_config()
+app.register_blueprint(imagens_bp)
 
 @app.route("/")
 def index():
@@ -78,7 +105,6 @@ def processar_prompt():
 
         # Salva o cenas.json
         with open(path["cenas"], "w", encoding="utf-8") as f:
-            import json
             json.dump(cenas, f, ensure_ascii=False, indent=4)
 
         # Salvar nome do vídeo
@@ -91,165 +117,6 @@ def processar_prompt():
         return jsonify({"status": "erro", "error": str(e)}), 500
 
 #----------------------------------------------------------------------------------------------------------------------
-
-#----- IMAGENS --------------------------------------------------------------------------------------------------------
-
-@app.route("/imagens", methods=["GET"])
-def imagens_page():
-    # Carrega as cenas
-    with open(path["cenas"], encoding="utf-8") as f:
-        cenas = json.load(f)
-
-    # Garante que a pasta de imagens existe
-    os.makedirs(path["imagens"], exist_ok=True)
-
-    arquivos = os.listdir(path["imagens"])
-
-    # Mapeia os arquivos existentes para cada imagem
-    arquivos_dict = {}
-    for nome in arquivos:
-        if nome.startswith("imagem") and (nome.endswith(".jpg") or nome.endswith(".png") or nome.endswith(".mp4")):
-            idx = nome.replace("imagem", "").split(".")[0]
-            if idx.isdigit():
-                arquivos_dict[int(idx)] = nome
-
-    return render_template("generate_imagem.html",
-                           page_title="Gerar Imagens",
-                           cenas=cenas,
-                           arquivos_midia=arquivos_dict)
-
-
-@app.route("/imagens", methods=["POST"])
-def imagens_run():
-    """Endpoint que inicia a geração das imagens."""
-    #("[ROTA] POST /imagens")
-    scope     = request.form.get("scope", "all")
-    single    = request.form.get("single_index", type=int)
-    start     = request.form.get("from_index", type=int)
-    selected  = request.form.get("selected_indices")
-
-    #path = os.path.join(os.getcwd(),"cenas.json")
-    with open(path["cenas"], encoding="utf-8") as f:
-        total = len(json.load(f))
-
-    try:
-        indices = calcular_indices(scope, single, start, total, selected)
-        resultado = run_gerar_imagens(indices)
-    except Exception as e:
-        print(f"❌ Erro em /imagens: {str(e)}")
-        return jsonify({"error": str(e)}), 400
-
-    return jsonify({
-        "status": "ok",
-        "cenas": resultado["cenas"],
-        "logs": resultado["logs"]
-    })
-
-@app.route("/modules/imagens/<path:filename>")
-def serve_module_images(filename):
-    """Retorna arquivos de imagem gerados na pasta de saída."""
-    # pasta_salvar = get_config("pasta_salvar")
-    # pasta_imagens = os.path.join(pasta_salvar, "imagens")
-    return send_from_directory(path["imagens"], filename)
-
-@app.route("/imagens_stream", methods=["GET"])
-def imagens_stream():
-    """Fluxo SSE de geração de imagens."""
-    #print("[ROTA] GET /imagens_stream")
-    scope    = request.args.get("scope", "all")
-    single   = request.args.get("single_index", type=int)
-    start    = request.args.get("from_index", type=int)
-    selected = request.args.get("selected_indices")
-
-    return Response(
-        stream_with_context(gerar_eventos_para_stream(scope, single, start, selected)),
-        mimetype='text/event-stream'
-    )
-
-from modules import gerar_imagens
-@app.route("/editar_prompt", methods=["POST"])
-def editar_prompt():
-    data = request.get_json()
-    index = int(data["index"])
-    novo = data["novo_prompt"]
-
-    #paths = gerar_imagens.get_paths()
-    with open(path["cenas"], encoding="utf-8") as f:
-        cenas = json.load(f)
-
-    cenas[index]["prompt_imagem"] = novo
-
-    with open(path["cenas"], "w", encoding="utf-8") as f:
-        json.dump(cenas, f, ensure_ascii=False, indent=2)
-
-    return jsonify({"status": "ok"})
-
-@app.route("/substituir_imagem", methods=["POST"])
-def substituir_imagem():
-    data = request.get_json()
-    index = int(data["index"])
-    novo = data["novo_prompt"]
-
-    #paths = gerar_imagens.get_paths()
-    with open(path["cenas"], encoding="utf-8") as f:
-        cenas = json.load(f)
-
-    cenas[index]["prompt_imagem"] = novo
-
-    # Atualiza JSON temporariamente e gera imagem
-    with open(path["cenas"], "w", encoding="utf-8") as f:
-        json.dump(cenas, f, ensure_ascii=False, indent=2)
-
-    logs = []
-    asyncio.run(gerar_imagens_async(cenas, [index], logs))
-
-    with open(path["cenas_com_imagens"], "w", encoding="utf-8") as f:
-        json.dump(cenas, f, ensure_ascii=False, indent=2)
-
-    return jsonify({"status": "ok"})
-
-@app.route("/upload_imagem", methods=["POST"])
-def upload_imagem():
-    try:
-        index = int(request.form["index"])
-        imagem = request.files.get("imagem")
-        if not imagem:
-            return jsonify({"status": "erro", "msg": "Nenhum arquivo enviado"}), 400
-
-        ext = os.path.splitext(imagem.filename)[1].lower()
-        if ext not in [".jpg", ".jpeg", ".png", ".mp4"]:
-            return jsonify({"status": "erro", "msg": "Formato não suportado"}), 400
-
-        # paths = gerar_imagens.get_paths()
-        # pasta = paths["pasta_imagens"]
-        os.makedirs(path["imagens"], exist_ok=True)
-
-        # 🗑️ Excluir arquivos antigos
-        nome_base = f"imagem{index+1}"
-        for old_ext in [".jpg", ".png", ".mp4"]:
-            caminho_antigo = os.path.join(path["imagens"], nome_base + old_ext)
-            if os.path.exists(caminho_antigo):
-                os.remove(caminho_antigo)
-
-        # 💾 Salvar o novo
-        caminho = os.path.join(path["imagens"], nome_base + ext)
-        imagem.save(caminho)
-
-        # Atualizar JSON
-        with open(path["cenas"], encoding="utf-8") as f:
-            cenas = json.load(f)
-
-        cenas[index]["arquivo_local"] = caminho
-        cenas[index]["image_url"] = f"/modules/imagens/{nome_base}{ext}"
-
-        with open(path["cenas_com_imagens"], "w", encoding="utf-8") as f:
-            json.dump(cenas, f, ensure_ascii=False, indent=2)
-
-        return jsonify({"status": "ok"})
-
-    except Exception as e:
-        print(f"❌ Erro em upload_imagem: {e}")
-        return jsonify({"status": "erro", "msg": str(e)}), 500
 
 @app.route("/api/creditos")
 def api_creditos():
@@ -414,8 +281,6 @@ def get_narracao():
 @app.route("/remover_silencio")
 def remover_silencio_route():
     """Endpoint para remover silêncios dos áudios."""
-    from modules.remover_silencio import remover_silencios
-
     try:
         min_silence = float(request.args.get("min_silence", "0.3"))
     except ValueError:
@@ -543,7 +408,6 @@ def gerar_legendas_srt():
 @app.route("/get_legenda")
 def get_legenda():
     index = int(request.args.get("index", 0))
-    from modules.gerar_narracao import get_paths
     #paths = gerar_ASS.get_paths()
 
     with open(path["cenas"], encoding="utf-8") as f:
@@ -572,10 +436,6 @@ def editar_legenda():
 
 @app.route("/verificar_legendas_ass")
 def verificar_legendas_ass():
-    from glob import glob
-    from modules.paths import get_paths
-    import os
-
     legenda_dir = get_paths()["legendas_ass"]
     arquivos = glob(os.path.join(legenda_dir, "*.ass"))
     return jsonify({"tem": bool(arquivos)})
@@ -739,7 +599,6 @@ def finalizar_stream():
 def preview_audio_trilha():
 
     try:
-        from flask import send_file
         trilha_file = request.files.get("trilha")
         volume_pct = int(request.form.get("volume", 25))
         volume = max(0.0, min(volume_pct / 100.0, 1.0))
@@ -786,7 +645,6 @@ def serve_videos_cenas(filename):
 
 @app.route("/video_final/<nome>")
 def servir_video_final(nome):
-    from flask import send_from_directory
     return send_from_directory(path["videos_final"], nome)
 
 
@@ -815,7 +673,6 @@ def salvar_arquivo_upload(request_file, destino):
 @app.route("/api/configuracoes", methods=["GET"])
 def obter_configuracoes():
     """Retorna as configurações atuais em formato JSON."""
-    from modules.config import get_config
     return jsonify({
         "api_key": get_config("api_key"),
         "eleven_email": get_config("eleven_email"),
@@ -852,8 +709,6 @@ def salvar_configuracoes():
             print("📁 Subpastas criadas/verificadas.")
 
             # Agora garantimos os arquivos JSON iniciais
-            from modules.paths import get_paths
-            import json
 
             # 🔹 Atualiza o path global
             global path
@@ -937,18 +792,7 @@ def checar_configuracao():
         print("🔒 Redirecionando: configuração não encontrada ou pasta inválida")
         return redirect(url_for("pagina_configuracoes"))  # Use o nome correto da view
 
-from flask import request, jsonify
-from modules.licenca import carregar_config_licenciada, salvar_config_licenciada, carregar_fernet
-import json
-
-from flask import request, jsonify
-from modules.licenca import (
-    carregar_config_licenciada,
-    salvar_config_licenciada,
-    carregar_fernet,
-    get_hardware_id
-)
-import json
+# As rotas a seguir utilizam recursos de licença
 
 @app.route("/upload_config_licenciada", methods=["POST"])
 def upload_config_licenciada():
