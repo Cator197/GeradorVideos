@@ -1,17 +1,7 @@
-
-from modules.paths import get_paths
 import json, subprocess, os
-from modules.config import get_config
-from pathlib import Path
 import shutil
-
+from modules.paths import get_paths
 path = get_paths()
-
-import os
-import shutil
-import subprocess
-from pathlib import Path
-from modules.config import get_config
 
 def montar_uma_cena(idx, config):
     print(f"\n🔍 Iniciando montagem da cena {idx + 1}")

@@ -10,7 +10,7 @@ path = get_paths()
 def remover_silencios(min_silence: float = 0.5):
     """Remove trechos silenciosos de todos os áudios MP3 encontrados."""
     base_path = get_config("pasta_salvar") or os.path.join(os.getcwd(), "modules")
-    pasta = path["audios_narracoes"]
+    pasta = path["audios"]
 
     if not os.path.exists(pasta):
         return {"status": "erro", "error": f"Pasta não encontrada: {pasta}"}

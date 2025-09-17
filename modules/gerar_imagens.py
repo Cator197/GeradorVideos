@@ -4,11 +4,9 @@ import os
 import json
 import aiohttp
 import asyncio
-from modules.config import get_config
 from modules.paths import get_paths
 from modules.licenca import get_creditos, debitar_creditos, get_api_key
 
-paths = get_paths()
 
 BASE_URL = "https://api.piapi.ai"
 
@@ -55,8 +53,9 @@ async def baixar_imagem(session, url, caminho_local):
         with open(caminho_local, "wb") as f:
             f.write(await resp.read())
 
-async def processar_cena(session, i, cenas, logs, paths):
+async def processar_cena(session, i, cenas, logs):
     """Processa individualmente uma cena para gerar a imagem."""
+    paths=get_paths()
     if get_creditos() < 10:
         logs.append(f"❌ Créditos insuficientes para gerar imagem {i + 1}.")
         return
@@ -83,12 +82,12 @@ async def processar_cena(session, i, cenas, logs, paths):
 
 async def gerar_imagens_async(cenas, indices, logs):
     """Processa a geração das imagens de forma paralela."""
-
+    paths=get_paths()
     os.makedirs(paths["imagens"], exist_ok=True)
 
     async with aiohttp.ClientSession(headers=get_headers()) as session:
         tarefas = [
-            processar_cena(session, i, cenas, logs, paths)
+            processar_cena(session, i, cenas, logs)
             for i in indices
         ]
         await asyncio.gather(*tarefas)
@@ -96,7 +95,7 @@ async def gerar_imagens_async(cenas, indices, logs):
     return cenas
 
 def run_gerar_imagens(indices):
-
+    paths=get_paths()
     with open(paths["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
@@ -137,7 +136,7 @@ def calcular_indices(scope, single, start, total, selected=None):
 def gerar_eventos_para_stream(scope, single, start, selected=None):
     import time
 
-
+    paths=get_paths()
     with open(paths["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
     total = len(cenas)
@@ -166,7 +165,7 @@ def gerar_eventos_para_stream(scope, single, start, selected=None):
     yield "data: 🔚 Geração de imagens finalizada\n\n"
 
 def excluir_arquivos(indices):
-
+    paths=get_paths()
     logs = []
     for i in indices:
         nome_base = f"imagem{i+1}"
