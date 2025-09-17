@@ -81,8 +81,7 @@ def gerar_srt_com_bloco(indices, palavras_por_bloco=4):
         with open(srt_path, "w", encoding="utf-8") as f:
             f.write("\n".join(linhas))
 
-        print("está no indice: ", i)
-        cenas[i-1]["srt_path"] = srt_path
+        cenas[i]["srt_path"] = srt_path
         logs.append(f"✅ Legenda {i} gerada com {palavras_por_bloco} palavras por bloco.")
 
     with open(path["cenas"], "w", encoding="utf-8") as f:
