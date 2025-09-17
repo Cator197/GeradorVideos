@@ -2,9 +2,13 @@ import os
 from modules.config import get_config
 
 def get_paths() -> dict:
-    """
-    Retorna os caminhos da aplicação.
-    Se 'pasta_salvar' ainda não estiver configurada, retorna {} (dicionário vazio).
+    """Retorna os caminhos padrão utilizados pela aplicação.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        dict: Dicionário com caminhos de trabalho ou vazio se não configurado.
     """
     base = get_config("pasta_salvar")
     if not base:

@@ -6,6 +6,14 @@ from modules.paths import get_paths
 path = get_paths()
 
 def formatar_tempo(segundos):
+    """Converte segundos em formato compatível com legendas SRT.
+
+    Parâmetros:
+        segundos (float): Tempo absoluto a ser convertido.
+
+    Retorna:
+        str: Representação ``HH:MM:SS,mmm`` do tempo informado.
+    """
     h = int(segundos // 3600)
     m = int((segundos % 3600) // 60)
     s = int(segundos % 60)
@@ -13,10 +21,26 @@ def formatar_tempo(segundos):
     return f"{h:02}:{m:02}:{s:02},{ms:03}"
 
 def carregar_modelo():
+    """Carrega o modelo Whisper utilizado para gerar as transcrições.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        WhisperModel: Instância configurada para execução em CPU.
+    """
     return WhisperModel("small", device="cpu", compute_type="int8")
 
 def gerar_srt_com_bloco(indices, palavras_por_bloco=4):
-    """Gera arquivos SRT com blocos de N palavras por linha."""
+    """Gera arquivos SRT agrupando palavras em blocos definidos.
+
+    Parâmetros:
+        indices (Iterable[int]): Índices das cenas a serem processadas.
+        palavras_por_bloco (int): Quantidade de palavras em cada linha gerada.
+
+    Retorna:
+        list[str]: Lista de mensagens de log descrevendo o resultado por cena.
+    """
 
     model = carregar_modelo()
     logs = []

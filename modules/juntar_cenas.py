@@ -4,6 +4,15 @@ from modules.paths import get_paths
 path = get_paths()
 
 def montar_uma_cena(idx, config):
+    """Monta uma cena individual aplicando efeitos, legendas e áudio.
+
+    Parâmetros:
+        idx (int): Índice da cena a ser processada.
+        config (dict): Configurações específicas da cena, incluindo caminhos e opções.
+
+    Retorna:
+        str: Caminho do vídeo finalizado referente à cena informada.
+    """
     print(f"\n🔍 Iniciando montagem da cena {idx + 1}")
 
     # Caminhos de destino internos
@@ -95,9 +104,15 @@ def montar_uma_cena(idx, config):
     return video_final
 
 def unir_cenas_com_transicoes(lista_videos, transicoes, output_path):
-    """
-    Une uma lista de vídeos com ou sem transições.
-    transicoes: lista de dicionários {'tipo': 'fade'|'slideleft'|'', 'duracao': float}
+    """Une vídeos em sequência aplicando transições opcionais entre eles.
+
+    Parâmetros:
+        lista_videos (list[str]): Caminhos dos vídeos que serão concatenados.
+        transicoes (list[dict]): Configurações de transição para cada junção.
+        output_path (str): Caminho do arquivo final que receberá o resultado.
+
+    Retorna:
+        None: O arquivo unido é gerado diretamente no ``output_path``.
     """
     if len(lista_videos) < 2:
         raise ValueError("É necessário pelo menos dois vídeos para unir.")
@@ -173,7 +188,14 @@ def unir_cenas_com_transicoes(lista_videos, transicoes, output_path):
 # ---------------------- FUNÇÕES AUXILIARES -----------------------------------------------------------------------
 
 def verificar_tem_audio(video_path):
-    """Verifica se um arquivo de vídeo contém trilha de áudio."""
+    """Verifica se um arquivo de vídeo contém alguma trilha de áudio.
+
+    Parâmetros:
+        video_path (str): Caminho absoluto do arquivo de vídeo analisado.
+
+    Retorna:
+        bool: ``True`` se houver áudio associado ao vídeo, caso contrário ``False``.
+    """
     try:
         result = subprocess.run(
             ["ffprobe", "-v", "error", "-select_streams", "a",
@@ -186,6 +208,17 @@ def verificar_tem_audio(video_path):
         return False
 
 def adicionar_legenda_ass(input_path, legenda_path, posicao, output_path):
+    """Embute uma legenda ASS em um vídeo, ajustando a posição desejada.
+
+    Parâmetros:
+        input_path (str): Caminho do vídeo que receberá a legenda.
+        legenda_path (str): Caminho do arquivo ASS a ser aplicado.
+        posicao (str): Identificador da posição vertical configurada.
+        output_path (str): Caminho do vídeo resultante com a legenda aplicada.
+
+    Retorna:
+        None: O vídeo legendado é salvo diretamente em ``output_path``.
+    """
     # Corrigir e escapar caminho da legenda
     vei = os.path.abspath(input_path)
     leg = os.path.abspath(legenda_path)
@@ -210,7 +243,14 @@ def adicionar_legenda_ass(input_path, legenda_path, posicao, output_path):
     subprocess.run(cmd, check=True)
 
 def obter_duracao_em_segundos(path):
-    """Usa ffprobe para obter a duração do vídeo/áudio em segundos."""
+    """Obtém a duração de um arquivo de mídia utilizando o ffprobe.
+
+    Parâmetros:
+        path (str): Caminho do arquivo de áudio ou vídeo a ser analisado.
+
+    Retorna:
+        float: Duração detectada em segundos ou valor padrão em caso de erro.
+    """
     cmd = [
         "ffprobe", "-v", "error",
         "-show_entries", "format=duration",
@@ -226,6 +266,18 @@ def obter_duracao_em_segundos(path):
     return 5  # valor padrão de segurança
 
 def aplicar_efeito_na_imagem(imagem_path, audio_path, output_path, efeito, config_efeito):
+    """Aplica efeitos visuais e gera um vídeo dinâmico a partir de uma imagem.
+
+    Parâmetros:
+        imagem_path (str): Caminho da imagem base utilizada na cena.
+        audio_path (str): Caminho do áudio usado para calcular a duração final.
+        output_path (str): Destino do vídeo temporário gerado com o efeito.
+        efeito (str): Nome do efeito visual selecionado.
+        config_efeito (dict): Configurações adicionais específicas do efeito.
+
+    Retorna:
+        str: Caminho do vídeo produzido após aplicar o efeito solicitado.
+    """
     import subprocess
 
     def join_filters(*args):
@@ -356,6 +408,16 @@ def aplicar_efeito_na_imagem(imagem_path, audio_path, output_path, efeito, confi
 
 
 def montar_video_com_audio(base_visual_path, audio_path, output_path):
+    """Combina uma base visual com um áudio produzindo um vídeo sincronizado.
+
+    Parâmetros:
+        base_visual_path (str): Caminho do arquivo visual (imagem ou vídeo).
+        audio_path (str): Caminho do áudio que acompanhará a cena.
+        output_path (str): Caminho do vídeo resultante da combinação.
+
+    Retorna:
+        str: Caminho do vídeo final gerado com o áudio incorporado.
+    """
     ext = os.path.splitext(base_visual_path)[-1].lower()
     if ext == ".jpg":
         cmd = [
@@ -390,9 +452,15 @@ def montar_video_com_audio(base_visual_path, audio_path, output_path):
     return output_path
 
 def adicionar_audio(video_path, audio_path, output_path):
-    """
-    Adiciona um arquivo de áudio a um vídeo (sem reencodar o vídeo).
-    Garante sincronização e compatibilidade.
+    """Adiciona uma faixa de áudio a um vídeo existente mantendo o vídeo intacto.
+
+    Parâmetros:
+        video_path (str): Caminho do vídeo base que receberá o áudio.
+        audio_path (str): Caminho do arquivo de áudio a ser embutido.
+        output_path (str): Destino do vídeo resultante com o áudio incorporado.
+
+    Retorna:
+        None: O vídeo com áudio é salvo diretamente em ``output_path``.
     """
     print(f"🔊 Adicionando áudio: {audio_path} → {output_path}")
 
@@ -419,6 +487,17 @@ def adicionar_audio(video_path, audio_path, output_path):
     print(f"✅ Vídeo final com áudio salvo em: {output_path}")
 
 def adicionar_trilha_sonora(video_path, trilha_path, output_path, volume=1.0):
+    """Mistura uma trilha sonora adicional ao vídeo final.
+
+    Parâmetros:
+        video_path (str): Caminho do vídeo base já com narração.
+        trilha_path (str): Caminho do arquivo de áudio com a trilha escolhida.
+        output_path (str): Caminho onde o vídeo final será salvo.
+        volume (float): Fator de volume aplicado à trilha adicional.
+
+    Retorna:
+        None: O vídeo com trilha sonora é salvo no ``output_path``.
+    """
     dur_video = obter_duracao_em_segundos(video_path)
     dur_trilha = obter_duracao_em_segundos(trilha_path)
 
@@ -461,9 +540,16 @@ def adicionar_trilha_sonora(video_path, trilha_path, output_path, volume=1.0):
     print(f"🎵 Trilha adicionada com volume {volume*100:.0f}% → {output_path}")
 
 def adicionar_marca_dagua(video_path, imagem_path, output_path, opacidade=1.0):
-    """
-    Sobrepõe uma imagem PNG com opacidade sobre o vídeo.
-    A imagem deve ser 1080x1920 com fundo transparente.
+    """Aplica uma marca d'água sobre o vídeo final com a opacidade desejada.
+
+    Parâmetros:
+        video_path (str): Caminho do vídeo que receberá a marca d'água.
+        imagem_path (str): Caminho da imagem PNG utilizada como marca.
+        output_path (str): Caminho do arquivo resultante.
+        opacidade (float): Nível de opacidade aplicado à imagem entre 0 e 1.
+
+    Retorna:
+        None: O vídeo com a marca d'água é salvo no ``output_path``.
     """
     temp_output = output_path.replace(".mp4", "_temp.mp4")
     print("Opacidade selecionada:> ", opacidade)
@@ -499,6 +585,14 @@ def adicionar_marca_dagua(video_path, imagem_path, output_path, opacidade=1.0):
     print(f"🖼️ Marca d'água aplicada com opacidade {opacidade:.2f}")
 
 def get_resolution(path):
+    """Obtém a resolução de um arquivo de vídeo usando ffprobe.
+
+    Parâmetros:
+        path (str): Caminho do vídeo cuja resolução será consultada.
+
+    Retorna:
+        tuple[int | None, int | None]: Largura e altura detectadas, ou ``None`` em caso de falha.
+    """
     try:
         result = subprocess.run(
             [
@@ -521,6 +615,17 @@ def get_resolution(path):
         return None, None
 
 def redimensionar_marca(marca_path, largura, altura, marca_redimensionada_path):
+    """Redimensiona a imagem de marca d'água para combinar com o vídeo.
+
+    Parâmetros:
+        marca_path (str): Caminho original da imagem da marca d'água.
+        largura (int): Largura desejada após o redimensionamento.
+        altura (int): Altura desejada após o redimensionamento.
+        marca_redimensionada_path (str): Caminho para salvar o arquivo ajustado.
+
+    Retorna:
+        None: O arquivo redimensionado é salvo no caminho informado.
+    """
     subprocess.run([
         "ffmpeg", "-y",
         "-i", marca_path,
@@ -531,7 +636,15 @@ def redimensionar_marca(marca_path, largura, altura, marca_redimensionada_path):
     print(f"🧩 Marca d'água redimensionada para {largura}x{altura}")
 
 def ajustar_marginv_ass(ass_path, posicao):
-    """Atualiza dinamicamente o MarginV do estilo principal no .ASS com Alignment=2 fixo."""
+    """Ajusta a margem vertical principal de um arquivo ASS conforme a posição escolhida.
+
+    Parâmetros:
+        ass_path (str): Caminho do arquivo ASS a ser modificado.
+        posicao (str): Identificador da posição predefinida (ex.: inferior, central).
+
+    Retorna:
+        None: O arquivo ASS é atualizado diretamente no disco.
+    """
     posicoes_marginv = {
         "inferior": 100,
         "central": 900,

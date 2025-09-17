@@ -25,7 +25,14 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 def iniciar_driver():
-    """Inicia o Chrome com configurações otimizadas e atualização automática do ChromeDriver."""
+    """Inicia o Chrome otimizado e garante a atualização do ChromeDriver.
+
+    Parâmetros:
+        Nenhum.
+
+    Retorna:
+        selenium.webdriver.Chrome: Instância pronta para uso automatizado.
+    """
     logging.info("🔍 Verificando compatibilidade do ChromeDriver com o navegador...")
     logging.info(f"📁 Caminho definido para salvar os áudios: {os.path.abspath(path['audios'])}")
 
@@ -69,6 +76,19 @@ def iniciar_driver():
 
 
 def esperar(driver, selector, by=By.XPATH, clickable=False, timeout=20, seerroseguir=True):
+    """Aguarda a presença ou clique de um elemento com tratamento opcional de erros.
+
+    Parâmetros:
+        driver (selenium.webdriver.Chrome): Navegador utilizado na automação.
+        selector (str): Expressão do seletor a ser localizado.
+        by (selenium.webdriver.common.by.By): Estratégia de localização.
+        clickable (bool): Indica se o elemento deve estar clicável.
+        timeout (int): Tempo máximo de espera em segundos.
+        seerroseguir (bool): Define se deve retornar ``None`` em caso de erro.
+
+    Retorna:
+        selenium.webdriver.remote.webelement.WebElement | None: Elemento encontrado ou ``None``.
+    """
     wait = WebDriverWait(driver, timeout)
     cond = EC.element_to_be_clickable if clickable else EC.presence_of_element_located
     try:
@@ -80,7 +100,15 @@ def esperar(driver, selector, by=By.XPATH, clickable=False, timeout=20, seerrose
             raise
 
 def login(driver, voz="Brian"):
-    """Realiza o login e seleciona a voz desejada no site da ElevenLabs."""
+    """Realiza o login e seleciona a voz desejada no site da ElevenLabs.
+
+    Parâmetros:
+        driver (selenium.webdriver.Chrome): Navegador autenticado usado no processo.
+        voz (str): Nome da voz a ser utilizada na geração.
+
+    Retorna:
+        None: As interações são efetuadas diretamente no navegador.
+    """
 
     driver.get("https://elevenlabs.io/app/sign-in")
     driver.execute_script("document.body.style.zoom='50%'")  # 🔍 Aplicando zoom para garantir visibilidade
@@ -127,7 +155,16 @@ def login(driver, voz="Brian"):
     time.sleep(3)
 
 def gerar_e_baixar(driver, texto, index):
-    """Gera a narração no site e faz o download do arquivo gerado."""
+    """Gera a narração no site e realiza o download do resultado.
+
+    Parâmetros:
+        driver (selenium.webdriver.Chrome): Instância autenticada no serviço.
+        texto (str): Texto que será convertido em áudio.
+        index (int): Índice da cena utilizada para nomear o arquivo gerado.
+
+    Retorna:
+        str: Caminho do arquivo de áudio salvo localmente.
+    """
 
     wait = WebDriverWait(driver, 20)
 
@@ -160,7 +197,16 @@ def gerar_e_baixar(driver, texto, index):
     return dst
 
 def run_gerar_narracoes(indices, voz="Brian", fonte="elevenlabs"):
-    """Processa a geração de todas as narrações solicitadas."""
+    """Processa a geração das narrações selecionadas pelo usuário.
+
+    Parâmetros:
+        indices (Iterable[int]): Conjunto de cenas que terão áudio gerado.
+        voz (str): Voz escolhida para o serviço de narração.
+        fonte (str): Identificador da plataforma utilizada para geração.
+
+    Retorna:
+        dict: Estrutura com os logs do processo e cenas atualizadas.
+    """
 
     with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
