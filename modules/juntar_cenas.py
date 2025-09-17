@@ -1,64 +1,27 @@
-import json, subprocess, os
-import shutil
+
 from modules.paths import get_paths
+import json, subprocess, os
+from modules.config import get_config
+
 path = get_paths()
 
 def montar_uma_cena(idx, config):
-    """Monta uma cena individual aplicando efeitos, legendas e áudio.
 
-    Parâmetros:
-        idx (int): Índice da cena a ser processada.
-        config (dict): Configurações específicas da cena, incluindo caminhos e opções.
-
-    Retorna:
-        str: Caminho do vídeo finalizado referente à cena informada.
-    """
-    print(f"\n🔍 Iniciando montagem da cena {idx + 1}")
-
-    # Caminhos de destino internos
-    imagem_path   = os.path.join(path["imagens"],       f"imagem{idx + 1}.jpg")
-    audio_path    = os.path.join(path["audios"],        f"narracao{idx + 1}.mp3")
-    legenda_path  = os.path.join(path["legendas_ass"],  f"legenda{idx + 1}.ass")
-    video_efeito  = os.path.join(path["videos_cenas"],  f"temp_efeito_{idx}.mp4")
+    imagem_path   = os.path.join(path["imagens"],  f"imagem{idx + 1}.jpg")
+    audio_path    = os.path.join(path["audios"],   f"narracao{idx + 1}.mp3")
+    legenda_path  = os.path.join(path["legendas_ass"], f"legenda{idx + 1}.ass")
+    video_efeito  = os.path.join(path["videos_cenas"],    f"temp_efeito_{idx}.mp4")
 
     usar_legenda  = config.get("usarLegenda", False)
     pos_legenda   = config.get("posicaoLegenda", "inferior")
 
-    print(f"[DEBUG] Config recebida: {config}")
-    print(f"[DEBUG] Caminhos alvo internos:")
-    print(f"        - Imagem:  {imagem_path}")
-    print(f"        - Áudio:   {audio_path}")
-    print(f"        - Legenda: {legenda_path}")
-    print(f"        - Efeito:  {video_efeito}")
+    print("Pasta salvar:", get_config("pasta_salvar"))
+    print("JSON cenas:", os.path.join(get_config("pasta_salvar") or ".", "cenas_com_imagens.json"))
 
-    # 1️⃣ Garantir que imagem existe (copia do caminho original, se necessário)
-    origem_imagem = config.get("arquivo_local", imagem_path)
-    if not os.path.exists(imagem_path):
-        if not os.path.exists(origem_imagem):
-            raise FileNotFoundError(f"🛑 Imagem não encontrada: {origem_imagem}")
-        shutil.copy(origem_imagem, imagem_path)
-        print(f"[✔] Imagem copiada para pasta local: {imagem_path}")
+    print(f"[DEBUG] Cena {idx + 1} - config recebido:", config)
 
-    # 2️⃣ Garantir que áudio existe
-    origem_audio = config.get("arquivo_audio", audio_path)
-    if not os.path.exists(audio_path):
-        if not os.path.exists(origem_audio):
-            raise FileNotFoundError(f"🛑 Áudio não encontrado: {origem_audio}")
-        shutil.copy(origem_audio, audio_path)
-        print(f"[✔] Áudio copiado para pasta local: {audio_path}")
-
-    # 3️⃣ Garantir que legenda existe, se habilitada
-    origem_legenda = config.get("arquivo_legenda", legenda_path)
-    if usar_legenda and not os.path.exists(legenda_path):
-        if not os.path.exists(origem_legenda):
-            print(f"[⚠️] Legenda habilitada, mas não encontrada: {origem_legenda}")
-            usar_legenda = False
-        else:
-            shutil.copy(origem_legenda, legenda_path)
-            print(f"[✔] Legenda copiada para pasta local: {legenda_path}")
-
-    # 4️⃣ Aplicar efeito visual
-    print(f"🌀 Aplicando efeito visual na imagem...")
+    # 1️⃣ Aplicar efeito visual (zoom, pb, escurecer, etc.)
+    print("🌀 Efeito:", config.get("efeito"))
     aplicar_efeito_na_imagem(
         imagem_path=imagem_path,
         audio_path=audio_path,
@@ -66,53 +29,42 @@ def montar_uma_cena(idx, config):
         efeito=config.get("efeito"),
         config_efeito=config.get("config", {})
     )
-    print(f"[OK] Efeito aplicado: {video_efeito} (esperado)")
 
-    # 5️⃣ Redimensionar para 1080x1920
-    video_resized = os.path.join(path["videos_cenas"], f"temp_resized_{idx}.mp4")
-    comando_resize = [
+    # Redimensionar para 1080x1920 se necessário
+    video_resized=os.path.join(path["videos_cenas"], f"temp_resized_{idx}.mp4")
+    comando_resize=[
         "ffmpeg", "-y", "-i", video_efeito,
         "-vf", "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2",
         "-c:a", "copy",
         video_resized
     ]
     print("🔁 Redimensionando vídeo para 1080x1920...")
-    print(f"[CMD] {' '.join(comando_resize)}")
-    subprocess.run(comando_resize, check=True)
-    print(f"[OK] Redimensionamento concluído: {video_resized}")
 
-    # 6️⃣ Aplicar legenda (se habilitada)
+    # 2️⃣ Aplicar legenda (se habilitada)
     if usar_legenda and os.path.exists(legenda_path):
-        print(f"📝 Aplicando legenda (posição: {pos_legenda})...")
+        # Ajustar a altura da legenda com base na posição selecionada
         ajustar_marginv_ass(legenda_path, pos_legenda)
         video_legenda = os.path.join(path["videos_cenas"], f"temp_legenda_{idx}.mp4")
-        adicionar_legenda_ass(video_resized, legenda_path, pos_legenda, video_legenda)
+        print("posição da legenda é: ", pos_legenda)
+        adicionar_legenda_ass(video_efeito, legenda_path, pos_legenda, video_legenda)
     else:
-        video_legenda = video_resized
-        print("💬 Legenda não aplicada (desativada ou inexistente)")
+        video_legenda = video_efeito
 
-    # 7️⃣ Verificação final antes de audio
+    # 3️⃣ Verificação se vídeo com legenda existe
     if not os.path.exists(video_legenda):
-        raise FileNotFoundError(f"❌ Arquivo não criado após legenda: {video_legenda}")
+        raise FileNotFoundError(f"❌ Arquivo não criado: {video_legenda}")
 
-    # 8️⃣ Adicionar áudio final
-    print(f"🎧 Adicionando áudio final ao vídeo...")
+    # 4️⃣ Adicionar o áudio final
+    print("vai gerar o video final")
     video_final = os.path.join(path["videos_cenas"], f"video{idx + 1}.mp4")
     adicionar_audio(video_legenda, audio_path, video_final)
 
-    print(f"✅ Cena {idx + 1} finalizada: {video_final}\n")
     return video_final
 
 def unir_cenas_com_transicoes(lista_videos, transicoes, output_path):
-    """Une vídeos em sequência aplicando transições opcionais entre eles.
-
-    Parâmetros:
-        lista_videos (list[str]): Caminhos dos vídeos que serão concatenados.
-        transicoes (list[dict]): Configurações de transição para cada junção.
-        output_path (str): Caminho do arquivo final que receberá o resultado.
-
-    Retorna:
-        None: O arquivo unido é gerado diretamente no ``output_path``.
+    """
+    Une uma lista de vídeos com ou sem transições.
+    transicoes: lista de dicionários {'tipo': 'fade'|'slideleft'|'', 'duracao': float}
     """
     if len(lista_videos) < 2:
         raise ValueError("É necessário pelo menos dois vídeos para unir.")
@@ -188,14 +140,7 @@ def unir_cenas_com_transicoes(lista_videos, transicoes, output_path):
 # ---------------------- FUNÇÕES AUXILIARES -----------------------------------------------------------------------
 
 def verificar_tem_audio(video_path):
-    """Verifica se um arquivo de vídeo contém alguma trilha de áudio.
-
-    Parâmetros:
-        video_path (str): Caminho absoluto do arquivo de vídeo analisado.
-
-    Retorna:
-        bool: ``True`` se houver áudio associado ao vídeo, caso contrário ``False``.
-    """
+    """Verifica se um arquivo de vídeo contém trilha de áudio."""
     try:
         result = subprocess.run(
             ["ffprobe", "-v", "error", "-select_streams", "a",
@@ -208,17 +153,6 @@ def verificar_tem_audio(video_path):
         return False
 
 def adicionar_legenda_ass(input_path, legenda_path, posicao, output_path):
-    """Embute uma legenda ASS em um vídeo, ajustando a posição desejada.
-
-    Parâmetros:
-        input_path (str): Caminho do vídeo que receberá a legenda.
-        legenda_path (str): Caminho do arquivo ASS a ser aplicado.
-        posicao (str): Identificador da posição vertical configurada.
-        output_path (str): Caminho do vídeo resultante com a legenda aplicada.
-
-    Retorna:
-        None: O vídeo legendado é salvo diretamente em ``output_path``.
-    """
     # Corrigir e escapar caminho da legenda
     vei = os.path.abspath(input_path)
     leg = os.path.abspath(legenda_path)
@@ -243,14 +177,7 @@ def adicionar_legenda_ass(input_path, legenda_path, posicao, output_path):
     subprocess.run(cmd, check=True)
 
 def obter_duracao_em_segundos(path):
-    """Obtém a duração de um arquivo de mídia utilizando o ffprobe.
-
-    Parâmetros:
-        path (str): Caminho do arquivo de áudio ou vídeo a ser analisado.
-
-    Retorna:
-        float: Duração detectada em segundos ou valor padrão em caso de erro.
-    """
+    """Usa ffprobe para obter a duração do vídeo/áudio em segundos."""
     cmd = [
         "ffprobe", "-v", "error",
         "-show_entries", "format=duration",
@@ -266,18 +193,6 @@ def obter_duracao_em_segundos(path):
     return 5  # valor padrão de segurança
 
 def aplicar_efeito_na_imagem(imagem_path, audio_path, output_path, efeito, config_efeito):
-    """Aplica efeitos visuais e gera um vídeo dinâmico a partir de uma imagem.
-
-    Parâmetros:
-        imagem_path (str): Caminho da imagem base utilizada na cena.
-        audio_path (str): Caminho do áudio usado para calcular a duração final.
-        output_path (str): Destino do vídeo temporário gerado com o efeito.
-        efeito (str): Nome do efeito visual selecionado.
-        config_efeito (dict): Configurações adicionais específicas do efeito.
-
-    Retorna:
-        str: Caminho do vídeo produzido após aplicar o efeito solicitado.
-    """
     import subprocess
 
     def join_filters(*args):
@@ -408,16 +323,6 @@ def aplicar_efeito_na_imagem(imagem_path, audio_path, output_path, efeito, confi
 
 
 def montar_video_com_audio(base_visual_path, audio_path, output_path):
-    """Combina uma base visual com um áudio produzindo um vídeo sincronizado.
-
-    Parâmetros:
-        base_visual_path (str): Caminho do arquivo visual (imagem ou vídeo).
-        audio_path (str): Caminho do áudio que acompanhará a cena.
-        output_path (str): Caminho do vídeo resultante da combinação.
-
-    Retorna:
-        str: Caminho do vídeo final gerado com o áudio incorporado.
-    """
     ext = os.path.splitext(base_visual_path)[-1].lower()
     if ext == ".jpg":
         cmd = [
@@ -452,15 +357,9 @@ def montar_video_com_audio(base_visual_path, audio_path, output_path):
     return output_path
 
 def adicionar_audio(video_path, audio_path, output_path):
-    """Adiciona uma faixa de áudio a um vídeo existente mantendo o vídeo intacto.
-
-    Parâmetros:
-        video_path (str): Caminho do vídeo base que receberá o áudio.
-        audio_path (str): Caminho do arquivo de áudio a ser embutido.
-        output_path (str): Destino do vídeo resultante com o áudio incorporado.
-
-    Retorna:
-        None: O vídeo com áudio é salvo diretamente em ``output_path``.
+    """
+    Adiciona um arquivo de áudio a um vídeo (sem reencodar o vídeo).
+    Garante sincronização e compatibilidade.
     """
     print(f"🔊 Adicionando áudio: {audio_path} → {output_path}")
 
@@ -487,17 +386,6 @@ def adicionar_audio(video_path, audio_path, output_path):
     print(f"✅ Vídeo final com áudio salvo em: {output_path}")
 
 def adicionar_trilha_sonora(video_path, trilha_path, output_path, volume=1.0):
-    """Mistura uma trilha sonora adicional ao vídeo final.
-
-    Parâmetros:
-        video_path (str): Caminho do vídeo base já com narração.
-        trilha_path (str): Caminho do arquivo de áudio com a trilha escolhida.
-        output_path (str): Caminho onde o vídeo final será salvo.
-        volume (float): Fator de volume aplicado à trilha adicional.
-
-    Retorna:
-        None: O vídeo com trilha sonora é salvo no ``output_path``.
-    """
     dur_video = obter_duracao_em_segundos(video_path)
     dur_trilha = obter_duracao_em_segundos(trilha_path)
 
@@ -540,16 +428,9 @@ def adicionar_trilha_sonora(video_path, trilha_path, output_path, volume=1.0):
     print(f"🎵 Trilha adicionada com volume {volume*100:.0f}% → {output_path}")
 
 def adicionar_marca_dagua(video_path, imagem_path, output_path, opacidade=1.0):
-    """Aplica uma marca d'água sobre o vídeo final com a opacidade desejada.
-
-    Parâmetros:
-        video_path (str): Caminho do vídeo que receberá a marca d'água.
-        imagem_path (str): Caminho da imagem PNG utilizada como marca.
-        output_path (str): Caminho do arquivo resultante.
-        opacidade (float): Nível de opacidade aplicado à imagem entre 0 e 1.
-
-    Retorna:
-        None: O vídeo com a marca d'água é salvo no ``output_path``.
+    """
+    Sobrepõe uma imagem PNG com opacidade sobre o vídeo.
+    A imagem deve ser 1080x1920 com fundo transparente.
     """
     temp_output = output_path.replace(".mp4", "_temp.mp4")
     print("Opacidade selecionada:> ", opacidade)
@@ -585,14 +466,6 @@ def adicionar_marca_dagua(video_path, imagem_path, output_path, opacidade=1.0):
     print(f"🖼️ Marca d'água aplicada com opacidade {opacidade:.2f}")
 
 def get_resolution(path):
-    """Obtém a resolução de um arquivo de vídeo usando ffprobe.
-
-    Parâmetros:
-        path (str): Caminho do vídeo cuja resolução será consultada.
-
-    Retorna:
-        tuple[int | None, int | None]: Largura e altura detectadas, ou ``None`` em caso de falha.
-    """
     try:
         result = subprocess.run(
             [
@@ -615,17 +488,6 @@ def get_resolution(path):
         return None, None
 
 def redimensionar_marca(marca_path, largura, altura, marca_redimensionada_path):
-    """Redimensiona a imagem de marca d'água para combinar com o vídeo.
-
-    Parâmetros:
-        marca_path (str): Caminho original da imagem da marca d'água.
-        largura (int): Largura desejada após o redimensionamento.
-        altura (int): Altura desejada após o redimensionamento.
-        marca_redimensionada_path (str): Caminho para salvar o arquivo ajustado.
-
-    Retorna:
-        None: O arquivo redimensionado é salvo no caminho informado.
-    """
     subprocess.run([
         "ffmpeg", "-y",
         "-i", marca_path,
@@ -636,15 +498,7 @@ def redimensionar_marca(marca_path, largura, altura, marca_redimensionada_path):
     print(f"🧩 Marca d'água redimensionada para {largura}x{altura}")
 
 def ajustar_marginv_ass(ass_path, posicao):
-    """Ajusta a margem vertical principal de um arquivo ASS conforme a posição escolhida.
-
-    Parâmetros:
-        ass_path (str): Caminho do arquivo ASS a ser modificado.
-        posicao (str): Identificador da posição predefinida (ex.: inferior, central).
-
-    Retorna:
-        None: O arquivo ASS é atualizado diretamente no disco.
-    """
+    """Atualiza dinamicamente o MarginV do estilo principal no .ASS com Alignment=2 fixo."""
     posicoes_marginv = {
         "inferior": 100,
         "central": 900,
