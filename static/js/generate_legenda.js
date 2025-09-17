@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const log = document.getElementById("log");
   const barra = document.getElementById("barra_indeterminada");
   const btn = document.getElementById("generate_legendas");
+  const btnMerge = document.getElementById("merge_legendas_srt");
 
   const radios = document.querySelectorAll('input[name="scope"]');
   const singleInput = document.getElementById("single_index");
@@ -40,6 +41,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const animacoesClasse = [
     "animacao-fade", "animacao-karaoke", "animacao-zoom", "animacao-deslizar"
   ];
+
+  function montarPayloadEscopo() {
+    const scope = document.querySelector('input[name="scope"]:checked')?.value;
+    return {
+      scope,
+      single_index: parseInt(singleInput.value) || null,
+      from_index: parseInt(fromInput.value) || null
+    };
+  }
 
   function iniciarProgresso() {
     barra.classList.remove("hidden");
@@ -100,12 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const tipo = tipoLegenda.value;
       if (!tipo) return alert("Selecione o tipo de legenda antes de continuar.");
 
-      const scope = document.querySelector('input[name="scope"]:checked')?.value;
-      const payload = {
-        scope,
-        single_index: parseInt(singleInput.value) || null,
-        from_index: parseInt(fromInput.value) || null
-      };
+      const payload = montarPayloadEscopo();
 
       let endpoint = "";
       if (tipo === "ass") {
@@ -147,6 +152,53 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => {
         pararProgresso();
         log.textContent += `❌ Falha na solicitação: ${err}\n`;
+      });
+    });
+  }
+
+  if (btnMerge) {
+    btnMerge.addEventListener("click", () => {
+      const payload = montarPayloadEscopo();
+
+      iniciarProgresso();
+      btnMerge.disabled = true;
+      log.textContent = "🔄 Iniciando união de arquivos SRT...\n";
+
+      fetch("/merge_legendas_srt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (Array.isArray(data.logs)) {
+          data.logs.forEach(linha => {
+            log.textContent += linha + "\n";
+          });
+        }
+
+        if (data.error) {
+          log.textContent += `❌ Erro: ${data.error}\n`;
+          return;
+        }
+
+        if (data.message) {
+          log.textContent += `${data.message}\n`;
+        }
+
+        log.textContent += "✅ União de arquivos SRT finalizada.\n";
+      })
+      .catch(err => {
+        log.textContent += `❌ Falha na união de SRTs: ${err.message || err}\n`;
+      })
+      .finally(() => {
+        pararProgresso();
+        btnMerge.disabled = false;
       });
     });
   }
