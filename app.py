@@ -8,7 +8,7 @@ from modules.parser_prompts import parse_prompts_txt, salvar_prompt_txt
 from modules.gerar_imagens import run_gerar_imagens, calcular_indices, gerar_eventos_para_stream, gerar_imagens_async
 from modules.gerar_narracao import iniciar_driver, login, gerar_e_baixar
 from modules.gerar_ASS import gerar_ass_com_whisper, carregar_modelo
-from modules.gerar_SRT import gerar_srt_com_bloco
+from modules.gerar_SRT import gerar_srt_com_bloco, unir_srt
 from modules.paths import get_paths
 import re, os, json, asyncio, time, subprocess, threading, sys
 from modules.juntar_cenas import montar_uma_cena, adicionar_trilha_sonora, adicionar_marca_dagua, unir_cenas_com_transicoes
@@ -516,27 +516,97 @@ def gerar_legendas_ass():
 
     return jsonify({"status": "ok", "logs": logs, "cenas": cenas})
 
+from flask import jsonify, request
+
+def _as_int(val):
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        return None
+
+def _clamp(x, lo, hi):
+    return max(lo, min(hi, x))
+
 @app.route("/legendas_srt", methods=["POST"])
 def gerar_legendas_srt():
-    data = request.get_json()
+    # Gera SRTs por cena -> usa índices base-0
+    data = request.get_json(silent=True) or {}
     scope = data.get("scope", "all")
-    qtde_palavras = int(data.get("qtde_palavras", 4))
+    qtde_palavras = _as_int(data.get("qtde_palavras")) or 4
 
-    single = data.get("single_index")
-    start = data.get("from_index")
+    single = _as_int(data.get("single_index"))   # pode vir como str
+    start  = _as_int(data.get("from_index"))     # pode vir como str
+
+    # (Opcional) obtem paths dinamicamente se preferir evitar variáveis globais
+    # path = get_paths()
 
     with open(path["cenas"], encoding="utf-8") as f:
         cenas = json.load(f)
 
+    n = len(cenas)
+
     if scope == "single" and single is not None:
-        indices = [single]
+        # single como índice de cena (base-0). Se seu front manda 1-based, troque para: single = single - 1
+        idx0 = _clamp(single, 0, n - 1)
+        indices = [idx0]
     elif scope == "from" and start is not None:
-        indices = list(range(start, len(cenas)))
+        # 'from' como índice de cena (base-0). Se seu front manda 1-based, troque para: start = start - 1
+        start0 = _clamp(start, 0, n - 1)
+        indices = list(range(start0, n))  # inclui até n-1
     else:
-        indices = list(range(1, len(cenas)))
+        # all -> todas as cenas base-0
+        indices = list(range(0, n))
 
     resultado = gerar_srt_com_bloco(indices, qtde_palavras)
     return jsonify({"status": "ok", "logs": resultado})
+
+
+@app.route("/merge_legendas_srt", methods=["POST"])
+def merge_legendas_srt():
+    # Une SRTs por arquivo -> usa IDs base-1 (legenda1.srt ... legendaN.srt)
+    data = request.get_json(silent=True) or {}
+    scope  = data.get("scope", "all")
+    single = _as_int(data.get("single_index"))
+    start  = _as_int(data.get("from_index"))
+
+    try:
+        with open(path["cenas"], encoding="utf-8") as f:
+            cenas = json.load(f)
+    except FileNotFoundError:
+        return jsonify({"error": "Arquivo de cenas não encontrado.", "logs": []}), 500
+    except json.JSONDecodeError:
+        return jsonify({"error": "Erro ao ler o arquivo de cenas.", "logs": []}), 500
+
+    total = len(cenas)
+
+    if scope == "single" and single is not None:
+        # single aqui é ID base-1 (legenda{single}.srt). Se seu front manda 0-based, use: single = single + 1
+        id1 = _clamp(single, 1, total)
+        indices = [id1]
+    elif scope == "from" and start is not None:
+        # from aqui é ID base-1 (legenda{start}.srt). Se seu front manda 0-based, use: start = start + 1
+        start1 = _clamp(start, 1, total)
+        indices = list(range(start1, total + 1))  # inclui o último (total)
+    else:
+        # all -> 1..total
+        indices = list(range(1, total + 1))
+
+    resultado = unir_srt(indices)
+    logs = resultado.get("logs", [])
+
+    if resultado.get("error"):
+        status = resultado.get("status", 400)
+        return jsonify({"error": resultado["error"], "logs": logs}), status
+
+    resposta = {
+        "logs": logs,
+        "message": resultado.get("message", "Legendas SRT unidas com sucesso."),
+    }
+    if resultado.get("output"):
+        resposta["output"] = resultado["output"]
+
+    return jsonify(resposta)
+
 
 @app.route("/get_legenda")
 def get_legenda():

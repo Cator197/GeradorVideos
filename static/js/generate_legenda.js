@@ -1,5 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   const log = document.getElementById("log");
+  const appendLog = (line) => {
+    log.textContent += line;
+    log.scrollTop = log.scrollHeight;
+  };
   const barra = document.getElementById("barra_indeterminada");
   const btn = document.getElementById("generate_legendas");
   const btnMerge = document.getElementById("merge_legendas_srt");
@@ -133,6 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       iniciarProgresso();
       log.textContent = "📝 Enviando para geração de legendas...\n";
+      log.scrollTop = log.scrollHeight;
 
       fetch(endpoint, {
         method: "POST",
@@ -143,15 +148,15 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(data => {
         pararProgresso();
         if (data.error) {
-          log.textContent += `❌ Erro: ${data.error}\n`;
+          appendLog(`❌ Erro: ${data.error}\n`);
         } else {
-          data.logs.forEach(linha => log.textContent += linha + "\n");
-          log.textContent += `✅ Legendas ${tipo.toUpperCase()} geradas com sucesso!\n`;
+          data.logs.forEach(linha => appendLog(linha + "\n"));
+          appendLog(`✅ Legendas ${tipo.toUpperCase()} geradas com sucesso!\n`);
         }
       })
       .catch(err => {
         pararProgresso();
-        log.textContent += `❌ Falha na solicitação: ${err}\n`;
+        appendLog(`❌ Falha na solicitação: ${err}\n`);
       });
     });
   }
@@ -163,6 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
       iniciarProgresso();
       btnMerge.disabled = true;
       log.textContent = "🔄 Iniciando união de arquivos SRT...\n";
+      log.scrollTop = log.scrollHeight;
 
       fetch("/merge_legendas_srt", {
         method: "POST",
@@ -178,23 +184,23 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(data => {
         if (Array.isArray(data.logs)) {
           data.logs.forEach(linha => {
-            log.textContent += linha + "\n";
+            appendLog(linha + "\n");
           });
         }
 
         if (data.error) {
-          log.textContent += `❌ Erro: ${data.error}\n`;
+          appendLog(`❌ Erro: ${data.error}\n`);
           return;
         }
 
         if (data.message) {
-          log.textContent += `${data.message}\n`;
+          appendLog(`${data.message}\n`);
         }
 
-        log.textContent += "✅ União de arquivos SRT finalizada.\n";
+        appendLog("✅ União de arquivos SRT finalizada.\n");
       })
       .catch(err => {
-        log.textContent += `❌ Falha na união de SRTs: ${err.message || err}\n`;
+        appendLog(`❌ Falha na união de SRTs: ${err.message || err}\n`);
       })
       .finally(() => {
         pararProgresso();
