@@ -15,6 +15,15 @@ from modules.juntar_cenas import montar_uma_cena, adicionar_trilha_sonora, adici
 from modules.verify_license import verify_license
 from werkzeug.utils import secure_filename
 from modules.licenca import get_creditos
+from modules.licenca import (
+    carregar_fernet, ler_estado_creditos, salvar_estado_creditos,
+    ler_shadow_serial, gravar_shadow_serial, get_hardware_id
+)
+from modules.verify_license import load_public_key
+import base64
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes
+from datetime import datetime
 
 
 path = get_paths()
@@ -203,7 +212,7 @@ def substituir_imagem():
     logs = []
     asyncio.run(gerar_imagens_async(cenas, [index], logs))
 
-    with open(path["cenas_com_imagens"], "w", encoding="utf-8") as f:
+    with open(path["cenas"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)
 
     return jsonify({"status": "ok"})
@@ -242,7 +251,7 @@ def upload_imagem():
         cenas[index]["arquivo_local"] = caminho
         cenas[index]["image_url"] = f"/modules/imagens/{nome_base}{ext}"
 
-        with open(path["cenas_com_imagens"], "w", encoding="utf-8") as f:
+        with open(path["cenas"], "w", encoding="utf-8") as f:
             json.dump(cenas, f, ensure_ascii=False, indent=2)
 
         return jsonify({"status": "ok"})
@@ -250,6 +259,188 @@ def upload_imagem():
     except Exception as e:
         print(f"❌ Erro em upload_imagem: {e}")
         return jsonify({"status": "erro", "msg": str(e)}), 500
+
+@app.route("/cenas/adicionar", methods=["POST"])
+def cenas_adicionar():
+    """
+    Cria uma nova cena (append) OU vincula prompt a uma cena existente.
+    Se gerar_imagem=True, já dispara a geração para o índice escolhido.
+    Body (JSON):
+      - modo: "novo" | "existente"
+      - narracao?: str              (obrigatório se modo=novo)
+      - legenda?: str               (opcional; se faltar = narracao)
+      - index?: int                 (obrigatório se modo=existente; base 1)
+      - prompt_imagem?: str         (opcional no novo; recomendado)
+      - gerar_imagem?: bool
+    """
+    data = request.get_json(silent=True) or {}
+    modo = (data.get("modo") or "").strip().lower()
+    gerar = bool(data.get("gerar_imagem", False))
+
+    # Carrega cenas atuais
+    if not os.path.exists(path["cenas"]):
+        return jsonify({"status": "erro", "msg": "cenas.json não encontrado"}), 500
+    with open(path["cenas"], encoding="utf-8") as f:
+        cenas = json.load(f)
+
+    novo_index = None
+
+    if modo == "novo":
+        narracao = (data.get("narracao") or "").strip()
+        if not narracao:
+            return jsonify({"status": "erro", "msg": "narracao é obrigatória no modo=novo"}), 400
+
+        prompt_imagem = (data.get("prompt_imagem") or "").strip()
+        legenda = (data.get("legenda") or narracao).strip()
+
+        nova_cena = {
+            "narracao": narracao,
+            "legenda": legenda,
+            "prompt_imagem": prompt_imagem,
+            "audio_path": None,
+            "srt_path": None,
+            "ass_path": None,
+            "arquivo_local": None,
+            "image_url": None,
+            "task_id_imagem": None
+        }
+        cenas.append(nova_cena)
+        novo_index = len(cenas) - 1
+
+        # Persiste a criação
+        with open(path["cenas"], "w", encoding="utf-8") as f:
+            json.dump(cenas, f, ensure_ascii=False, indent=2)
+
+        # Se pediu para gerar, dispara agora
+        if gerar:
+            logs = []
+            try:
+                asyncio.run(gerar_imagens_async(cenas, [novo_index], logs))
+            finally:
+                # Garante que o estado pós-geração ficou salvo no cenas.json
+                with open(path["cenas"], "w", encoding="utf-8") as f:
+                    json.dump(cenas, f, ensure_ascii=False, indent=2)
+
+        return jsonify({"status": "ok", "index": novo_index + 1})
+
+    elif modo == "existente":
+        try:
+            idx1 = int(data.get("index"))
+        except Exception:
+            return jsonify({"status": "erro", "msg": "index inválido"}), 400
+        idx0 = idx1 - 1
+        if not (0 <= idx0 < len(cenas)):
+            return jsonify({"status": "erro", "msg": "index fora do range"}), 400
+
+        # Atualiza prompt (se enviado)
+        if "prompt_imagem" in data:
+            cenas[idx0]["prompt_imagem"] = (data.get("prompt_imagem") or "").strip()
+
+        with open(path["cenas"], "w", encoding="utf-8") as f:
+            json.dump(cenas, f, ensure_ascii=False, indent=2)
+
+        if gerar:
+            logs = []
+            try:
+                asyncio.run(gerar_imagens_async(cenas, [idx0], logs))
+            finally:
+                with open(path["cenas"], "w", encoding="utf-8") as f:
+                    json.dump(cenas, f, ensure_ascii=False, indent=2)
+
+        return jsonify({"status": "ok", "index": idx1})
+
+    else:
+        return jsonify({"status": "erro", "msg": "modo deve ser 'novo' ou 'existente'"}), 400
+
+@app.route("/cenas/adicionar_upload", methods=["POST"])
+def cenas_adicionar_upload():
+    """
+    Cria uma cena nova ou vincula a existente salvando o arquivo enviado.
+    Form-data:
+      - modo: "novo" | "existente"
+      - index?: int (base 1; obrigatório se existente)
+      - narracao?: str (obrigatório se novo)
+      - legenda?: str (opcional se novo)
+      - arquivo: file (.jpg/.jpeg/.png/.mp4)
+    """
+    try:
+        modo = (request.form.get("modo") or "").strip().lower()
+        arquivo = request.files.get("arquivo")
+        if not arquivo:
+            return jsonify({"status": "erro", "msg": "Nenhum arquivo enviado"}), 400
+
+        ext = os.path.splitext(arquivo.filename)[1].lower()
+        if ext not in [".jpg", ".jpeg", ".png", ".mp4"]:
+            return jsonify({"status": "erro", "msg": "Formato não suportado"}), 400
+
+        # Carrega cenas
+        if not os.path.exists(path["cenas"]):
+            return jsonify({"status": "erro", "msg": "cenas.json não encontrado"}), 500
+        with open(path["cenas"], encoding="utf-8") as f:
+            cenas = json.load(f)
+
+        os.makedirs(path["imagens"], exist_ok=True)
+
+        if modo == "novo":
+            narracao = (request.form.get("narracao") or "").strip()
+            if not narracao:
+                return jsonify({"status": "erro", "msg": "narracao é obrigatória no modo=novo"}), 400
+            legenda = (request.form.get("legenda") or narracao).strip()
+
+            nova_cena = {
+                "narracao": narracao,
+                "legenda": legenda,
+                "prompt_imagem": "",
+                "audio_path": None,
+                "srt_path": None,
+                "ass_path": None,
+                "arquivo_local": None,
+                "image_url": None,
+                "task_id_imagem": None
+            }
+            cenas.append(nova_cena)
+            idx0 = len(cenas) - 1  # zero-based
+            idx1 = idx0 + 1
+
+        elif modo == "existente":
+            try:
+                idx1 = int(request.form.get("index"))
+            except Exception:
+                return jsonify({"status": "erro", "msg": "index inválido"}), 400
+            idx0 = idx1 - 1
+            if not (0 <= idx0 < len(cenas)):
+                return jsonify({"status": "erro", "msg": "index fora do range"}), 400
+        else:
+            return jsonify({"status": "erro", "msg": "modo deve ser 'novo' ou 'existente'"}), 400
+
+        # Remove arquivos antigos desse índice
+        nome_base = f"imagem{idx1}"
+        for old_ext in [".jpg", ".jpeg", ".png", ".mp4"]:
+            caminho_antigo = os.path.join(path["imagens"], nome_base + old_ext)
+            if os.path.exists(caminho_antigo):
+                try:
+                    os.remove(caminho_antigo)
+                except Exception as e:
+                    print(f"⚠️ Erro ao remover {caminho_antigo}: {e}")
+
+        # Salva o novo
+        caminho = os.path.join(path["imagens"], nome_base + ext)
+        arquivo.save(caminho)
+
+        # Atualiza a cena
+        cenas[idx0]["arquivo_local"] = caminho
+        cenas[idx0]["image_url"] = f"/modules/imagens/{nome_base}{ext}"
+
+        with open(path["cenas"], "w", encoding="utf-8") as f:
+            json.dump(cenas, f, ensure_ascii=False, indent=2)
+
+        return jsonify({"status": "ok", "index": idx1})
+
+    except Exception as e:
+        print(f"❌ Erro em /cenas/adicionar_upload: {e}")
+        return jsonify({"status": "erro", "msg": str(e)}), 500
+
+
 
 @app.route("/api/creditos")
 def api_creditos():
@@ -670,7 +861,7 @@ def montar_cenas_stream():
     start   = request.args.get("from_index", type=int)
     print(f"📥 scope={scope} | single={single} | from={start}")
     #path = caminho_cenas_final()
-    with open(path["cenas_com_imagens"], encoding="utf-8") as f:
+    with open(path["cenas"], encoding="utf-8") as f:
         cenas_json = json.load(f)
         total = len(cenas_json)
 
@@ -712,13 +903,13 @@ def montar_cenas_stream():
 def atualizar_config_cenas():
     cenas_config = request.get_json()
     #path = caminho_cenas_final()
-    with open(path["cenas_com_imagens"], encoding="utf-8") as f:
+    with open(path["cenas"], encoding="utf-8") as f:
         cenas_existentes = json.load(f)
 
     for i, cena in enumerate(cenas_config):
         cenas_existentes[i].update(cena)
 
-    with open(path["cenas_com_imagens"], "w", encoding="utf-8") as f:
+    with open(path["cenas"], "w", encoding="utf-8") as f:
         json.dump(cenas_existentes, f, indent=2, ensure_ascii=False)
 
     return jsonify({"status": "ok"})
@@ -871,7 +1062,7 @@ def pagina_configuracoes():
 
 # caminho para o JSON gerado em etapas anteriores
 def caminho_cenas_final():
-    return os.path.join(get_config("pasta_salvar") or ".", "cenas_com_imagens.json")
+    return path["cenas"]
 
 def salvar_arquivo_upload(request_file, destino):
     if request_file:
@@ -926,17 +1117,17 @@ def salvar_configuracoes():
             paths = get_paths()
 
             os.makedirs(os.path.dirname(paths["cenas"]), exist_ok=True)
-            os.makedirs(os.path.dirname(paths["cenas_com_imagens"]), exist_ok=True)
+            #os.makedirs(os.path.dirname(paths["cenas_com_imagens"]), exist_ok=True)
 
             if not os.path.exists(paths["cenas"]):
                 with open(paths["cenas"], "w", encoding="utf-8") as f:
                     json.dump([], f, ensure_ascii=False, indent=2)
                 print("📝 cenas.json criado.")
 
-            if not os.path.exists(paths["cenas_com_imagens"]):
-                with open(paths["cenas_com_imagens"], "w", encoding="utf-8") as f:
-                    json.dump([], f, ensure_ascii=False, indent=2)
-                print("📝 cenas_com_imagens.json criado.")
+            # if not os.path.exists(paths["cenas_com_imagens"]):
+            #     with open(paths["cenas_com_imagens"], "w", encoding="utf-8") as f:
+            #         json.dump([], f, ensure_ascii=False, indent=2)
+            #     print("📝 cenas_com_imagens.json criado.")
 
             # Opcional: criar ultimo_nome_video.txt com valor inicial
             if not os.path.exists(paths["nome_video"]):
@@ -1017,61 +1208,112 @@ import json
 
 @app.route("/upload_config_licenciada", methods=["POST"])
 def upload_config_licenciada():
-    print("🔁 Recebendo upload de config_licenciado.json")
-
+    # Mantemos apenas para instalar config inicial; não permite recarga de créditos.
     if "arquivo" not in request.files:
-        print("❌ Nenhum arquivo foi recebido.")
-        return jsonify({"status": "erro", "mensagem": "Arquivo ausente."})
+        return jsonify({"status": "erro", "mensagem": "Arquivo ausente."}), 400
 
     arquivo = request.files["arquivo"]
-    print("📁 Nome do arquivo recebido:", arquivo.filename)
-
     if not arquivo.filename.endswith(".json") and not arquivo.filename.endswith(".txt"):
-        return jsonify({"status": "erro", "mensagem": "Formato inválido."})
+        return jsonify({"status": "erro", "mensagem": "Formato inválido."}), 400
 
     try:
         conteudo = arquivo.read()
         fernet = carregar_fernet()
         dados = fernet.decrypt(conteudo).decode()
         novo_config = json.loads(dados)
+    except Exception as e:
+        return jsonify({"status":"erro","mensagem":"Arquivo inválido ou corrompido."}), 400
 
-        print("🔓 Arquivo descriptografado com sucesso:", novo_config)
+    # Se já existe configuração local, recusamos (evita soma indevida)
+    if os.path.exists(os.path.join("configuracoes", "config_licenciado.json")):
+        return jsonify({"status":"erro","mensagem":"Já existe configuração local. Use o pacote de crédito (.crd) para recarga."}), 400
 
-        # Carrega ou inicializa a configuração atual
-        caminho_destino = os.path.join("configuracoes", "config_licenciado.json")
-        if os.path.exists(caminho_destino):
-            atual = carregar_config_licenciada()
-        else:
-            atual = {
-                "hardware_id": novo_config["hardware_id"],
-                "creditos": 0,
-                "api_key": ""
+    # Caso não exista, aceitar como instalação inicial (cria arquivo cifrado)
+    try:
+        os.makedirs("configuracoes", exist_ok=True)
+        with open(os.path.join("configuracoes", "config_licenciado.json"), "wb") as f:
+            f.write(conteudo)
+        # opcional: persistir também o estado formal via salvar_estado_creditos
+        try:
+            estado = {
+                "hardware_id": novo_config.get("hardware_id"),
+                "creditos": int(novo_config.get("creditos", 0)),
+                "api_key": novo_config.get("api_key", ""),
+                "redeemed_ids": novo_config.get("redeemed_ids", []),
+                "last_serial": int(novo_config.get("last_serial", 0) or 0)
             }
+            salvar_estado_creditos(estado)
+        except Exception:
+            pass
+        return jsonify({"status":"ok","mensagem":"Configuração instalada."})
+    except Exception as e:
+        return jsonify({"status":"erro","mensagem":str(e)}), 500
 
-        # Verifica se pertence à mesma máquina
-        if novo_config.get("hardware_id") != atual.get("hardware_id"):
-            return jsonify({"status": "erro", "mensagem": "Arquivo não pertence a este computador."})
 
-        # Soma os créditos e atualiza API key
-        creditos_novos = novo_config.get("creditos", 0)
-        atual["creditos"] += creditos_novos
+@app.route("/upload_credit_pack", methods=["POST"])
+def upload_credit_pack():
+    if "arquivo" not in request.files:
+        return jsonify({"status":"erro","mensagem":"Arquivo ausente."}), 400
 
-        if "api_key" in novo_config:
-            atual["api_key"] = novo_config["api_key"]
+    arquivo = request.files["arquivo"]
+    if not arquivo.filename.endswith(".crd"):
+        return jsonify({"status":"erro","mensagem":"Formato inválido. Envie .crd"}), 400
 
-        print("💾 Salvando config licenciada atualizada:", atual)
-        salvar_config_licenciada(atual)
+    try:
+        blob = arquivo.read()
+        fernet = carregar_fernet()
+        # decifra o pacote
+        container = json.loads(fernet.decrypt(blob).decode())
+        payload = container.get("payload")
+        signature_b64 = container.get("signature")
+        if not payload or not signature_b64:
+            return jsonify({"status":"erro","mensagem":"Pacote inválido."}), 400
 
-        # Agora sim salva o original criptografado se não existia
-        if not os.path.exists(caminho_destino):
-            os.makedirs("configuracoes", exist_ok=True)
-            with open(caminho_destino, "wb") as f:
-                f.write(conteudo)
-            print("🆕 Arquivo original criptografado salvo.")
+        signature = base64.b64decode(signature_b64)
+        # verifica assinatura RSA
+        pub = load_public_key()
+        raw = json.dumps(payload, separators=(",",":")).encode()
+        try:
+            pub.verify(signature, raw, padding.PKCS1v15(), hashes.SHA256())
+        except Exception:
+            return jsonify({"status":"erro","mensagem":"Assinatura inválida."}), 400
 
-        return jsonify({"status": "ok", "mensagem": f"{creditos_novos} créditos adicionados com sucesso."})
+        # valida hardware
+        hw_local = get_hardware_id()
+        if payload.get("hardware_id") != hw_local:
+            return jsonify({"status":"erro","mensagem":"Pacote não pertence a este computador."}), 400
+
+        # valida expiração (issued <= hoje <= expires)
+        issued = datetime.fromisoformat(payload.get("issued"))
+        expires = datetime.fromisoformat(payload.get("expires"))
+        hoje = datetime.now()
+        if hoje < issued or hoje > expires:
+            return jsonify({"status":"erro","mensagem":"Pacote expirado."}), 400
+
+        # anti-replay: credit_id e serial monotônico (usar maior entre estado e shadow)
+        estado = ler_estado_creditos()
+        redeemed = set(estado.get("redeemed_ids", []))
+        last_serial_local = int(estado.get("last_serial", 0))
+        last_serial_shadow = int(ler_shadow_serial() or 0)
+        maior_serial = max(last_serial_local, last_serial_shadow)
+
+        if payload.get("credit_id") in redeemed:
+            return jsonify({"status":"erro","mensagem":"Este pacote já foi usado."}), 400
+
+        if int(payload.get("serial", 0)) <= int(maior_serial):
+            return jsonify({"status":"erro","mensagem":"Ordem inválida: serial não é maior que o último aplicado."}), 400
+
+        # aplica crédito
+        amount = int(payload.get("amount", 0))
+        estado["creditos"] = int(estado.get("creditos", 0)) + amount
+        redeemed.add(payload.get("credit_id"))
+        estado["redeemed_ids"] = list(redeemed)
+        estado["last_serial"] = int(payload.get("serial"))
+        salvar_estado_creditos(estado)  # grava e atualiza shadow
+
+        return jsonify({"status":"ok","mensagem":f"{amount} créditos adicionados."})
 
     except Exception as e:
-        print("❌ Erro ao processar upload:", e)
-        return jsonify({"status": "erro", "mensagem": str(e)})
+        print("Erro ao processar pacote .crd:", e)
+        return jsonify({"status":"erro","mensagem":"Pacote inválido ou corrompido."}), 400
 

@@ -9,6 +9,10 @@
       <!-- Lista de Imagens -->
       <div>
         <label for="image_list" class="block font-semibold mb-2 text-slate-700">Resumo das Imagens</label>
+        <button id="btn_nova_imagem" type="button"
+        class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded shadow">
+          ➕ Nova imagem
+        </button>
         <select id="image_list" name="image_list" multiple size="10" class="w-full border rounded p-2 shadow-sm">
           {% for cena in cenas %}
           {% set numero = loop.index %}
@@ -77,6 +81,74 @@
     <video id="modal_video" class="w-full h-auto rounded-lg max-h-[80vh] object-contain hidden" controls></video>
   </div>
 </div>
+
+<!-- MODAL ADICIONAR IMAGEM -->
+<div id="modal_add" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+  <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-3xl relative">
+    <button id="fechar_add" class="absolute top-2 right-3 text-xl text-gray-500 hover:text-black">&times;</button>
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">➕ Adicionar imagem</h2>
+
+    <div class="border-b mb-4 flex gap-4">
+      <button id="tab_gerar" class="py-2 px-3 border-b-2 border-blue-600 font-medium">Gerar por prompt</button>
+      <button id="tab_upload" class="py-2 px-3 text-gray-600 hover:text-black">Enviar arquivo</button>
+    </div>
+
+    <!-- Aba GERAR -->
+    <div id="pane_gerar" class="space-y-3">
+      <div class="flex items-center gap-3">
+        <label class="flex items-center gap-2">
+          <input type="radio" name="modo_gerar" value="novo" checked> Criar cena nova
+        </label>
+        <label class="flex items-center gap-2">
+          <input type="radio" name="modo_gerar" value="existente"> Vincular à cena nº
+          <input type="number" id="gerar_index" min="1" class="w-24 border rounded p-1" disabled>
+        </label>
+      </div>
+
+      <div id="grp_narracao_nova" class="space-y-1">
+        <label class="block text-sm text-gray-700">Narração (se cena nova):</label>
+        <textarea id="gerar_narracao" rows="2" class="w-full border rounded p-2"></textarea>
+      </div>
+
+      <div class="space-y-1">
+        <label class="block text-sm text-gray-700">Prompt da imagem:</label>
+        <textarea id="gerar_prompt" rows="4" class="w-full border rounded p-2 font-mono text-sm"></textarea>
+      </div>
+
+      <div class="flex justify-end">
+        <button id="btn_criar_gerar" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Criar / Gerar</button>
+      </div>
+    </div>
+
+    <!-- Aba UPLOAD -->
+    <div id="pane_upload" class="hidden space-y-3">
+      <div class="flex items-center gap-3">
+        <label class="flex items-center gap-2">
+          <input type="radio" name="modo_upload" value="novo" checked> Criar cena nova
+        </label>
+        <label class="flex items-center gap-2">
+          <input type="radio" name="modo_upload" value="existente"> Vincular à cena nº
+          <input type="number" id="upload_index" min="1" class="w-24 border rounded p-1" disabled>
+        </label>
+      </div>
+
+      <div id="grp_narracao_upload" class="space-y-1">
+        <label class="block text-sm text-gray-700">Narração (se cena nova):</label>
+        <textarea id="upload_narracao" rows="2" class="w-full border rounded p-2"></textarea>
+      </div>
+
+      <div class="space-y-1">
+        <label class="block text-sm text-gray-700">Arquivo (jpg/png/mp4):</label>
+        <input id="upload_arquivo" type="file" accept="image/*,video/mp4" class="border rounded p-2 w-full">
+      </div>
+
+      <div class="flex justify-end">
+        <button id="btn_criar_upload" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded">Criar / Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- MODAL DE EDIÇÃO -->
 <div id="modal_edicao" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">

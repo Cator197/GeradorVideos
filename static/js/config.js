@@ -59,31 +59,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnEnviar.addEventListener('click', () => {
   const file = uploadInput.files[0];
-  console.log("📤 Enviando arquivo:", uploadInput.files[0]?.name);
-  if (!file) {
-    alert("❌ Nenhum arquivo selecionado.");
+  if (!file) { alert("❌ Nenhum arquivo selecionado."); return; }
+  // checar extensão
+  if (!file.name.endsWith(".crd")) {
+    alert("❌ Selecione um arquivo .crd (pacote de crédito).");
     return;
   }
-
   const formData = new FormData();
   formData.append("arquivo", file);
-
-  fetch("/upload_config_licenciada", {
+  fetch("/upload_credit_pack", {
     method: "POST",
     body: formData
   })
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === 'ok') {
-        alert("✅ Configuração atualizada com sucesso!");
-        atualizarCreditosUI();
-      } else {
-        alert("❌ Erro: " + data.mensagem);
-      }
-    })
-    .catch(() => {
-      alert("❌ Erro na comunicação com o servidor.");
-    });
-  });
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'ok') {
+      alert("✅ Pacote aplicado com sucesso: " + data.mensagem);
+      atualizarCreditosUI();
+    } else {
+      alert("❌ Erro: " + data.mensagem);
+    }
+  })
+  .catch(() => { alert("❌ Erro na comunicação com o servidor."); });
+});
+
 
 });

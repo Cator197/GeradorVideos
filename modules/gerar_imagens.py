@@ -111,9 +111,9 @@ def run_gerar_imagens(indices):
         if "legenda" not in cenas[i] and "narracao" in cenas[i]:
             cenas[i]["legenda"] = cenas[i]["narracao"]
 
-    with open(paths["cenas_com_imagens"], "w", encoding="utf-8") as f:
+    with open(paths["cenas"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=4)
-        logs.append(f"✅ JSON atualizado salvo em {paths['cenas_com_imagens']}")
+        logs.append(f"✅ JSON atualizado salvo em {paths['cenas']}")
 
     return {"cenas": cenas_atualizadas, "logs": logs}
 
@@ -155,7 +155,7 @@ def gerar_eventos_para_stream(scope, single, start, selected=None):
 
     asyncio.run(executar())
 
-    with open(paths["cenas_com_imagens"], "w", encoding="utf-8") as f:
+    with open(paths["cenas"], "w", encoding="utf-8") as f:
         json.dump(cenas, f, ensure_ascii=False, indent=2)
 
     for log in logs:
