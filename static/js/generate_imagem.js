@@ -170,6 +170,149 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+// === Reordenar cenas (drag & drop) ============================================
+(function() {
+  const btnReord = document.getElementById("btn_reordenar");
+  const modal = document.getElementById("modal_reorder");
+  const fechar = document.getElementById("fechar_reorder");
+  const salvar = document.getElementById("salvar_reorder");
+  const sortable = document.getElementById("sortable_list");
+  const select = document.getElementById("image_list");
+
+  if (!btnReord || !modal || !fechar || !salvar || !sortable || !select) return;
+
+  const openModal = () => {
+    // Monta itens a partir do <select> VISUAL (não do value antigo)
+    sortable.innerHTML = "";
+    Array.from(select.options).forEach((opt, i) => {
+      const li = document.createElement("li");
+      li.className = "px-3 py-2 flex items-center gap-3 cursor-move bg-white";
+      li.setAttribute("draggable", "true");
+
+      // 🔧 Usa a posição visual atual em vez de opt.value (que pode estar desatualizado)
+      li.dataset.idx = String(i);
+
+      const num = document.createElement("span");
+      num.className = "font-mono text-xs bg-slate-100 px-2 py-0.5 rounded";
+      num.textContent = `#${i+1}`;
+
+      const txt = document.createElement("span");
+      txt.className = "flex-1 truncate";
+      txt.textContent = opt.text;
+
+      li.appendChild(num);
+      li.appendChild(txt);
+      sortable.appendChild(li);
+    });
+
+    modal.classList.remove("hidden");
+  };
+
+  const closeModal = () => modal.classList.add("hidden");
+
+  // Drag & drop handlers
+  let dragged = null;
+
+  sortable.addEventListener("dragstart", (e) => {
+    const li = e.target.closest("li[draggable='true']");
+    if (!li) return;
+    dragged = li;
+    e.dataTransfer.effectAllowed = "move";
+    li.classList.add("opacity-50");
+  });
+
+  sortable.addEventListener("dragend", () => {
+    if (dragged) dragged.classList.remove("opacity-50");
+    dragged = null;
+  });
+
+  sortable.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    const li = e.target.closest("li[draggable='true']");
+    if (!li || li === dragged) return;
+    const rect = li.getBoundingClientRect();
+    const before = (e.clientY - rect.top) < rect.height / 2;
+    sortable.insertBefore(dragged, before ? li : li.nextSibling);
+  });
+
+  // Salvar nova ordem
+  const salvarOrdem = async () => {
+    // Nova ordem = sequência das posições ORIGINAIS (dataset.idx) na UL
+    const novos = Array.from(sortable.querySelectorAll("li")).map(li => parseInt(li.dataset.idx, 10));
+
+    try {
+      const resp = await fetch("/cenas/reordenar", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ new_order: novos })
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.status !== "ok") {
+        alert("Erro ao reordenar: " + (data.msg || "desconhecido"));
+        return;
+      }
+
+      // ✅ Pós-reordenação: reconstrói a <select> consultando o backend
+      // Isso garante value/data-url/ext corretos e sincroniza com a pasta.
+      const r = await fetch("/cenas/resumo");
+      const j = await r.json();
+
+      if (j && j.status === "ok" && Array.isArray(j.cenas)) {
+        select.innerHTML = "";
+
+        j.cenas.forEach((c) => {
+          const opt = document.createElement("option");
+          // value precisa refletir o novo índice base-0
+          opt.value = String(c.index0);
+
+          // texto "Imagem N – prompt" + flag de não gerada, se faltar mídia
+          const prefixo = `Imagem ${c.numero}`;
+          const corpo = c.prompt ? ` – ${c.prompt}` : "";
+          const sufixo = c.tem_media ? "" : " (⚠️ não gerada)";
+          opt.text = `${prefixo}${corpo}${sufixo}`;
+
+          // dataset.url apenas se tiver mídia; o preview decide img/video pelo .mp4
+          if (c.media_url) {
+            opt.dataset.url = c.media_url;
+          } else {
+            delete opt.dataset.url;
+          }
+
+          select.appendChild(opt);
+        });
+      } else {
+        // fallback: se /cenas/resumo não existir, reordena visualmente os <option>
+        const opts = Array.from(select.options);
+        const byIndex = {};
+        opts.forEach((o, i) => byIndex[i] = o);
+
+        select.innerHTML = "";
+        Array.from(sortable.querySelectorAll("li")).forEach((li, i) => {
+          const opt = byIndex[parseInt(li.dataset.idx, 10)];
+          if (!opt) return;
+          // atualiza posição (value e rótulo)
+          opt.value = String(i);
+          opt.text = opt.text.replace(/^Imagem\s+\d+/, `Imagem ${i+1}`);
+          select.appendChild(opt);
+        });
+      }
+
+      closeModal();
+
+      const log = document.getElementById("log");
+      if (log) log.textContent += "✅ Ordem de cenas salva e lista sincronizada com o backend.\n";
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao comunicar com o servidor.");
+    }
+  };
+
+  btnReord.addEventListener("click", openModal);
+  fechar.addEventListener("click", closeModal);
+  salvar.addEventListener("click", salvarOrdem);
+})();
+
+
 
 function atualizarCreditosUI() {
   fetch("/api/creditos")

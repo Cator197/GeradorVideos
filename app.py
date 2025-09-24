@@ -1317,3 +1317,208 @@ def upload_credit_pack():
         print("Erro ao processar pacote .crd:", e)
         return jsonify({"status":"erro","mensagem":"Pacote inválido ou corrompido."}), 400
 
+@app.route("/cenas/reordenar", methods=["POST"])
+def cenas_reordenar():
+    """
+    Reordena cenas e renomeia arquivos vinculados em duas fases (temp -> final),
+    evitando colisões e deleções prematuras.
+    Body JSON:
+      - new_order: lista de índices base-0 com a NOVA ordem (p.ex. [3,0,1,2])
+    """
+    import uuid, shutil
+
+    try:
+        data = request.get_json(silent=True) or {}
+        new_order = data.get("new_order")
+        if not isinstance(new_order, list) or not all(isinstance(i, int) for i in new_order):
+            return jsonify({"status": "erro", "msg": "new_order inválido"}), 400
+
+        # Carrega cenas
+        with open(path["cenas"], encoding="utf-8") as f:
+            cenas = json.load(f)
+
+        total = len(cenas)
+        if sorted(new_order) != list(range(total)):
+            return jsonify({"status": "erro", "msg": "new_order não corresponde aos índices existentes"}), 400
+
+        # Mapa novo->antigo (novo 0 recebe o antigo X...)
+        novo_para_antigo = {novo_idx: antigo_idx for novo_idx, antigo_idx in enumerate(new_order)}
+
+        # Helpers
+        def existe(p): return os.path.exists(p)
+        def achar_ext_imagem(idx1):
+            base = os.path.join(path["imagens"], f"imagem{idx1}")
+            for ext in (".jpg", ".jpeg", ".png", ".mp4"):
+                if existe(base + ext):
+                    return ext
+            return None
+
+        # --- Colete TODOS os caminhos fonte existentes (por índice antigo) ---
+        # Vamos criar dicionários { (tipo, antigo_idx1): src_path } SOMENTE para os que existem
+        src_paths = {}  # chave: (tipo, antigo_idx1) -> caminho
+        for antigo_idx in range(total):
+            i1 = antigo_idx + 1
+
+            # imagem (qualquer ext)
+            img_ext = achar_ext_imagem(i1)
+            if img_ext:
+                src_paths[("img", i1)] = os.path.join(path["imagens"], f"imagem{i1}{img_ext}")
+
+            # áudio
+            p = os.path.join(path["audios"], f"narracao{i1}.mp3")
+            if existe(p):
+                src_paths[("aud", i1)] = p
+
+            # srt
+            p = os.path.join(path["legendas_srt"], f"legenda{i1}.srt")
+            if existe(p):
+                src_paths[("srt", i1)] = p
+
+            # ass
+            p = os.path.join(path["legendas_ass"], f"legenda{i1}.ass")
+            if existe(p):
+                src_paths[("ass", i1)] = p
+
+            # video da cena
+            p = os.path.join(path["videos_cenas"], f"video{i1}.mp4")
+            if existe(p):
+                src_paths[("vid", i1)] = p
+
+        # --- FASE 1: mover TODO mundo para nomes temporários únicos ---
+        # Guardamos mapeamento temp->meta (tipo, antigo_idx1)
+        temp_paths = {}  # temp_path -> (tipo, antigo_idx1)
+        for key, src in src_paths.items():
+            dirp = os.path.dirname(src)
+            base = os.path.basename(src)
+            tmp = os.path.join(dirp, f".reorder_tmp_{uuid.uuid4().hex}__{base}")
+            os.replace(src, tmp)  # movimento atômico dentro do mesmo disco
+            temp_paths[tmp] = key
+
+        # --- FASE 2: mover de temporários para os destinos FINAIS (novo_idx) ---
+        # Para cada novo_idx, descubra antigo_idx e crie destinos por tipo.
+        for novo_idx, antigo_idx in novo_para_antigo.items():
+            j1 = novo_idx + 1
+            i1 = antigo_idx + 1
+
+            # IMG
+            key = ("img", i1)
+            tmp = next((t for t, k in temp_paths.items() if k == key), None)
+            if tmp:
+                # precisamos inferir a extensão a partir do tmp (ou do i1 original)
+                _, srcname = os.path.split(tmp)
+                # srcname termina com algo tipo ...imagem{i1}.jpg
+                _, ext = os.path.splitext(srcname)
+                dst = os.path.join(path["imagens"], f"imagem{j1}{ext}")
+                # se já existe dst, removemos (arquivo de destino antigo)
+                if existe(dst):
+                    os.remove(dst)
+                os.replace(tmp, dst)
+
+            # Áudio
+            key = ("aud", i1)
+            tmp = next((t for t, k in temp_paths.items() if k == key), None)
+            if tmp:
+                dst = os.path.join(path["audios"], f"narracao{j1}.mp3")
+                if existe(dst):
+                    os.remove(dst)
+                os.replace(tmp, dst)
+
+            # SRT
+            key = ("srt", i1)
+            tmp = next((t for t, k in temp_paths.items() if k == key), None)
+            if tmp:
+                dst = os.path.join(path["legendas_srt"], f"legenda{j1}.srt")
+                if existe(dst):
+                    os.remove(dst)
+                os.replace(tmp, dst)
+
+            # ASS
+            key = ("ass", i1)
+            tmp = next((t for t, k in temp_paths.items() if k == key), None)
+            if tmp:
+                dst = os.path.join(path["legendas_ass"], f"legenda{j1}.ass")
+                if existe(dst):
+                    os.remove(dst)
+                os.replace(tmp, dst)
+
+            # Vídeo
+            key = ("vid", i1)
+            tmp = next((t for t, k in temp_paths.items() if k == key), None)
+            if tmp:
+                dst = os.path.join(path["videos_cenas"], f"video{j1}.mp4")
+                if existe(dst):
+                    os.remove(dst)
+                os.replace(tmp, dst)
+
+        # --- Reordena o ARRAY de cenas conforme new_order ---
+        cenas_nova = [cenas[i] for i in new_order]
+
+        # --- Atualiza os campos de caminho de cada cena de acordo com o novo índice ---
+        for novo_idx, cena in enumerate(cenas_nova):
+            j1 = novo_idx + 1
+
+            # áudio
+            aud = os.path.join(path["audios"], f"narracao{j1}.mp3")
+            cena["audio_path"] = aud if os.path.exists(aud) else None
+
+            # srt
+            srt = os.path.join(path["legendas_srt"], f"legenda{j1}.srt")
+            cena["srt_path"] = srt if os.path.exists(srt) else None
+
+            # ass
+            ass = os.path.join(path["legendas_ass"], f"legenda{j1}.ass")
+            cena["ass_path"] = ass if os.path.exists(ass) else None
+
+            # imagem (descobrir extensão nova)
+            img_ext = None
+            for ext in (".jpg", ".jpeg", ".png", ".mp4"):
+                if os.path.exists(os.path.join(path["imagens"], f"imagem{j1}{ext}")):
+                    img_ext = ext
+                    break
+
+            if img_ext:
+                arquivo_local = os.path.join(path["imagens"], f"imagem{j1}{img_ext}")
+                cena["arquivo_local"] = arquivo_local
+                # Se você tiver um endpoint de serve estável, prefira gerar a URL via frontend com url_for.
+                # Aqui deixo só o caminho local; o template monta a URL com url_for('serve_module_images', filename=basename).
+                cena["image_url"] = None
+            else:
+                cena["arquivo_local"] = None
+                cena["image_url"] = None
+
+        # Persiste
+        with open(path["cenas"], "w", encoding="utf-8") as f:
+            json.dump(cenas_nova, f, ensure_ascii=False, indent=2)
+
+        return jsonify({"status": "ok", "total": total})
+
+    except Exception as e:
+        print("❌ Erro em /cenas/reordenar:", e)
+        return jsonify({"status": "erro", "msg": str(e)}), 500
+
+@app.route("/cenas/resumo", methods=["GET"])
+def cenas_resumo():
+    with open(path["cenas"], encoding="utf-8") as f:
+        cenas = json.load(f)
+
+    resumo = []
+    for i, cena in enumerate(cenas, start=1):
+        # Detecta mídia física:
+        url = None
+        tipo = None
+        for ext, t in [(".jpg","image"), (".jpeg","image"), (".png","image"), (".mp4","video")]:
+            p = os.path.join(path["imagens"], f"imagem{i}{ext}")
+            if os.path.exists(p):
+                url = f"/modules/imagens/imagem{i}{ext}"
+                tipo = t
+                break
+
+        resumo.append({
+            "index0": i-1,
+            "numero": i,
+            "prompt": cena.get("prompt_imagem", ""),
+            "media_url": url,
+            "media_tipo": tipo,
+            "tem_media": bool(url)
+        })
+    return jsonify({"status": "ok", "cenas": resumo})
