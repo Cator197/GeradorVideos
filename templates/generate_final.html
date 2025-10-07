@@ -1,172 +1,175 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 <div class="bg-white rounded-xl shadow p-6 space-y-6">
-  <form id="form_generate_final" class="space-y-6">
 
-    <!-- Timeline das Cenas -->
-    <div class="border rounded-xl p-4 bg-slate-50">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="font-semibold text-lg">🎞️ Timeline das Cenas</h3>
-        <div class="flex items-center gap-4">
-          <label class="text-sm flex items-center gap-2">
-            <input type="radio" name="scope_cena" value="all" checked> Todas as cenas
-          </label>
-          <label class="text-sm flex items-center gap-2">
-            <input type="radio" name="scope_cena" value="single"> Cena:
-            <input type="number" id="input_single_idx" class="w-16 border rounded px-1 py-0.5 text-xs" min="1" disabled>
-          </label>
-          <button id="btn_gerar_cenas" type="button" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded shadow text-sm">
-            🎥 Gerar Cenas com Legenda
-          </button>
-        </div>
-      </div>
+  <!-- Cabeçalho topo (título removido por solicitação) -->
+  <div class="flex items-center justify-between">
+    <div></div>
+    <!-- botões foram movidos para a coluna direita, abaixo do preview -->
+  </div>
 
-      <div class="flex items-center gap-4 mb-4">
-        <label class="flex items-center gap-2 text-sm">
-          <input type="checkbox" id="checkbox_legenda_global"> Incluir legendas em todas as cenas
-        </label>
-        <label class="flex items-center gap-2 text-sm">
-          Posição:
-          <select id="select_posicao_global" class="border rounded px-2 py-1 text-sm">
-            <option value="inferior">Inferior</option>
-            <option value="central">Centralizada</option>
-            <option value="central-1">Centralizada -1</option>
-            <option value="central-2">Centralizada -2</option>
-            <option value="central-3">Centralizada -3</option>
-          </select>
-        </label>
-      </div>
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+    <!-- COLUNA ESQUERDA (sections + timeline + log) -->
+    <div class="xl:col-span-9 space-y-4">
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {% for cena in cenas %}
-        <div class="flex items-start gap-4 scene-row" data-idx="{{ loop.index0 }}">
-          <!-- Cena Card -->
-          <div class="flex-shrink-0 bg-white border rounded-lg shadow-sm p-2 cursor-pointer w-2/3 scene-card">
-            <div class="text-center font-medium mb-2">Cena {{ loop.index }}</div>
-            <div class="text-sm h-16 overflow-hidden text-gray-600">
-              {{ cena.narracao[:60] if cena.narracao else '[sem texto]' }}
-            </div>
-            <div class="mt-2 space-y-2">
-              <label for="efeito_{{ loop.index0 }}" class="block text-xs font-semibold text-gray-500">Efeito:</label>
-              <select id="efeito_{{ loop.index0 }}" name="efeito_{{ loop.index0 }}" class="w-full text-xs border rounded efeito-select">
-                <option value="">Nenhum</option>
-                <option value="preto_branco">Preto e Branco</option>
-                <option value="espelho">Espelho</option>
-                <option value="zoom">Zoom (Ken Burns)</option>
-                <option value="escurecer">Escurecer</option>
-                <option value="fade_in">Fade In</option>
-                <option value="fade_out">Fade Out</option>
-                <option value="blur_pulse">Desfoque Pulsante</option>
-                <option value="shake_horizontal">Tremor Horizontal</option>
-                <option value="shake_vertical">Tremor Vertical</option>
-                <option value="pulsar_brilho">Brilho Pulsante</option>
-                <option value="cor_oscila">Oscilação de Cor</option>
-                <option value="giro_leve">Giro Leve</option>
-                <option value="loop_colorido">Cores Pulando</option>
-                <option value="transparente_pulse">Fantasma Pulsante</option>
-                <option value="slide">Slide com Direção</option>
-                <option value="tremor">Tremor (com Intensidade)</option>
-                <option value="zoom_rapido_em_partes">Zoom Rápido em Partes</option>
-                <option value="distorcao_tv">Distorção Estilo TV</option>
-              </select>
+      <!-- SECTION 1: Efeitos + Transições -->
+      <section class="bg-slate-50 border rounded-xl p-4 space-y-3">
+        <h3 class="font-semibold">🎛️ Efeitos & Transições</h3>
 
-              <div class="config-efeito hidden" id="config_efeito_{{ loop.index0 }}"></div>
-
-              <label class="flex items-center text-xs mt-2">
-                <input type="checkbox" name="usar_legenda_{{ loop.index0 }}" class="mr-2"> Incluir legenda
-              </label>
-
-              <select name="posicao_legenda_{{ loop.index0 }}" class="w-full border rounded text-xs px-2 py-1">
-                <option value="inferior">Inferior</option>
-                <option value="central">Centralizada</option>
-                <option value="central-1">Centralizada -1</option>
-                <option value="central-2">Centralizada -2</option>
-                <option value="central-3">Centralizada -3</option>
-              </select>
+        <!-- Linha 1: EFEITOS (scroll horizontal) -->
+        <div class="space-y-1">
+          <div class="text-xs text-gray-600">Efeitos</div>
+          <div class="overflow-x-auto">
+            <div id="grid_efeitos" class="inline-flex gap-2 pr-1">
+              <!-- botões criados via JS -->
             </div>
           </div>
+        </div>
 
-          {% if not loop.last %}
-            <div class="w-1/3 transition-col">
-              <div class="config-transicao flex flex-col items-center justify-center">
-                <!-- o JS vai inserir aqui a label + select -->
-              </div>
-              <input
-                id="duracao_{{ loop.index0 }}"
-                name="duracao_{{ loop.index0 }}"
-                type="number"
-                step="0.1"
-                min="0.1"
-                class="text-xs border rounded px-2 py-1 w-full duration-input mt-1"
-                placeholder="Duração (s)"
-                value="0.5"
-              />
+        <!-- Linha 2: TRANSIÇÕES (scroll horizontal) -->
+        <div class="space-y-1">
+          <div class="text-xs text-gray-600">Transições</div>
+          <div class="overflow-x-auto">
+            <div id="grid_transicoes" class="inline-flex gap-2 pr-1">
+              <!-- botões criados via JS -->
             </div>
-          {% endif %}
-
-
+          </div>
         </div>
-        {% endfor %}
-      </div>
-    </div>
+      </section>
 
-    <!-- Painel de Configurações Gerais -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-slate-50 border rounded-lg p-4 shadow-sm space-y-4">
-        <h3 class="font-semibold text-lg">⚙️ Configurações Gerais</h3>
+      <!-- SECTION 3: Timeline -->
+      <section id="timeline" class="bg-slate-50 border rounded-xl p-4">
+        <div id="timeline_inner" class="flex items-center gap-3 overflow-x-auto"></div>
+      </section>
 
-        <label class="block"><input type="checkbox" id="usar_trilha"> Usar trilha sonora</label>
-        <input type="file" id="input_trilha" accept="audio/*" class="w-full border rounded p-2 mt-2" disabled>
-        <div id="config_trilha" class="mt-2 hidden">
-          <label class="block text-sm text-gray-700">Volume da trilha sonora:</label>
-          <input type="range" id="volume_trilha" min="0" max="100" value="25" class="w-full">
-          <div class="text-xs text-gray-600 mt-1">Volume atual: <span id="volume_valor">25%</span></div>
+      <!-- SECTION 2 (abaixo da timeline): escopo + legendas globais + template + gerar -->
+      <section class="bg-slate-50 border rounded-xl p-4">
+        <div class="flex flex-col gap-4">
+          <!-- Escopo -->
+          <div class="flex flex-wrap items-center gap-4">
+            <label class="text-sm flex items-center gap-2">
+              <input type="radio" name="scope_type" id="scope_all" value="all" checked>
+              Todas as cenas
+            </label>
+            <label class="text-sm flex items-center gap-2">
+              <input type="radio" name="scope_type" id="scope_single" value="single">
+              Apenas a cena
+              <input type="number" id="input_single_idx" class="w-20 border rounded px-2 py-1 text-sm" min="1" disabled>
+            </label>
+          </div>
 
-          <button id="btn_preview_audio" type="button"
-            class="mt-2 bg-gray-800 hover:bg-black text-white text-sm px-3 py-1 rounded">
-            🔊 Preview da trilha com a 1ª cena
-          </button>
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" id="checkbox_legenda_global"> Legendas em todas
+              </label>
+              <label class="flex items-center gap-2 text-sm">
+                Posição:
+                <select id="select_posicao_global" class="border rounded px-2 py-1 text-sm">
+                  <option value="inferior">Inferior</option>
+                  <option value="central">Centralizada</option>
+                  <option value="central-1">Centralizada -1</option>
+                  <option value="central-2">Centralizada -2</option>
+                  <option value="central-3">Centralizada -3</option>
+                </select>
+              </label>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm text-gray-600">Template:</label>
+              <select id="select_template" class="border rounded px-2 py-1 text-sm">
+                <option value="none">Nenhum</option>
+                <option value="suave">Suave</option>
+                <option value="dinamico">Dinâmico</option>
+                <option value="semt">Sem transição/efeito</option>
+              </select>
+              <button id="btn_gerar_cenas" type="button" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded shadow text-sm">
+                🎥 Gerar Cenas
+              </button>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <label class="block"><input type="checkbox" id="usar_marca"> Adicionar marca d'água</label>
-        <input type="file" id="input_marca" accept="image/*" class="w-full border rounded p-2 mt-2" disabled>
-        <div id="config_marca" class="mt-2 hidden">
-          <label class="block text-sm text-gray-700">Opacidade da marca d'água:</label>
-          <input type="range" id="opacidade_marca" min="0" max="100" value="100" class="w-full">
-          <div class="text-xs text-gray-600 mt-1">Opacidade atual: <span id="opacidade_valor">100%</span></div>
-        </div>
-
-        <div class="flex flex-col gap-3 mt-4">
-          <button id="btn_gerar_video" type="button" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow">
-            🎬 Gerar Vídeo Final
-          </button>
-        </div>
-      </div>
-
-      <!-- Log e Progresso -->
-      <div class="space-y-4">
+      <!-- LOG -->
+      <section class="space-y-3">
         <div id="barra_indeterminada" class="hidden w-full bg-gray-200 rounded-full h-4">
           <div class="bg-blue-500 h-4 rounded-full animate-pulse w-full"></div>
         </div>
         <div class="bg-black text-green-400 text-sm p-4 rounded-md h-52 overflow-y-auto font-mono">
           <pre id="log"></pre>
         </div>
-      </div>
+      </section>
     </div>
-  </form>
-</div>
 
-<!-- MODAL de Preview de Vídeo -->
-<div id="modal_preview_video" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
-  <div class="bg-white p-4 rounded-lg shadow-xl max-w-3xl w-full relative">
-    <button id="close_modal_video" class="absolute top-2 right-2 text-xl text-gray-600 hover:text-black">×</button>
-    <video id="preview_video" controls class="w-full rounded-lg max-h-[80vh] object-contain mt-2">
-      <source id="video_source" src="" type="video/mp4">
-      Seu navegador não suporta o elemento vídeo.
-    </video>
+    <!-- COLUNA DIREITA (Preview + trilha/marca + botões principais) -->
+    <aside class="xl:col-span-3 space-y-3">
+      <div class="bg-slate-50 border rounded-xl p-3">
+        <div class="relative aspect-[9/16] bg-white border rounded-lg overflow-hidden flex items-center justify-center">
+          <!-- Player nativo: o JS seta .src para /preview_video/{index} ou para o proxy do vídeo inteiro -->
+          <video id="preview_player"
+                 class="w-full h-full object-contain"
+                 controls
+                 playsinline
+                 preload="metadata"></video>
+        </div>
+
+        <!-- Barra abaixo do player -->
+        <div class="mt-2 flex items-center justify-between">
+          <div class="text-xs text-gray-600">
+            Transição à direita: <span id="label_slot"></span>
+          </div>
+          <!-- Botão de prévia do VÍDEO (proxy 360p) -->
+          <button id="btn_preview_full" class="px-2 py-1 border rounded text-sm">
+            ▶ Prévia do vídeo
+          </button>
+        </div>
+
+        <!-- Trilha & Marca d’água -->
+        <div class="mt-3 space-y-3">
+          <div>
+            <label class="block text-sm"><input type="checkbox" id="usar_trilha" class="mr-2"> Usar trilha sonora</label>
+            <input type="file" id="input_trilha" accept="audio/*" class="w-full border rounded p-2 mt-2" disabled>
+            <div id="config_trilha" class="mt-2 hidden">
+              <label class="block text-xs text-gray-600">Volume da trilha</label>
+              <input type="range" id="volume_trilha" min="0" max="100" value="25" class="w-full">
+              <div class="text-xs text-gray-600 mt-1">Volume atual: <span id="volume_valor">25%</span></div>
+              <button id="btn_preview_audio" type="button" class="mt-2 bg-gray-800 hover:bg-black text-white text-xs px-3 py-1 rounded">🔊 Preview com 1ª cena</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm"><input type="checkbox" id="usar_marca" class="mr-2"> Adicionar marca d’água</label>
+            <input type="file" id="input_marca" accept="image/*" class="w-full border rounded p-2 mt-2" disabled>
+            <div id="config_marca" class="mt-2 hidden">
+              <label class="block text-xs text-gray-600">Opacidade</label>
+              <input type="range" id="opacidade_marca" min="0" max="100" value="100" class="w-full">
+              <div class="text-xs text-gray-600 mt-1">Opacidade atual: <span id="opacidade_valor">100%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botões principais -->
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button id="btn_salvar_projeto" type="button" class="px-3 py-2 rounded border text-sm">💾 Salvar projeto</button>
+          <button id="btn_gerar_video" type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded shadow text-sm">🎬 Gerar Vídeo Final</button>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 border rounded-xl p-3 space-y-2">
+        <div class="text-sm font-medium">Ações rápidas</div>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="btn_aplicar_efeito_todos" class="px-2 py-1 border rounded text-sm">Efeito → todas</button>
+          <button id="btn_aplicar_transicao_todas" class="px-2 py-1 border rounded text-sm">Transição → todas</button>
+          <button id="btn_duplicar" class="px-2 py-1 border rounded text-sm">Duplicar cena</button>
+          <button id="btn_excluir" class="px-2 py-1 border rounded text-sm text-red-600">Excluir cena</button>
+        </div>
+      </div>
+    </aside>
   </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}

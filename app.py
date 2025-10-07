@@ -1,5 +1,5 @@
 """Aplicação Flask para orquestrar as etapas de geração de vídeos."""
-
+import hashlib
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_from_directory, send_file, Response, stream_with_context
 import tkinter as tk
 from tkinter import filedialog
@@ -1048,8 +1048,387 @@ def servir_video_final(nome):
     from flask import send_from_directory
     return send_from_directory(path["videos_final"], nome)
 
+@app.route("/cenas/excluir", methods=["POST"])
+def cenas_excluir():
+    data = request.get_json(silent=True) or {}
+    idx0 = int(data.get("index0", -1))
+    paths = get_paths()
+    import shutil
+
+    with open(paths["cenas"], encoding="utf-8") as f:
+        cenas = json.load(f)
+
+    if not (0 <= idx0 < len(cenas)):
+        return jsonify({"status":"erro","msg":"index fora do range"}), 400
+
+    # Remove arquivos físicos da cena idx0 (imagem, áudio, srt, ass, vídeo)
+    i1 = idx0 + 1
+    def rm(p):
+        try:
+            if os.path.isfile(p): os.remove(p)
+        except: pass
+
+    for ext in (".jpg",".jpeg",".png",".mp4"):
+        rm(os.path.join(paths["imagens"], f"imagem{i1}{ext}"))
+    rm(os.path.join(paths["audios"], f"narracao{i1}.mp3"))
+    rm(os.path.join(paths["legendas_srt"], f"legenda{i1}.srt"))
+    rm(os.path.join(paths["legendas_ass"], f"legenda{i1}.ass"))
+    rm(os.path.join(paths["videos_cenas"], f"video{i1}.mp4"))
+
+    # Remove do JSON
+    del cenas[idx0]
+
+    # Persiste provisoriamente
+    with open(paths["cenas"], "w", encoding="utf-8") as f:
+        json.dump(cenas, f, ensure_ascii=False, indent=2)
+
+    # Renumera tudo chamando reordenar com ordem identidade (0..n-1)
+    # Isso força os arquivos remanescentes a assumirem a sequência nova
+    ordem = list(range(len(cenas)))
+    # Reaproveita sua lógica /cenas/reordenar chamando internamente:
+    # (Opcional: você pode consolidar esse código com a função existente)
+    return jsonify({"status":"ok"})
+
+@app.route("/cenas/duplicar", methods=["POST"])
+def cenas_duplicar():
+    data = request.get_json(silent=True) or {}
+    idx0 = int(data.get("index0", -1))
+    paths = get_paths()
+    import shutil
+
+    with open(paths["cenas"], encoding="utf-8") as f:
+        cenas = json.load(f)
+
+    if not (0 <= idx0 < len(cenas)):
+        return jsonify({"status":"erro","msg":"index fora do range"}), 400
+
+    nova = json.loads(json.dumps(cenas[idx0]))  # deep copy
+    cenas.insert(idx0+1, nova)
+
+    # Persiste JSON
+    with open(paths["cenas"], "w", encoding="utf-8") as f:
+        json.dump(cenas, f, ensure_ascii=False, indent=2)
+
+    # Arquivos: copie se existirem (imagem, áudio, srt/ass, vídeo)
+    src_i1 = idx0+1
+    dst_i1 = idx0+2
+    def copiar(src, dst):
+        try:
+          if os.path.isfile(src):
+            shutil.copy2(src, dst)
+        except: pass
+
+    # descobrir ext da imagem
+    img_ext = None
+    for ext in (".jpg",".jpeg",".png",".mp4"):
+        p = os.path.join(paths["imagens"], f"imagem{src_i1}{ext}")
+        if os.path.exists(p):
+            img_ext = ext; break
+    if img_ext:
+      copiar(os.path.join(paths["imagens"], f"imagem{src_i1}{img_ext}"),
+             os.path.join(paths["imagens"], f"imagem{dst_i1}{img_ext}"))
+
+    copiar(os.path.join(paths["audios"], f"narracao{src_i1}.mp3"),
+           os.path.join(paths["audios"], f"narracao{dst_i1}.mp3"))
+    copiar(os.path.join(paths["legendas_srt"], f"legenda{src_i1}.srt"),
+           os.path.join(paths["legendas_srt"], f"legenda{dst_i1}.srt"))
+    copiar(os.path.join(paths["legendas_ass"], f"legenda{src_i1}.ass"),
+           os.path.join(paths["legendas_ass"], f"legenda{dst_i1}.ass"))
+    copiar(os.path.join(paths["videos_cenas"], f"video{src_i1}.mp4"),
+           os.path.join(paths["videos_cenas"], f"video{dst_i1}.mp4"))
+
+    return jsonify({"status":"ok"})
+
 
 #--------------------------------------------------------------------------------------------------------------------
+
+# ========================== PREVIEW PROXY (360p) ==========================
+def _ffprobe_streams(p):
+    """Retorna dict {'v_dur': float, 'a_dur': float, 'has_audio': bool} para o arquivo p."""
+    try:
+        # Tenta pegar duração de vídeo (stream) e form.duration como fallback
+        cmd = [
+            "ffprobe","-v","error","-show_entries","stream=codec_type,duration",
+            "-show_format","-of","json", p
+        ]
+        out = subprocess.run(cmd, capture_output=True, text=True, check=True).stdout
+        j = json.loads(out)
+        v_dur = None; a_dur = None; has_audio = False
+        for s in j.get("streams", []):
+            if s.get("codec_type") == "video":
+                v_dur = float(s.get("duration")) if s.get("duration") else v_dur
+            if s.get("codec_type") == "audio":
+                has_audio = True
+                a_dur = float(s.get("duration")) if s.get("duration") else a_dur
+        # fallback: format.duration
+        if v_dur is None:
+            fd = j.get("format", {}).get("duration")
+            if fd is not None:
+                v_dur = float(fd)
+        return {
+            "v_dur": float(v_dur) if v_dur is not None else 0.0,
+            "a_dur": float(a_dur) if a_dur is not None else 0.0,
+            "has_audio": bool(has_audio)
+        }
+    except Exception:
+        return {"v_dur": 0.0, "a_dur": 0.0, "has_audio": False}
+
+
+def _hash_payload(payload_bytes, trilha_bytes=None, marca_bytes=None):
+    h = hashlib.sha1()
+    h.update(payload_bytes)
+    if trilha_bytes: h.update(trilha_bytes)
+    if marca_bytes:  h.update(marca_bytes)
+    return h.hexdigest()
+
+
+@app.route("/cache/preview/<path:nome>")
+def serve_preview_cache(nome):
+    path_dict = get_paths()
+    cache_dir = os.path.join(path_dict["base"], "cache_preview")
+    return send_from_directory(cache_dir, nome, as_attachment=False)
+
+
+@app.route("/preview_timeline", methods=["POST"])
+def preview_timeline():
+    """
+    Gera um MP4 360p 'ultrafast' com as cenas e transições atuais.
+    Body:
+      - JSON direto (Content-Type: application/json)  OU
+      - FormData com campo 'payload' (JSON) + arquivos opcionais 'trilha' e 'marca'
+    Retorno: { ok: true, url: "/cache/preview/<hash>.mp4" }
+    """
+    try:
+        path_dict = get_paths()
+        base = path_dict["base"]
+        videos_dir = path_dict["videos_cenas"]
+        cache_dir  = os.path.join(base, "cache_preview")
+        os.makedirs(cache_dir, exist_ok=True)
+
+        # --------- Lê payload + arquivos opcionais ---------
+        if request.is_json:
+            payload = request.get_json(silent=True) or {}
+            trilha_file = None
+            marca_file  = None
+            trilha_bytes = None
+            marca_bytes  = None
+        else:
+            payload_raw = request.form.get("payload", "{}")
+            payload = json.loads(payload_raw)
+            trilha_file = request.files.get("trilha")
+            marca_file  = request.files.get("marca")
+            trilha_bytes = trilha_file.read() if trilha_file else None
+            marca_bytes  = marca_file.read() if marca_file else None
+            # rebobina para permitir salvar depois
+            if trilha_file: trilha_file.stream.seek(0)
+            if marca_file:  marca_file.stream.seek(0)
+
+        order  = payload.get("order") or []  # índices base-0
+        scenes = payload.get("scenes") or []
+        slots  = payload.get("slots")  or []
+        trilha = payload.get("trilha") or {}
+        marca  = payload.get("marca")  or {}
+
+        if not order:
+            return jsonify({"ok": False, "message": "Sem cenas na timeline."}), 400
+
+        # --------- Monta lista de inputs (arquivos de cena) ---------
+        input_files = []
+        durations   = []
+        has_audio   = []
+
+        for idx0 in order:
+            idx1 = int(idx0) + 1
+            p = os.path.join(videos_dir, f"video{idx1}.mp4")
+            if not os.path.isfile(p):
+                return jsonify({"ok": False, "message": f"Cena {idx1} não encontrada ({p}). Gere as cenas antes."}), 400
+            input_files.append(p)
+            info = _ffprobe_streams(p)
+            durations.append(max(0.01, info["v_dur"]))  # mínima pra evitar zero
+            has_audio.append(bool(info["has_audio"]))
+
+        n = len(input_files)
+
+        # --------- Transições (tamanho n-1) ---------
+        # Normaliza com defaults
+        trans_types = []
+        trans_durs  = []
+        for i in range(n-1):
+            tp=(slots[i].get("tipo") if i < len(slots) and isinstance(slots[i], dict) else "") or ""
+            du=(slots[i].get("duracao") if i < len(slots) and isinstance(slots[i], dict) else None)
+            try:
+                du=float(du) if du is not None else 0.3
+            except Exception:
+                du=0.3
+
+            # se não houver transição, duração = 0 (corte seco)
+            if not tp or tp in ("none", "sem", "sem_transicao", "sem_transição"):
+                du=0.0
+
+            # limites só se houver transição > 0
+            if du > 0:
+                du=max(0.1, min(2.0, du))
+
+            trans_types.append(tp)
+            trans_durs.append(du)
+
+        # --------- Hash / cache ---------
+        # Use o JSON puro + (hash dos arquivos opcionais)
+        payload_bytes = json.dumps({
+            "order": order, "slots": list(zip(trans_types, trans_durs)),
+            "trilha": {"enabled": bool(trilha.get("enabled")), "volume": trilha.get("volume", 25)},
+            "marca":  {"enabled": bool(marca.get("enabled")),  "opacidade": marca.get("opacidade", 100)}
+        }, sort_keys=True).encode("utf-8")
+
+        trilha_bytes_for_hash = None
+        marca_bytes_for_hash  = None
+        if request.files:
+            if trilha_file:
+                trilha_bytes_for_hash = trilha_bytes or trilha_file.read()
+                trilha_file.stream.seek(0)
+            if marca_file:
+                marca_bytes_for_hash = marca_bytes or marca_file.read()
+                marca_file.stream.seek(0)
+
+        h = _hash_payload(payload_bytes, trilha_bytes_for_hash, marca_bytes_for_hash)
+        out_name = f"preview_{h}.mp4"
+        out_path = os.path.join(cache_dir, out_name)
+
+        if os.path.exists(out_path):
+            return jsonify({"ok": True, "url": f"/cache/preview/{out_name}"})
+
+        # --------- Prepara inputs extras (trilha/marca) ---------
+        add_inputs = []
+        map_indices = {}  # {'trilha': N, 'marca': M}
+        tmp_to_cleanup = []
+
+        if trilha.get("enabled") and request.files and trilha_file:
+            tmpt = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(trilha_file.filename or "trilha")[1] or ".mp3")
+            trilha_file.save(tmpt.name)
+            tmp_to_cleanup.append(tmpt.name)
+            map_indices["trilha"] = len(input_files) + len(add_inputs)
+            add_inputs.append(tmpt.name)
+
+        if marca.get("enabled") and request.files and marca_file:
+            tmpm = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(marca_file.filename or "marca")[1] or ".png")
+            marca_file.save(tmpm.name)
+            tmp_to_cleanup.append(tmpm.name)
+            map_indices["marca"] = len(input_files) + len(add_inputs)
+            # usamos -loop 1 para imagem
+            add_inputs.append(tmpm.name)
+
+        # --------- Construção do filter_complex ---------
+        f = []  # linhas do filtergraph
+        vlabels = []
+        alabels = []
+
+        # pré-processamento (escala/format para vídeo; sample rate/canais para áudio)
+        for i in range(n):
+            f.append(f"[{i}:v]scale=-2:540,setsar=1[v{i}s]")
+            vlabels.append(f"v{i}s")
+            if has_audio[i]:
+                f.append(f"[{i}:a]aformat=fltp:44100:stereo,aresample=async=1:first_pts=0[a{i}s]")
+            else:
+                # áudio silencioso com duração do vídeo
+                dur = durations[i]
+                f.append(f"anullsrc=channel_layout=stereo:sample_rate=44100,atrim=duration={dur:.3f},asetpts=N/SR/TB[a{i}s]")
+            alabels.append(f"a{i}s")
+
+        # Corrente de xfade (vídeo) e acrossfade (áudio)
+        if n == 1:
+            last_v = vlabels[0]
+            last_a = alabels[0]
+        else:
+            # offsets acumulados para xfade
+            offsets = []
+            cum = durations[0]
+            for k in range(n-1):
+                tk = trans_durs[k]
+                offsets.append(max(0.0, cum - tk))
+                cum = cum + durations[k+1] - tk
+
+            last_v = vlabels[0]
+            last_a = alabels[0]
+            for k in range(1, n):
+                trans=trans_types[k - 1]
+                tdur=trans_durs[k - 1]
+                off=offsets[k - 1]
+
+                if trans and tdur > 0:
+                    # há transição: usa xfade/acrossfade
+                    f.append(
+                        f"[{last_v}][{vlabels[k]}]xfade=transition={trans}:duration={tdur:.3f}:offset={off:.3f}[vx{k}]")
+                    last_v=f"vx{k}"
+                    f.append(f"[{last_a}][{alabels[k]}]acrossfade=d={tdur:.3f}:c1=tri:c2=tri[ax{k}]")
+                    last_a=f"ax{k}"
+                else:
+                    # sem transição: corte seco com concat
+                    f.append(f"[{last_v}][{vlabels[k]}]concat=n=2:v=1:a=0[vx{k}]")
+                    last_v=f"vx{k}"
+                    f.append(f"[{last_a}][{alabels[k]}]concat=n=2:v=0:a=1[ax{k}]")
+                    last_a=f"ax{k}"
+
+        # Marca d'água (opcional)
+        if "marca" in map_indices:
+            mi = map_indices["marca"]
+            op = float(marca.get("opacidade", 100)) / 100.0
+            op = max(0.0, min(1.0, op))
+            f.append(f"[{mi}:v]format=rgba,colorchannelmixer=aa={op:.2f}[wm]")
+            f.append(f"[{last_v}][wm]overlay=W-w-16:16:format=auto[vout]")
+            last_v = "vout"
+
+        # Trilha (opcional)
+        if "trilha" in map_indices:
+            ti = map_indices["trilha"]
+            vol = float(trilha.get("volume", 25)) / 100.0
+            vol = max(0.0, min(1.0, vol))
+            f.append(f"[{ti}:a]aformat=fltp:44100:stereo,volume={vol:.3f}[atrilha]")
+            f.append(f"[{last_a}][atrilha]amix=inputs=2:duration=first:normalize=0[aout]")
+            last_a = "aout"
+
+        filter_complex = ";".join(f)
+
+        # --------- Comanda o ffmpeg ---------
+        cmd = ["ffmpeg", "-y"]
+        # inputs das cenas
+        for p in input_files:
+            cmd += ["-i", p]
+        # inputs extras
+        # - marca d'água como imagem: vamos usar -loop 1 para que dure to do o vídeo
+        if "trilha" in map_indices:
+            cmd += ["-i", add_inputs[ list(map_indices.keys()).index("trilha") ]]
+        if "marca" in map_indices:
+            # garante -loop 1 para a imagem (repetição)
+            cmd += ["-loop", "1", "-i", add_inputs[ list(map_indices.keys()).index("marca") ]]
+
+        cmd += [
+            "-filter_complex", filter_complex,
+            "-map", f"[{last_v}]",
+            "-map", f"[{last_a}]",
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "27",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "128k",
+            "-g", "48", "-keyint_min", "48",
+            "-movflags", "+faststart+frag_keyframe+empty_moov",
+            out_path
+        ]
+
+        # Executa
+        try:
+            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        finally:
+            # limpa temporários
+            for t in tmp_to_cleanup:
+                try: os.remove(t)
+                except Exception: pass
+
+        return jsonify({"ok": True, "url": f"/cache/preview/{out_name}"})
+
+    except subprocess.CalledProcessError as e:
+        return jsonify({"ok": False, "message": e.stderr.decode('utf-8', 'ignore') if e.stderr else str(e)}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "message": str(e)}), 500
+# ======================== /PREVIEW PROXY (360p) ============================
 
 
 
@@ -1384,7 +1763,7 @@ def cenas_reordenar():
             if existe(p):
                 src_paths[("vid", i1)] = p
 
-        # --- FASE 1: mover TODO mundo para nomes temporários únicos ---
+        # --- FASE 1: mover TO DO mundo para nomes temporários únicos ---
         # Guardamos mapeamento temp->meta (tipo, antigo_idx1)
         temp_paths = {}  # temp_path -> (tipo, antigo_idx1)
         for key, src in src_paths.items():
